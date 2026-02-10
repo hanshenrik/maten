@@ -9,6 +9,28 @@ const urlsToCache = [
   "/apple-touch-icon.png",
 ];
 
+// Handle navigation requests for better offline experience
+self.addEventListener("fetch", (event) => {
+  if (event.request.mode === "navigate") {
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        return caches.match("/");
+      })
+    );
+    return;
+  }
+  
+  // Regular fetch handling
+  event.respondWith(
+    caches.match(event.request).then((response) => {
+      if (response) {
+        return response;
+      }
+      return fetch(event.request);
+    })
+  );
+});
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
