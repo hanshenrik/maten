@@ -3,7 +3,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import Header from "../components/Header.astro";
 import MainNavigation from "../components/MainNavigation.astro";
 import { ShoppingListComponent } from "../components/ShoppingList";
-import { getShoppingLists, initializeSampleData, updateShoppingList } from "../data/store";
+import {
+  getShoppingLists,
+  initializeSampleData,
+  updateShoppingList,
+} from "../data/store";
 
 const title = "Shopping List";
 
@@ -14,46 +18,46 @@ let shoppingLists = getShoppingLists();
 // Create a sample shopping list if none exists
 if (shoppingLists.length === 0) {
   const sampleShoppingList = {
-    id: 'list-1',
+    id: "list-1",
     items: [
       {
-        id: 'item-1',
-        name: 'Spaghetti',
+        id: "item-1",
+        name: "Spaghetti",
         amount: 400,
-        unit: 'g',
-        category: 'bakery',
-        completed: false
+        unit: "g",
+        category: "bakery",
+        completed: false,
       },
       {
-        id: 'item-2',
-        name: 'Pancetta',
+        id: "item-2",
+        name: "Pancetta",
         amount: 150,
-        unit: 'g',
-        category: 'meat',
-        completed: false
+        unit: "g",
+        category: "meat",
+        completed: false,
       },
       {
-        id: 'item-3',
-        name: 'Eggs',
+        id: "item-3",
+        name: "Eggs",
         amount: 4,
-        unit: 'pcs',
-        category: 'dairy',
-        completed: false
+        unit: "pcs",
+        category: "dairy",
+        completed: false,
       },
       {
-        id: 'item-4',
-        name: 'Pecorino Romano',
+        id: "item-4",
+        name: "Pecorino Romano",
         amount: 100,
-        unit: 'g',
-        category: 'dairy',
-        completed: false
-      }
+        unit: "g",
+        category: "dairy",
+        completed: false,
+      },
     ],
     createdAt: new Date(),
     updatedAt: new Date(),
-    completed: false
+    completed: false,
   };
-  
+
   // This would normally be done through the store, but for simplicity in this demo:
   shoppingLists = [sampleShoppingList];
 }
@@ -66,20 +70,24 @@ if (shoppingLists.length === 0) {
     <main class="container mx-auto max-w-6xl flex-1 px-4 py-8">
       <h1 class="text-primary mb-6 text-3xl font-bold">Shopping List</h1>
 
-      {shoppingLists.length > 0 ? (
-        <ShoppingListComponent 
-          shoppingList={shoppingLists[0]} 
-          onUpdate={(updatedList) => {
-            // In a real app, this would update the store
-            shoppingLists = [updatedList];
-          }}
-        />
-      ) : (
-        <div class="rounded-lg border border-gray-100 bg-white p-6 shadow-sm">
-          <p class="text-secondary mb-4">Your shopping list is empty.</p>
-          <p class="text-secondary">Add items or generate from your meal plan.</p>
-        </div>
-      )}
+      {
+        shoppingLists.length > 0 ? (
+          <ShoppingListComponent
+            shoppingList={shoppingLists[0]}
+            onUpdate={(updatedList) => {
+              // In a real app, this would update the store
+              shoppingLists = [updatedList];
+            }}
+          />
+        ) : (
+          <div class="rounded-lg border border-gray-100 bg-white p-6 shadow-sm">
+            <p class="text-secondary mb-4">Your shopping list is empty.</p>
+            <p class="text-secondary">
+              Add items or generate from your meal plan.
+            </p>
+          </div>
+        )
+      }
     </main>
 
     <MainNavigation />

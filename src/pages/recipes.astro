@@ -17,9 +17,9 @@ const recipes = await Astro.glob("../content/recipes/*.md");
       <h1 class="text-primary mb-6 text-3xl font-bold">Recipe Library</h1>
 
       {recipes.length > 0 ? (
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {recipes.map((recipe) => (
-            <RecipeCard key={recipe.id} recipe={recipe} />
+            <RecipeCard key={recipe.data.id} recipe={recipe.data} />
           ))}
         </div>
       ) : (
@@ -32,4 +32,5 @@ const recipes = await Astro.glob("../content/recipes/*.md");
 
     <MainNavigation />
   </div>
-</BaseLayout>
+</BaseLayout>;
+---

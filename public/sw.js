@@ -15,11 +15,11 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(event.request).catch(() => {
         return caches.match("/");
-      })
+      }),
     );
     return;
   }
-  
+
   // Regular fetch handling
   event.respondWith(
     caches.match(event.request).then((response) => {
@@ -27,7 +27,7 @@ self.addEventListener("fetch", (event) => {
         return response;
       }
       return fetch(event.request);
-    })
+    }),
   );
 });
 

@@ -1,15 +1,9 @@
 // Simple in-memory data store for the Maten app
-import type {
-  Recipe,
-  MealPlan,
-  ShoppingList,
-  RefrigeratorItem,
-} from "../types";
+import type { Recipe, MealPlan, ShoppingList } from "../types";
 
 let recipes: Recipe[] = [];
 let mealPlans: MealPlan[] = [];
 let shoppingLists: ShoppingList[] = [];
-let refrigeratorItems: RefrigeratorItem[] = [];
 
 // Recipe CRUD operations
 export const getRecipes = (): Recipe[] => recipes;
@@ -90,37 +84,6 @@ export const deleteShoppingList = (id: string): boolean => {
   const initialLength = shoppingLists.length;
   shoppingLists = shoppingLists.filter((list) => list.id !== id);
   return shoppingLists.length !== initialLength;
-};
-
-// Refrigerator CRUD operations
-export const getRefrigeratorItems = (): RefrigeratorItem[] => refrigeratorItems;
-
-export const getRefrigeratorItemById = (
-  id: string,
-): RefrigeratorItem | undefined => {
-  return refrigeratorItems.find((item) => item.id === id);
-};
-
-export const addRefrigeratorItem = (item: RefrigeratorItem): void => {
-  refrigeratorItems.push(item);
-};
-
-export const updateRefrigeratorItem = (
-  id: string,
-  updatedItem: RefrigeratorItem,
-): boolean => {
-  const index = refrigeratorItems.findIndex((item) => item.id === id);
-  if (index !== -1) {
-    refrigeratorItems[index] = updatedItem;
-    return true;
-  }
-  return false;
-};
-
-export const deleteRefrigeratorItem = (id: string): boolean => {
-  const initialLength = refrigeratorItems.length;
-  refrigeratorItems = refrigeratorItems.filter((item) => item.id !== id);
-  return refrigeratorItems.length !== initialLength;
 };
 
 // Initialize with some sample data

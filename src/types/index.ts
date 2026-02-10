@@ -62,14 +62,3 @@ export interface ShoppingListItem {
   completed: boolean;
   notes?: string;
 }
-
-export interface RefrigeratorItem {
-  id: string;
-  name: string;
-  category: string;
-  quantity: number;
-  unit: string;
-  expirationDate?: Date;
-  notes?: string;
-  addedAt: Date;
-}

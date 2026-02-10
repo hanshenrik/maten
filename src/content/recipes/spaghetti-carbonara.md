@@ -45,6 +45,7 @@ updatedAt: 2024-01-15T10:00:00.000Z
 A classic Roman pasta dish that's creamy, rich, and satisfying. The secret is in the technique of creating a silky sauce without scrambling the eggs.
 
 ### Tips
+
 - Use high-quality pancetta or guanciale for authentic flavor
 - Grate the cheese finely for better melting
 - Work quickly when combining the egg mixture with hot pasta to avoid scrambling
