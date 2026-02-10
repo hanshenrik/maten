@@ -3,64 +3,53 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import Header from "../components/Header.astro";
 import MainNavigation from "../components/MainNavigation.astro";
 import { ShoppingListComponent } from "../components/ShoppingList";
-import {
-  getShoppingLists,
-  initializeSampleData,
-  updateShoppingList,
-} from "../data/store";
 
 const title = "Shopping List";
 
-// Initialize sample data
-initializeSampleData();
-let shoppingLists = getShoppingLists();
+// Create a sample shopping list for demo purposes
+// In a real app with PagesCMS, this would come from content collections
+const sampleShoppingList = {
+  id: "list-1",
+  items: [
+    {
+      id: "item-1",
+      name: "Spaghetti",
+      amount: 400,
+      unit: "g",
+      category: "bakery",
+      completed: false,
+    },
+    {
+      id: "item-2",
+      name: "Pancetta",
+      amount: 150,
+      unit: "g",
+      category: "meat",
+      completed: false,
+    },
+    {
+      id: "item-3",
+      name: "Eggs",
+      amount: 4,
+      unit: "pcs",
+      category: "dairy",
+      completed: false,
+    },
+    {
+      id: "item-4",
+      name: "Pecorino Romano",
+      amount: 100,
+      unit: "g",
+      category: "dairy",
+      completed: false,
+    },
+  ],
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  completed: false,
+};
 
-// Create a sample shopping list if none exists
-if (shoppingLists.length === 0) {
-  const sampleShoppingList = {
-    id: "list-1",
-    items: [
-      {
-        id: "item-1",
-        name: "Spaghetti",
-        amount: 400,
-        unit: "g",
-        category: "bakery",
-        completed: false,
-      },
-      {
-        id: "item-2",
-        name: "Pancetta",
-        amount: 150,
-        unit: "g",
-        category: "meat",
-        completed: false,
-      },
-      {
-        id: "item-3",
-        name: "Eggs",
-        amount: 4,
-        unit: "pcs",
-        category: "dairy",
-        completed: false,
-      },
-      {
-        id: "item-4",
-        name: "Pecorino Romano",
-        amount: 100,
-        unit: "g",
-        category: "dairy",
-        completed: false,
-      },
-    ],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    completed: false,
-  };
-
-  // This would normally be done through the store, but for simplicity in this demo:
-  shoppingLists = [sampleShoppingList];
-}
+const shoppingLists = [sampleShoppingList];
 ---
 
 <BaseLayout title={title}>
@@ -81,9 +70,9 @@ if (shoppingLists.length === 0) {
           />
         ) : (
           <div class="rounded-lg border border-gray-100 bg-white p-6 shadow-sm">
-            <p class="text-secondary mb-4">Your shopping list is empty.</p>
+            <p class="text-secondary mb-4">Handlelista er tom.</p>
             <p class="text-secondary">
-              Add items or generate from your meal plan.
+              Legg til varer eller generer fra din middagsplan.
             </p>
           </div>
         )

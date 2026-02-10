@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import type { ShoppingList, ShoppingListItem } from "../types";
+import type { ShoppingList, ShoppingListItem } from "../content/config";
 
 interface ShoppingListProps {
   shoppingList: ShoppingList;

@@ -1,4 +1,5 @@
 ---
+import { getCollection } from "astro:content";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Header from "../components/Header.astro";
 import MainNavigation from "../components/MainNavigation.astro";
@@ -7,7 +8,8 @@ import { RecipeCard } from "../components/RecipeCard";
 const title = "Recipes";
 
 // Get recipes from content collections
-const recipes = await Astro.glob("../content/recipes/*.md");
+const recipes = await getCollection("recipes");
+---
 
 <BaseLayout title={title}>
   <div class="flex min-h-screen flex-col">
@@ -16,21 +18,22 @@ const recipes = await Astro.glob("../content/recipes/*.md");
     <main class="container mx-auto max-w-6xl flex-1 px-4 py-8">
       <h1 class="text-primary mb-6 text-3xl font-bold">Recipe Library</h1>
 
-      {recipes.length > 0 ? (
-        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {recipes.map((recipe) => (
-            <RecipeCard key={recipe.data.id} recipe={recipe.data} />
-          ))}
-        </div>
-      ) : (
-        <div class="rounded-lg border border-gray-100 bg-white p-6 shadow-sm">
-          <p class="text-secondary mb-4">Your recipe library is empty.</p>
-          <p class="text-secondary">Add recipes to build your collection.</p>
-        </div>
-      )}
+      {
+        recipes.length > 0 ? (
+          <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {recipes.map((recipe) => (
+              <RecipeCard recipe={recipe.data} />
+            ))}
+          </div>
+        ) : (
+          <div class="rounded-lg border border-gray-100 bg-white p-6 shadow-sm">
+            <p class="text-secondary mb-4">Your recipe library is empty.</p>
+            <p class="text-secondary">Add recipes to build your collection.</p>
+          </div>
+        )
+      }
     </main>
 
     <MainNavigation />
   </div>
-</BaseLayout>;
----
+</BaseLayout>

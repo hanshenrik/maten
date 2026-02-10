@@ -1,48 +1,48 @@
 ---
+import { getCollection } from "astro:content";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Header from "../components/Header.astro";
 import MainNavigation from "../components/MainNavigation.astro";
-import { MealPlanDay } from "../components/MealPlanDay";
+import { PlanDayComponent as PlanDay } from "../components/PlanDay";
 
-const title = "Meal Planning";
+const title = "Plan";
 
-// Get meal plans and recipes from content collections
-const mealPlans = await Astro.glob("../content/meal-plans/*.md");
-const recipes = await Astro.glob("../content/recipes/*.md");
+const plans = await getCollection("plans");
+const recipes = await getCollection("recipes");
 
 // Create a lookup for recipes by ID
 const recipesById = Object.fromEntries(
   recipes.map((recipe) => [recipe.id, { title: recipe.data.title }]),
 );
+---
 
 <BaseLayout title={title}>
   <div class="flex min-h-screen flex-col">
     <Header />
 
     <main class="container mx-auto max-w-6xl flex-1 px-4 py-8">
-      <h1 class="text-primary mb-6 text-3xl font-bold">Weekly Meal Plan</h1>
+      <h1 class="text-primary mb-6 text-3xl font-bold">Ukens middagsplan</h1>
 
-      {mealPlans.length > 0 ? (
-        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {mealPlans
-            .flatMap((plan) => plan.days)
-            .map((day) => (
-              <MealPlanDay
-                key={`${day.day}-${day.date.toDateString()}`}
-                day={day}
-                recipes={recipesById}
-              />
-            ))}
-        </div>
-      ) : (
-        <div class="rounded-lg border border-gray-100 bg-white p-6 shadow-sm">
-          <p class="text-secondary mb-4">No meal plans found.</p>
-          <p class="text-secondary">Create a new meal plan to get started.</p>
-        </div>
-      )}
+      {
+        plans.length > 0 ? (
+          <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {plans
+              .flatMap((plan) => plan.data.days ?? [])
+              .map((day) => (
+                <PlanDay day={day} recipes={recipesById} />
+              ))}
+          </div>
+        ) : (
+          <div class="rounded-lg border border-gray-100 bg-white p-6 shadow-sm">
+            <p class="text-secondary mb-4">Ingen middagsplaner funnet.</p>
+            <p class="text-secondary">
+              Opprett en ny middagsplan for å komme i gang.
+            </p>
+          </div>
+        )
+      }
     </main>
 
     <MainNavigation />
   </div>
-</BaseLayout>;
----
+</BaseLayout>

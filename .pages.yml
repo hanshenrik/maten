@@ -1,0 +1,37 @@
+media:
+  - name: src-images
+    label: Bilder
+    input: src/images
+    output: /src/images
+    extensions: [png, jpg, jpeg, webp, svg, gif]
+
+content:
+  - name: recipes
+    label: Oppskrifter
+    type: collection
+    path: src/content/recipes
+    filename: "{title}.md"
+    view:
+      fields:
+        [
+          title,
+          description,
+          ingredients,
+          instructions,
+          servings,
+          prepTime,
+          cookTime,
+          categories,
+          image,
+          createdAt,
+          updatedAt,
+        ]
+      primary: title
+  - name: plans
+    label: Plan
+    type: collection
+    path: src/content/plans
+    filename: "{week}-{year}.md"
+    view:
+      fields: [week, year, days]
+      primary: week
