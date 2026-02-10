@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-color: #2d3748;
+  --secondary-color: #4a5568;
+  --accent-color: #4299e1;
+  --light-color: #f7fafc;
+  --dark-color: #1a202c;
+  --success-color: #48bb78;
+  --warning-color: #ed8936;
+  --danger-color: #f56565;
+}
+
+body {
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  background-color: var(--light-color);
+  color: var(--dark-color);
+  line-height: 1.6;
+}
+
+/* Add smooth transitions for better UX */
+* {
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}

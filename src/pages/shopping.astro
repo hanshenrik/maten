@@ -1,0 +1,26 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Header from "../components/Header.astro";
+import MainNavigation from "../components/MainNavigation.astro";
+
+const title = "Shopping List";
+---
+
+<BaseLayout title={title}>
+  <div class="flex min-h-screen flex-col">
+    <Header />
+
+    <main class="container mx-auto max-w-6xl flex-1 px-4 py-8">
+      <h1 class="text-primary mb-6 text-3xl font-bold">Shopping List</h1>
+
+      <div class="rounded-lg border border-gray-100 bg-white p-6 shadow-sm">
+        <p class="text-secondary mb-4">
+          Your shopping list will be generated here.
+        </p>
+        <p class="text-secondary">Add items or generate from your meal plan.</p>
+      </div>
+    </main>
+
+    <MainNavigation />
+  </div>
+</BaseLayout>
