@@ -8,13 +8,15 @@ const { id } = Astro.params;
 // Fetch plan with days and recipes
 const { data: plan, error } = await Astro.locals.supabase
   .from("dinner_plans")
-  .select(`
+  .select(
+    `
     *,
     plan_days (
       *,
       recipes (*)
     )
-  `)
+  `,
+  )
   .eq("id", id)
   .single();
 
@@ -31,7 +33,9 @@ const title = plan.title || `Plan: ${plan.start_date} - ${plan.end_date}`;
       <div class="mb-10 flex items-center justify-between">
         <div>
           <h1 class="text-3xl font-bold text-gray-900">{title}</h1>
-          <p class="text-gray-500">Weekly meal plan from {plan.start_date} to {plan.end_date}</p>
+          <p class="text-gray-500">
+            Weekly meal plan from {plan.start_date} to {plan.end_date}
+          </p>
         </div>
         <div class="flex gap-3">
           <a
@@ -50,12 +54,23 @@ const title = plan.title || `Plan: ${plan.start_date} - ${plan.end_date}`;
       </div>
 
       <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-        {plan.plan_days?.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime()).map((day: any) => (
-          <PlanDay
-            day={{ day_of_week: day.date, recipeId: day.recipe_id, notes: day.notes }}
-            recipes={{ [day.recipe_id]: { title: day.recipes?.title } }}
-          />
-        ))}
+        {
+          plan.plan_days
+            ?.sort(
+              (a: any, b: any) =>
+                new Date(a.date).getTime() - new Date(b.date).getTime(),
+            )
+            .map((day: any) => (
+              <PlanDay
+                day={{
+                  day_of_week: day.date,
+                  recipeId: day.recipe_id,
+                  notes: day.notes,
+                }}
+                recipes={{ [day.recipe_id]: { title: day.recipes?.title } }}
+              />
+            ))
+        }
       </div>
     </main>
 
