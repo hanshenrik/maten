@@ -1,10 +1,11 @@
 import { defineConfig } from "astro/config";
 import react from "@astrojs/react";
-
 import tailwindcss from "@tailwindcss/vite";
+import vercel from "@astrojs/vercel";
 
 export default defineConfig({
-  output: "static",
+  output: "server",
+  adapter: vercel(),
   integrations: [react()],
 
   site: "https://mat.hanshenrik.com",
