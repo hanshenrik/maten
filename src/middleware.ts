@@ -4,8 +4,8 @@ import { createServerClient } from "@supabase/ssr";
 export const onRequest = defineMiddleware(
   async ({ locals, request, cookies, redirect }, next) => {
     const supabase = createServerClient(
-      import.meta.env.SUPABASE_URL,
-      import.meta.env.SUPABASE_PUBLISHABLE_KEY,
+      import.meta.env.PUBLIC_SUPABASE_URL,
+      import.meta.env.PUBLIC_SUPABASE_PUBLISHABLE_KEY,
       {
         cookies: {
           getAll() {
