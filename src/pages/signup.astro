@@ -1,0 +1,140 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { createServerClient } from "@supabase/ssr";
+
+let errorMessage = "";
+let successMessage = "";
+
+if (Astro.request.method === "POST") {
+  const formData = await Astro.request.formData();
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
+
+  if (email && password) {
+    const supabase = createServerClient(
+      import.meta.env.SUPABASE_URL,
+      import.meta.env.SUPABASE_KEY,
+      {
+        cookies: {
+          getAll() {
+            const cookieHeader = Astro.request.headers.get("Cookie") ?? "";
+            return cookieHeader
+              .split("; ")
+              .filter(Boolean)
+              .map((c) => {
+                const [name, ...value] = c.split("=");
+                return { name, value: value.join("=") };
+              });
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              Astro.cookies.set(name, value, options);
+            });
+          },
+        },
+      },
+    );
+
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    if (error) {
+      errorMessage = error.message;
+    } else {
+      successMessage =
+        "Success! Please check your email to confirm your account (if email confirmation is enabled). You can now try to log in.";
+    }
+  } else {
+    errorMessage = "Please enter both email and password.";
+  }
+}
+---
+
+<BaseLayout title="Sign Up">
+  <div class="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+    <div class="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
+      <div class="mb-10 text-center">
+        <h1 class="mb-2 text-3xl font-bold text-gray-900">Create Account</h1>
+        <p class="text-gray-500">Join Maten and start planning</p>
+      </div>
+
+      {
+        errorMessage && (
+          <div
+            class="mb-6 rounded-lg bg-red-100 p-4 text-sm text-red-700"
+            role="alert"
+          >
+            {errorMessage}
+          </div>
+        )
+      }
+
+      {
+        successMessage && (
+          <div
+            class="mb-6 rounded-lg bg-green-100 p-4 text-sm text-green-700"
+            role="alert"
+          >
+            {successMessage}
+          </div>
+        )
+      }
+
+      {
+        !successMessage && (
+          <form method="POST" class="space-y-6">
+            <div>
+              <label
+                for="email"
+                class="mb-1 block text-sm font-medium text-gray-700"
+              >
+                Email address
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                required
+                class="w-full rounded-xl border border-gray-300 px-4 py-3 transition-all outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                placeholder="you@example.com"
+              />
+            </div>
+
+            <div>
+              <label
+                for="password"
+                class="mb-1 block text-sm font-medium text-gray-700"
+              >
+                Password
+              </label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                required
+                class="w-full rounded-xl border border-gray-300 px-4 py-3 transition-all outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                placeholder="••••••••"
+              />
+            </div>
+
+            <button
+              type="submit"
+              class="w-full transform rounded-xl bg-green-600 px-4 py-3 font-semibold text-white shadow-lg shadow-green-200 transition-all hover:bg-green-700 active:scale-[0.98]"
+            >
+              Create Account
+            </button>
+          </form>
+        )
+      }
+
+      <p class="mt-8 text-center text-sm text-gray-500">
+        Already have an account? <a
+          href="/login"
+          class="font-medium text-blue-600 hover:underline">Sign in</a
+        >
+      </p>
+    </div>
+  </div>
+</BaseLayout>

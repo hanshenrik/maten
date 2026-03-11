@@ -1,3 +1,7 @@
+---
+const { user } = Astro.locals;
+---
+
 <nav class="border-t border-gray-200 bg-white px-4 py-4">
   <div class="container mx-auto flex justify-center gap-8">
     <a
@@ -43,5 +47,24 @@
       </svg>
       <span class="text-sm">Shopping</span>
     </a>
+    {
+      user && (
+        <form action="/api/auth/logout" method="POST" class="inline">
+          <button
+            type="submit"
+            class="text-secondary flex cursor-pointer flex-col items-center border-none bg-transparent p-0 transition-colors hover:text-red-600"
+          >
+            <svg class="mb-1 h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fill-rule="evenodd"
+                d="M3 3a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1H3zm7 4a1 1 0 10-2 0v1H7a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            <span class="text-sm">Logout</span>
+          </button>
+        </form>
+      )
+    }
   </div>
 </nav>

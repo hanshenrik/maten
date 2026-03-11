@@ -1,6 +1,5 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import Header from "../components/Header.astro";
 import MainNavigation from "../components/MainNavigation.astro";
 
 const title = "Page Not Found";
@@ -8,8 +7,6 @@ const title = "Page Not Found";
 
 <BaseLayout title={title}>
   <div class="flex min-h-screen flex-col">
-    <Header />
-
     <main class="container mx-auto max-w-6xl flex-1 px-4 py-8">
       <div class="py-16 text-center">
         <h1 class="text-primary mb-4 text-6xl font-bold">404</h1>

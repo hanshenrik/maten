@@ -34,7 +34,7 @@ export const onRequest = defineMiddleware(
     locals.user = user;
 
     const url = new URL(request.url);
-    if (!user && url.pathname !== "/login") {
+    if (!user && url.pathname !== "/login" && url.pathname !== "/signup") {
       return redirect("/login");
     }
 
