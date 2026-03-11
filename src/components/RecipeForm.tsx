@@ -11,11 +11,13 @@ interface Ingredient {
 interface RecipeFormProps {
   initialData?: any;
   onSuccess?: (id: string) => void;
+  userId: string;
 }
 
 export const RecipeForm: React.FC<RecipeFormProps> = ({
   initialData,
   onSuccess,
+  userId,
 }) => {
   const isEditing = !!initialData?.id;
   const [title, setTitle] = useState(initialData?.title || "");
@@ -76,7 +78,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
           .from("recipes")
           .insert({
             ...recipeData,
-            user_id: (await supabase.auth.getUser()).data.user?.id,
+            user_id: userId,
           })
           .select()
           .single();

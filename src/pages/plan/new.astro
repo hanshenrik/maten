@@ -1,0 +1,26 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import MainNavigation from "../../components/MainNavigation.astro";
+import { DinnerPlanningWizard } from "../../components/DinnerPlanningWizard";
+
+const title = "New Dinner Plan";
+---
+
+<BaseLayout title={title}>
+  <div class="flex min-h-screen flex-col bg-gray-50">
+    <main class="container mx-auto max-w-4xl flex-1 px-4 py-12">
+      <div class="mb-10 text-center">
+        <h1 class="mb-2 text-3xl font-bold text-gray-900">
+          Dinner Planning Wizard
+        </h1>
+        <p class="text-gray-500">
+          Pick your dates and assign your favorite recipes
+        </p>
+      </div>
+
+      <DinnerPlanningWizard client:load userId={Astro.locals.user.id} />
+    </main>
+
+    <MainNavigation />
+  </div>
+</BaseLayout>

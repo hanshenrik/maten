@@ -2,12 +2,11 @@
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import MainNavigation from "../../../components/MainNavigation.astro";
 import { RecipeForm } from "../../../components/RecipeForm";
-import { supabase } from "../../../lib/supabase";
 
 const { id } = Astro.params;
 
-// Fetch recipe with ingredients
-const { data: recipe, error: recipeError } = await supabase
+// Fetch recipe with ingredients using authenticated client from locals
+const { data: recipe, error: recipeError } = await Astro.locals.supabase
   .from("recipes")
   .select(
     `
@@ -33,7 +32,11 @@ const title = `Edit ${recipe.title}`;
         <p class="text-gray-500">Update your recipe details and ingredients</p>
       </div>
 
-      <RecipeForm client:load initialData={recipe} />
+      <RecipeForm
+        client:load
+        initialData={recipe}
+        userId={Astro.locals.user.id}
+      />
     </main>
 
     <MainNavigation />

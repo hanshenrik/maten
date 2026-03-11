@@ -1,13 +1,12 @@
 ---
-import { supabase } from "../lib/supabase";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import MainNavigation from "../components/MainNavigation.astro";
 import { PlanDayComponent as PlanDay } from "../components/PlanDay";
 
 const title = "Plan";
 
-// Fetch dinner plans from Supabase
-const { data: plans = [] } = await supabase
+// Fetch dinner plans from Supabase using the authenticated client from locals
+const { data: plans = [] } = await Astro.locals.supabase
   .from("dinner_plans")
   .select(
     `
@@ -28,7 +27,15 @@ const recipesById = {};
 <BaseLayout title={title}>
   <div class="flex min-h-screen flex-col">
     <main class="container mx-auto max-w-6xl flex-1 px-4 py-8">
-      <h1 class="text-primary mb-6 text-3xl font-bold">Ukens middagsplan</h1>
+      <div class="mb-8 flex items-center justify-between">
+        <h1 class="text-primary text-3xl font-bold">Ukens middagsplan</h1>
+        <a
+          href="/plan/new"
+          class="rounded-lg bg-green-600 px-4 py-2 font-semibold text-white shadow-sm transition-colors hover:bg-green-700"
+        >
+          + Ny Plan
+        </a>
+      </div>
 
       {
         plans && plans.length > 0 ? (
@@ -36,10 +43,12 @@ const recipesById = {};
             {plans.map((plan) => (
               <section class="space-y-4">
                 <div class="flex items-center justify-between">
-                  <h2 class="text-2xl font-bold text-gray-900">
-                    {plan.title ||
-                      `Plan: ${plan.start_date} - ${plan.end_date}`}
-                  </h2>
+                  <a href={`/plan/${plan.id}`} class="group">
+                    <h2 class="text-2xl font-bold text-gray-900 transition-colors group-hover:text-blue-600">
+                      {plan.title ||
+                        `Plan: ${plan.start_date} - ${plan.end_date}`}
+                    </h2>
+                  </a>
                 </div>
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                   {plan.plan_days?.map((day) => (

@@ -5,50 +5,61 @@ import { ShoppingListComponent } from "../components/ShoppingList";
 
 const title = "Shopping List";
 
-// Create a sample shopping list for demo purposes
-// In a real app with PagesCMS, this would come from content collections
-const sampleShoppingList = {
-  id: "list-1",
-  items: [
-    {
-      id: "item-1",
-      name: "Spaghetti",
-      amount: 400,
-      unit: "g",
-      category: "bakery",
-      completed: false,
-    },
-    {
-      id: "item-2",
-      name: "Pancetta",
-      amount: 150,
-      unit: "g",
-      category: "meat",
-      completed: false,
-    },
-    {
-      id: "item-3",
-      name: "Eggs",
-      amount: 4,
-      unit: "pcs",
-      category: "dairy",
-      completed: false,
-    },
-    {
-      id: "item-4",
-      name: "Pecorino Romano",
-      amount: 100,
-      unit: "g",
-      category: "dairy",
-      completed: false,
-    },
-  ],
-  createdAt: new Date(),
+// 1. Fetch the most recent plan using authenticated client from locals
+const { data: activePlan } = await Astro.locals.supabase
+  .from("dinner_plans")
+  .select(
+    `
+    *,
+    plan_days (
+      recipe_id,
+      recipes (
+        id,
+        ingredients (
+          name,
+          amount,
+          unit,
+          is_basic
+        )
+      )
+    )
+  `,
+  )
+  .order("start_date", { ascending: false })
+  .limit(1)
+  .single();
+
+// 2. Aggregate ingredients
+const itemMap: Record<string, any> = {};
+
+activePlan?.plan_days?.forEach((day: any) => {
+  day.recipes?.ingredients?.forEach((ing: any) => {
+    // Skip basics by default
+    if (ing.is_basic) return;
+
+    const key = `${ing.name.toLowerCase()}-${ing.unit?.toLowerCase() || "none"}`;
+    if (itemMap[key]) {
+      itemMap[key].amount += ing.amount || 0;
+    } else {
+      itemMap[key] = {
+        name: ing.name,
+        amount: ing.amount || 0,
+        unit: ing.unit,
+        completed: false,
+      };
+    }
+  });
+});
+
+const shoppingListItems = Object.values(itemMap);
+
+const currentShoppingList = {
+  id: activePlan?.id || "empty",
+  items: shoppingListItems,
+  createdAt: activePlan?.created_at || new Date(),
   updatedAt: new Date(),
   completed: false,
 };
-
-const shoppingLists = [sampleShoppingList];
 ---
 
 <BaseLayout title={title}>
@@ -57,12 +68,11 @@ const shoppingLists = [sampleShoppingList];
       <h1 class="text-primary mb-6 text-3xl font-bold">Shopping List</h1>
 
       {
-        shoppingLists.length > 0 ? (
+        currentShoppingList.items.length > 0 ? (
           <ShoppingListComponent
-            shoppingList={shoppingLists[0]}
+            shoppingList={currentShoppingList}
             onUpdate={(updatedList) => {
-              // In a real app, this would update the store
-              shoppingLists = [updatedList];
+              // Client-side state managed by the component
             }}
           />
         ) : (

@@ -1,0 +1,80 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import MainNavigation from "../../components/MainNavigation.astro";
+import { PlanDayComponent as PlanDay } from "../../components/PlanDay";
+
+const { id } = Astro.params;
+
+// Fetch plan with days and recipes
+const { data: plan, error } = await Astro.locals.supabase
+  .from("dinner_plans")
+  .select(`
+    *,
+    plan_days (
+      *,
+      recipes (*)
+    )
+  `)
+  .eq("id", id)
+  .single();
+
+if (error || !plan) {
+  return Astro.redirect("/404");
+}
+
+const title = plan.title || `Plan: ${plan.start_date} - ${plan.end_date}`;
+---
+
+<BaseLayout title={title}>
+  <div class="flex min-h-screen flex-col bg-gray-50">
+    <main class="container mx-auto max-w-4xl flex-1 px-4 py-12">
+      <div class="mb-10 flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">{title}</h1>
+          <p class="text-gray-500">Weekly meal plan from {plan.start_date} to {plan.end_date}</p>
+        </div>
+        <div class="flex gap-3">
+          <a
+            href={`/plan/${id}/edit`}
+            class="rounded-xl border border-gray-200 bg-white px-6 py-2 font-semibold text-gray-600 shadow-sm transition-colors hover:bg-gray-50"
+          >
+            Edit Plan
+          </a>
+          <button
+            id="delete-plan"
+            class="rounded-xl bg-red-50 px-6 py-2 font-semibold text-red-600 shadow-sm transition-colors hover:bg-red-100"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+        {plan.plan_days?.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime()).map((day: any) => (
+          <PlanDay
+            day={{ day_of_week: day.date, recipeId: day.recipe_id, notes: day.notes }}
+            recipes={{ [day.recipe_id]: { title: day.recipes?.title } }}
+          />
+        ))}
+      </div>
+    </main>
+
+    <MainNavigation />
+  </div>
+</BaseLayout>
+
+<script define:vars={{ id }}>
+  const deleteBtn = document.getElementById("delete-plan");
+  deleteBtn?.addEventListener("click", async () => {
+    if (!confirm("Are you sure you want to delete this dinner plan?")) return;
+
+    const { supabase } = await import("../../lib/supabase");
+    const { error } = await supabase.from("dinner_plans").delete().eq("id", id);
+
+    if (error) {
+      alert("Error deleting plan: " + error.message);
+    } else {
+      window.location.href = "/plan";
+    }
+  });
+</script>

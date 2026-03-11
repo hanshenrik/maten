@@ -1,12 +1,11 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import MainNavigation from "../../components/MainNavigation.astro";
-import { supabase } from "../../lib/supabase";
 
 const { id } = Astro.params;
 
-// Fetch recipe with ingredients
-const { data: recipe, error: recipeError } = await supabase
+// Fetch recipe with ingredients using the authenticated client from locals
+const { data: recipe, error: recipeError } = await Astro.locals.supabase
   .from("recipes")
   .select(
     `

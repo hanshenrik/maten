@@ -2,12 +2,10 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import MainNavigation from "../components/MainNavigation.astro";
 import { RecipeCard } from "../components/RecipeCard";
-import { supabase } from "../lib/supabase";
-
 const title = "Recipes";
 
-// Get recipes from Supabase
-const { data: recipes, error } = await supabase
+// Get recipes from Supabase using the authenticated client from locals
+const { data: recipes, error } = await Astro.locals.supabase
   .from("recipes")
   .select("*")
   .order("created_at", { ascending: false });

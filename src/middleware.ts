@@ -35,6 +35,7 @@ export const onRequest = defineMiddleware(
     } = await supabase.auth.getUser();
 
     locals.user = user;
+    locals.supabase = supabase;
 
     const url = new URL(request.url);
     if (!user && url.pathname !== "/login" && url.pathname !== "/signup") {
