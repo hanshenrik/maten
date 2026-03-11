@@ -1,8 +1,10 @@
 import React from "react";
-import type { PlanDay } from "../content/config";
-
 interface PlanDayComponentProps {
-  day: PlanDay;
+  day: {
+    day_of_week: string; // This will now be the date string
+    recipeId: string;
+    notes?: string;
+  };
   recipes: Record<string, { title: string }>;
 }
 
@@ -10,10 +12,15 @@ export const PlanDayComponent: React.FC<PlanDayComponentProps> = ({
   day,
   recipes,
 }) => {
+  const dateObj = new Date(day.day_of_week);
   return (
     <div className="rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
-      <h3 className="text-primary mb-3 text-lg font-semibold">{day.day}</h3>
-      <p className="text-secondary mb-4 text-sm">{day.date.toDateString()}</p>
+      <h3 className="text-primary mb-3 text-lg font-semibold uppercase">
+        {dateObj.toLocaleDateString("en-US", { weekday: "long" })}
+      </h3>
+      <p className="text-secondary mb-4 text-sm">
+        {dateObj.toLocaleDateString()}
+      </p>
 
       <div className="space-y-3">
         {day.recipeId && recipes[day.recipeId] ? (

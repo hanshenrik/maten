@@ -1,0 +1,22 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import MainNavigation from "../../components/MainNavigation.astro";
+import { RecipeForm } from "../../components/RecipeForm";
+
+const title = "New Recipe";
+---
+
+<BaseLayout title={title}>
+  <div class="flex min-h-screen flex-col bg-gray-50">
+    <main class="container mx-auto max-w-2xl flex-1 px-4 py-12">
+      <div class="mb-10 text-center">
+        <h1 class="mb-2 text-3xl font-bold text-gray-900">New Recipe</h1>
+        <p class="text-gray-500">Add a new favorite to your collection</p>
+      </div>
+
+      <RecipeForm client:load />
+    </main>
+
+    <MainNavigation />
+  </div>
+</BaseLayout>

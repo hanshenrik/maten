@@ -1,0 +1,41 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import MainNavigation from "../../../components/MainNavigation.astro";
+import { RecipeForm } from "../../../components/RecipeForm";
+import { supabase } from "../../../lib/supabase";
+
+const { id } = Astro.params;
+
+// Fetch recipe with ingredients
+const { data: recipe, error: recipeError } = await supabase
+  .from("recipes")
+  .select(
+    `
+    *,
+    ingredients (*)
+  `,
+  )
+  .eq("id", id)
+  .single();
+
+if (recipeError || !recipe) {
+  return Astro.redirect("/404");
+}
+
+const title = `Edit ${recipe.title}`;
+---
+
+<BaseLayout title={title}>
+  <div class="flex min-h-screen flex-col bg-gray-50">
+    <main class="container mx-auto max-w-2xl flex-1 px-4 py-12">
+      <div class="mb-10 text-center">
+        <h1 class="mb-2 text-3xl font-bold text-gray-900">Edit Recipe</h1>
+        <p class="text-gray-500">Update your recipe details and ingredients</p>
+      </div>
+
+      <RecipeForm client:load initialData={recipe} />
+    </main>
+
+    <MainNavigation />
+  </div>
+</BaseLayout>

@@ -1,0 +1,166 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import MainNavigation from "../../components/MainNavigation.astro";
+import { supabase } from "../../lib/supabase";
+
+const { id } = Astro.params;
+
+// Fetch recipe with ingredients
+const { data: recipe, error: recipeError } = await supabase
+  .from("recipes")
+  .select(
+    `
+    *,
+    ingredients (*)
+  `,
+  )
+  .eq("id", id)
+  .single();
+
+if (recipeError || !recipe) {
+  return Astro.redirect("/404");
+}
+
+const title = recipe.title;
+---
+
+<BaseLayout title={title}>
+  <div class="flex min-h-screen flex-col bg-gray-50">
+    <main class="container mx-auto max-w-3xl flex-1 px-4 py-12">
+      <div class="mb-8 flex items-center justify-between">
+        <a
+          href="/recipes"
+          class="flex items-center gap-1 font-medium text-blue-600 hover:underline"
+        >
+          <svg
+            class="h-4 w-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 19l-7-7 7-7"></path>
+          </svg>
+          Back to library
+        </a>
+        <div class="flex gap-2">
+          <a
+            href={`/recipes/${id}/edit`}
+            class="rounded-lg border border-gray-100 bg-white p-2 text-gray-600 shadow-sm transition-colors hover:text-blue-600"
+          >
+            <svg
+              class="h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+              ></path>
+            </svg>
+          </a>
+          <button
+            id="delete-recipe"
+            class="rounded-lg border border-gray-100 bg-white p-2 text-gray-600 shadow-sm transition-colors hover:text-red-600"
+          >
+            <svg
+              class="h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              ></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <article
+        class="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm"
+      >
+        {
+          recipe.image_url && (
+            <img
+              src={recipe.image_url}
+              alt={recipe.title}
+              class="h-64 w-full object-cover"
+            />
+          )
+        }
+
+        <div class="p-8">
+          <h1 class="mb-4 text-4xl font-bold text-gray-900">{recipe.title}</h1>
+          <p class="mb-8 text-lg text-gray-600">{recipe.description}</p>
+
+          <div class="grid gap-8 md:grid-cols-3">
+            <div class="md:col-span-1">
+              <h2 class="mb-4 text-xl font-bold text-gray-900">Ingredients</h2>
+              <ul class="space-y-3">
+                {
+                  recipe.ingredients.map((ing: any) => (
+                    <li class="flex items-start gap-2">
+                      <span class="mt-1 font-bold text-blue-600">•</span>
+                      <span>
+                        {ing.amount && (
+                          <span class="font-medium">{ing.amount} </span>
+                        )}
+                        {ing.unit && (
+                          <span class="text-gray-500">{ing.unit} </span>
+                        )}
+                        {ing.name}
+                        {ing.is_basic && (
+                          <span class="ml-1 rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-400">
+                            Basic
+                          </span>
+                        )}
+                      </span>
+                    </li>
+                  ))
+                }
+              </ul>
+            </div>
+
+            <div class="md:col-span-2">
+              <h2 class="mb-4 text-xl font-bold text-gray-900">Instructions</h2>
+              <div
+                class="prose prose-blue prose-lg max-w-none whitespace-pre-wrap text-gray-700"
+              >
+                {recipe.instructions}
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+    </main>
+
+    <MainNavigation />
+  </div>
+</BaseLayout>
+
+<script define:vars={{ id }}>
+  const deleteBtn = document.getElementById("delete-recipe");
+  deleteBtn?.addEventListener("click", async () => {
+    if (!confirm("Are you sure you want to delete this recipe?")) return;
+
+    // We'll use the global supabase client or a simple fetch/api call
+    const { supabase } = await import("../../lib/supabase");
+    const { error } = await supabase.from("recipes").delete().eq("id", id);
+
+    if (error) {
+      alert("Error deleting recipe: " + error.message);
+    } else {
+      window.location.href = "/recipes";
+    }
+  });
+</script>
