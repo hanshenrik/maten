@@ -20,7 +20,10 @@ export const onRequest = defineMiddleware(
           },
           setAll(cookiesToSet) {
             cookiesToSet.forEach(({ name, value, options }) => {
-              cookies.set(name, value, options);
+              cookies.set(name, value, {
+                ...options,
+                maxAge: 60 * 60 * 24 * 30, // 30 days
+              });
             });
           },
         },

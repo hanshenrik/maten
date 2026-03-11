@@ -19,7 +19,10 @@ export const POST: APIRoute = async ({ cookies, redirect, request }) => {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
-            cookies.set(name, value, options);
+            cookies.set(name, value, {
+              ...options,
+              maxAge: 60 * 60 * 24 * 30, // 30 days
+            });
           });
         },
       },
@@ -48,7 +51,10 @@ export const GET: APIRoute = async ({ cookies, redirect, request }) => {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
-            cookies.set(name, value, options);
+            cookies.set(name, value, {
+              ...options,
+              maxAge: 60 * 60 * 24 * 30, // 30 days
+            });
           });
         },
       },
