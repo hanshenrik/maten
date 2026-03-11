@@ -4,7 +4,7 @@ import { createServerClient } from "@supabase/ssr";
 export const POST: APIRoute = async ({ cookies, redirect, request }) => {
   const supabase = createServerClient(
     import.meta.env.SUPABASE_URL,
-    import.meta.env.SUPABASE_KEY,
+    import.meta.env.SUPABASE_PUBLISHABLE_KEY,
     {
       cookies: {
         getAll() {
@@ -33,7 +33,7 @@ export const POST: APIRoute = async ({ cookies, redirect, request }) => {
 export const GET: APIRoute = async ({ cookies, redirect, request }) => {
   const supabase = createServerClient(
     import.meta.env.SUPABASE_URL,
-    import.meta.env.SUPABASE_KEY,
+    import.meta.env.SUPABASE_PUBLISHABLE_KEY,
     {
       cookies: {
         getAll() {

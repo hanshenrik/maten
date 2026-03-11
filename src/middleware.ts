@@ -5,7 +5,7 @@ export const onRequest = defineMiddleware(
   async ({ locals, request, cookies, redirect }, next) => {
     const supabase = createServerClient(
       import.meta.env.SUPABASE_URL,
-      import.meta.env.SUPABASE_KEY,
+      import.meta.env.SUPABASE_PUBLISHABLE_KEY,
       {
         cookies: {
           getAll() {
