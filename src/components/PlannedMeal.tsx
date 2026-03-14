@@ -1,5 +1,5 @@
 import React from "react";
-interface PlanDayComponentProps {
+interface PlannedMealComponentProps {
   day: {
     day_of_week: string; // This will now be the date string
     recipeId: string;
@@ -8,7 +8,7 @@ interface PlanDayComponentProps {
   recipes: Record<string, { title: string }>;
 }
 
-export const PlanDayComponent: React.FC<PlanDayComponentProps> = ({
+export const PlannedMealComponent: React.FC<PlannedMealComponentProps> = ({
   day,
   recipes,
 }) => {

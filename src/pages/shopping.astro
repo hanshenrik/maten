@@ -7,11 +7,11 @@ const title = "Handleliste";
 
 // 1. Fetch the most recent plan using authenticated client from locals
 const { data: activePlan } = await Astro.locals.supabase
-  .from("dinner_plans")
+  .from("meal_plans")
   .select(
     `
     *,
-    plan_days (
+    planned_meals (
       recipe_id,
       recipes (
         id,
@@ -32,7 +32,7 @@ const { data: activePlan } = await Astro.locals.supabase
 // 2. Aggregate ingredients
 const itemMap: Record<string, any> = {};
 
-activePlan?.plan_days?.forEach((day: any) => {
+activePlan?.planned_meals?.forEach((day: any) => {
   day.recipes?.ingredients?.forEach((ing: any) => {
     // Skip basics by default
     if (ing.is_basic) return;

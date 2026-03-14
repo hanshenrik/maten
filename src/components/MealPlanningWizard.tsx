@@ -12,7 +12,7 @@ interface DayPlan {
   notes: string;
 }
 
-export const DinnerPlanningWizard: React.FC<{
+export const MealPlanningWizard: React.FC<{
   userId: string;
   initialData?: any;
 }> = ({ userId, initialData }) => {
@@ -21,7 +21,7 @@ export const DinnerPlanningWizard: React.FC<{
   const [endDate, setEndDate] = useState(initialData?.end_date || "");
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [dayPlans, setDayPlans] = useState<DayPlan[]>(
-    initialData?.plan_days?.map((dp: any) => ({
+    initialData?.planned_meals?.map((dp: any) => ({
       date: dp.date,
       recipe_id: dp.recipe_id || "",
       notes: dp.notes || "",
@@ -87,9 +87,9 @@ export const DinnerPlanningWizard: React.FC<{
       let planId = initialData?.id;
 
       if (initialData) {
-        // 1. Update Dinner Plan
+        // 1. Update Meal Plan
         const { error: planError } = await supabase
-          .from("dinner_plans")
+          .from("meal_plans")
           .update({
             start_date: startDate,
             end_date: endDate,
@@ -100,11 +100,14 @@ export const DinnerPlanningWizard: React.FC<{
         if (planError) throw planError;
 
         // 2. Delete old days
-        await supabase.from("plan_days").delete().eq("plan_id", planId);
+        await supabase
+          .from("planned_meals")
+          .delete()
+          .eq("meal_plan_id", planId);
       } else {
-        // 1. Create Dinner Plan
+        // 1. Create Meal Plan
         const { data: plan, error: planError } = await supabase
-          .from("dinner_plans")
+          .from("meal_plans")
           .insert({
             user_id: userId,
             start_date: startDate,
@@ -118,16 +121,16 @@ export const DinnerPlanningWizard: React.FC<{
         planId = plan.id;
       }
 
-      // 3. Create Plan Days
+      // 3. Create Planned Meals
       const planDaysToInsert = dayPlans.map((dp) => ({
-        plan_id: planId,
+        meal_plan_id: planId,
         date: dp.date,
         recipe_id: dp.recipe_id || null, // Allow no recipe (notes only)
         notes: dp.notes,
       }));
 
       const { error: daysError } = await supabase
-        .from("plan_days")
+        .from("planned_meals")
         .insert(planDaysToInsert);
 
       if (daysError) throw daysError;

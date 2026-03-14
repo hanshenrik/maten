@@ -1,17 +1,17 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import MainNavigation from "../components/MainNavigation.astro";
-import { PlanDayComponent as PlanDay } from "../components/PlanDay";
+import { PlannedMealComponent as PlannedMeal } from "../components/PlannedMeal";
 
 const title = "Plan";
 
-// Fetch dinner plans from Supabase using the authenticated client from locals
+// Fetch meal plans from Supabase using the authenticated client from locals
 const { data: plans = [] } = await Astro.locals.supabase
-  .from("dinner_plans")
+  .from("meal_plans")
   .select(
     `
     *,
-    plan_days (
+    planned_meals (
       *,
       recipes (*)
     )
@@ -51,9 +51,13 @@ const recipesById = {};
                   </a>
                 </div>
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {plan.plan_days?.map((day) => (
-                    <PlanDay
-                      day={{ day_of_week: day.date, recipeId: day.recipe_id }}
+                  {plan.planned_meals?.map((day: any) => (
+                    <PlannedMeal
+                      day={{
+                        day_of_week: day.date,
+                        recipeId: day.recipe_id,
+                        notes: day.notes,
+                      }}
                       recipes={{
                         [day.recipe_id]: { title: day.recipes?.title },
                       }}

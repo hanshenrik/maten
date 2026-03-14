@@ -1,17 +1,17 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import MainNavigation from "../../components/MainNavigation.astro";
-import { PlanDayComponent as PlanDay } from "../../components/PlanDay";
+import { PlannedMealComponent as PlannedMeal } from "../../components/PlannedMeal";
 
 const { id } = Astro.params;
 
 // Fetch plan with days and recipes
 const { data: plan, error } = await Astro.locals.supabase
-  .from("dinner_plans")
+  .from("meal_plans")
   .select(
     `
     *,
-    plan_days (
+    planned_meals (
       *,
       recipes (*)
     )
@@ -54,23 +54,21 @@ const title = plan.title || `Plan: ${plan.start_date} - ${plan.end_date}`;
         </div>
       </div>
 
-      <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+      <div class="mt-8 space-y-6">
         {
-          plan.plan_days
-            ?.sort(
-              (a: any, b: any) =>
-                new Date(a.date).getTime() - new Date(b.date).getTime(),
-            )
-            .map((day: any) => (
-              <PlanDay
+          plan.planned_meals?.map((day: any) => {
+            const date = new Date(day.date);
+            return (
+              <PlannedMeal
                 day={{
-                  day_of_week: day.date,
+                  day_of_week: date.toISOString(),
                   recipeId: day.recipe_id,
                   notes: day.notes,
                 }}
                 recipes={{ [day.recipe_id]: { title: day.recipes?.title } }}
               />
-            ))
+            );
+          })
         }
       </div>
     </main>
@@ -81,15 +79,16 @@ const title = plan.title || `Plan: ${plan.start_date} - ${plan.end_date}`;
 
 <script>
   import { supabase } from "../../lib/supabase";
-  
+
   const deleteBtn = document.getElementById("delete-plan");
   deleteBtn?.addEventListener("click", async () => {
-    if (!confirm("Er du sikker på at du vil slette denne middagsplanen?")) return;
+    if (!confirm("Er du sikker på at du vil slette denne middagsplanen?"))
+      return;
 
     const id = deleteBtn.getAttribute("data-id");
     if (!id) return;
 
-    const { error } = await supabase.from("dinner_plans").delete().eq("id", id);
+    const { error } = await supabase.from("meal_plans").delete().eq("id", id);
 
     if (error) {
       alert("Feil ved sletting: " + error.message);
