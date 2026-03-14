@@ -116,16 +116,18 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
         const ingredientsToInsert = ingredients
           .filter((ing) => ing.name.trim())
           .map((ing) => ({
-            ...ing,
+            name: ing.name,
+            amount: ing.amount ? parseFloat(String(ing.amount)) : null,
+            unit: ing.unit,
+            is_basic: !!ing.is_basic,
             recipe_id: recipeId,
-            amount: ing.amount ? parseFloat(ing.amount) : null,
           }));
 
         if (ingredientsToInsert.length > 0) {
-          const { error } = await supabase
+          const { error: ingredientsError } = await supabase
             .from("ingredients")
             .insert(ingredientsToInsert);
-          if (error) throw error;
+          if (ingredientsError) throw ingredientsError;
         }
       }
 
