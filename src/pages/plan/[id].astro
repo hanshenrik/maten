@@ -46,6 +46,13 @@ const title = plan.title || `Plan: ${plan.start_date} - ${plan.end_date}`;
             <Icon name="hugeicons:pencil-edit-02" class="h-5 w-5" />
             Rediger
           </a>
+          <a
+            href={`/plan/new?copyFrom=${id}`}
+            class="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-2 font-semibold text-gray-600 shadow-sm transition-colors hover:bg-gray-50"
+          >
+            <Icon name="hugeicons:copy-01" class="h-5 w-5" />
+            Kopier
+          </a>
         </div>
       </div>
 

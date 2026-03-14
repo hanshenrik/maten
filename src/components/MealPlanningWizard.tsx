@@ -30,6 +30,7 @@ export const MealPlanningWizard: React.FC<{
   );
   const [loading, setLoading] = useState(false);
   const [planTitle, setPlanTitle] = useState(initialData?.title || "");
+  const [sourcePlan, setSourcePlan] = useState<any>(null);
 
   useEffect(() => {
     // Default to next week Mon-Sun
@@ -52,6 +53,31 @@ export const MealPlanningWizard: React.FC<{
       if (data) setRecipes(data);
     };
     fetchRecipes();
+
+    // Check for copyFrom parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const copyFrom = urlParams.get("copyFrom");
+    if (copyFrom && !initialData) {
+      const fetchSourcePlan = async () => {
+        const { data } = await supabase
+          .from("meal_plans")
+          .select("*, planned_meals(*)")
+          .eq("id", copyFrom)
+          .single();
+
+        if (data) {
+          // Sort planned_meals by date to ensure correct mapping
+          if (data.planned_meals) {
+            data.planned_meals.sort((a: any, b: any) =>
+              a.date.localeCompare(b.date),
+            );
+          }
+          setSourcePlan(data);
+          setPlanTitle(`${data.title || "Plan"} (Kopi)`);
+        }
+      };
+      fetchSourcePlan();
+    }
   }, []);
 
   const handleDateSelection = () => {
@@ -59,12 +85,17 @@ export const MealPlanningWizard: React.FC<{
     const end = new Date(endDate);
     const days: DayPlan[] = [];
 
+    const sourceMeals = sourcePlan?.planned_meals || [];
+
+    let i = 0;
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const sourceMeal = sourceMeals[i];
       days.push({
         date: d.toISOString().split("T")[0],
-        recipe_id: "",
-        notes: "",
+        recipe_id: sourceMeal?.recipe_id || "",
+        notes: sourceMeal?.notes || "",
       });
+      i++;
     }
     setDayPlans(days);
     setStep(2);
