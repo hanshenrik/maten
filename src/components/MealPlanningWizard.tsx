@@ -2,15 +2,30 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import { Icon } from "@iconify/react";
 
+interface Ingredient {
+  name: string;
+  amount: number;
+  unit: string;
+  is_basic: boolean;
+}
+
 interface Recipe {
   id: string;
   title: string;
+  ingredients?: Ingredient[];
 }
 
 interface DayPlan {
   date: string;
   recipe_id: string;
   notes: string;
+}
+
+interface ShoppingItem {
+  name: string;
+  amount: number;
+  unit: string;
+  checked: boolean;
 }
 
 export const MealPlanningWizard: React.FC<{
@@ -31,6 +46,7 @@ export const MealPlanningWizard: React.FC<{
   const [loading, setLoading] = useState(false);
   const [planTitle, setPlanTitle] = useState(initialData?.title || "");
   const [sourcePlan, setSourcePlan] = useState<any>(null);
+  const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]);
 
   useEffect(() => {
     // Default to next week Mon-Sun
@@ -48,9 +64,9 @@ export const MealPlanningWizard: React.FC<{
     const fetchRecipes = async () => {
       const { data } = await supabase
         .from("recipes")
-        .select("id, title")
+        .select("id, title, ingredients(name, amount, unit, is_basic)")
         .order("title");
-      if (data) setRecipes(data);
+      if (data) setRecipes(data as any);
     };
     fetchRecipes();
 
@@ -113,7 +129,39 @@ export const MealPlanningWizard: React.FC<{
     setDayPlans(newPlans);
   };
 
-  const savePlan = async () => {
+  const generateShoppingList = () => {
+    const itemMap: Record<string, ShoppingItem> = {};
+
+    dayPlans.forEach((plan) => {
+      const recipe = recipes.find((r) => r.id === plan.recipe_id);
+      recipe?.ingredients?.forEach((ing) => {
+        if (ing.is_basic) return;
+
+        const key = `${ing.name.toLowerCase()}-${ing.unit?.toLowerCase() || "none"}`;
+        if (itemMap[key]) {
+          itemMap[key].amount += Number(ing.amount) || 0;
+        } else {
+          itemMap[key] = {
+            name: ing.name,
+            amount: Number(ing.amount) || 0,
+            unit: ing.unit,
+            checked: false,
+          };
+        }
+      });
+    });
+
+    setShoppingItems(Object.values(itemMap));
+    setStep(3);
+  };
+
+  const toggleShoppingItem = (index: number) => {
+    const newItems = [...shoppingItems];
+    newItems[index].checked = !newItems[index].checked;
+    setShoppingItems(newItems);
+  };
+
+  const savePlan = async (showShopping = false) => {
     setLoading(true);
     try {
       let planId = initialData?.id;
@@ -167,7 +215,12 @@ export const MealPlanningWizard: React.FC<{
 
       if (daysError) throw daysError;
 
-      window.location.href = `/plan/${planId}`;
+      if (showShopping) {
+        generateShoppingList();
+        // Update URL to edit mode quietly or just stay in wizard
+      } else {
+        window.location.href = `/plan/${planId}`;
+      }
     } catch (err: any) {
       alert("Feil ved lagring av plan: " + err.message);
     } finally {
@@ -253,97 +306,178 @@ export const MealPlanningWizard: React.FC<{
     );
   }
 
-  return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      <div className="flex items-center justify-between rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
-        <h2 className="text-2xl font-bold text-gray-900">
-          Steg 2: Velg middager
-        </h2>
-        <button
-          onClick={() => setStep(1)}
-          className="flex items-center gap-1 text-sm font-medium text-blue-600 hover:underline"
-        >
-          <Icon icon="hugeicons:arrow-left-01" className="h-4 w-4" />
-          Endre datoer
-        </button>
-      </div>
-
-      <div className="space-y-4">
-        {dayPlans.map((day, index) => {
-          const date = new Date(day.date);
-          return (
-            <div
-              key={day.date}
-              className="flex flex-col items-start gap-4 rounded-3xl border border-gray-100 bg-white p-6 shadow-sm md:flex-row md:items-center"
-            >
-              <div className="min-w-[120px]">
-                <div className="text-xs font-bold tracking-wider text-blue-600 uppercase">
-                  {date.toLocaleDateString("no-NO", { weekday: "short" })}
-                </div>
-                <div className="text-lg font-bold text-gray-900">
-                  {date.toLocaleDateString("no-NO", {
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </div>
-              </div>
-
-              <div className="w-full flex-1 space-y-2">
-                <select
-                  value={day.recipe_id}
-                  onChange={(e) => handleRecipeChange(index, e.target.value)}
-                  className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">(Ingen oppskrift valgt)</option>
-                  {recipes.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.title}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  type="text"
-                  placeholder="Notater (f.eks. Spise ute, rester...)"
-                  value={day.notes}
-                  onChange={(e) => handleNotesChange(index, e.target.value)}
-                  className="w-full rounded-lg border border-gray-200 px-4 py-2 text-sm outline-none focus:border-blue-300"
-                />
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="flex gap-4">
-        <button
-          onClick={savePlan}
-          disabled={loading}
-          className="flex-1 rounded-2xl bg-green-600 py-4 font-bold text-white shadow-lg shadow-green-100 transition-colors hover:bg-green-700 disabled:opacity-50"
-        >
-          {loading
-            ? "Lagrer plan..."
-            : initialData
-              ? "Oppdater ukeplan"
-              : "Opprett ukeplan"}
-        </button>
-        <a
-          href="/plan"
-          className="flex items-center rounded-2xl bg-gray-100 px-8 py-4 font-bold text-gray-700 transition-colors hover:bg-gray-200"
-        >
-          Avbryt
-        </a>
-        {initialData && (
+  if (step === 2) {
+    return (
+      <div className="mx-auto max-w-2xl space-y-6">
+        <div className="flex items-center justify-between rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
+          <h2 className="text-2xl font-bold text-gray-900">
+            Steg 2: Velg middager
+          </h2>
           <button
-            type="button"
-            onClick={handleDelete}
-            disabled={loading}
-            className="flex items-center rounded-2xl border border-gray-100 bg-white px-4 py-2 text-gray-600 shadow-sm transition-colors hover:text-red-600 disabled:opacity-50"
-            title="Slett plan"
+            onClick={() => setStep(1)}
+            className="flex items-center gap-1 text-sm font-medium text-blue-600 hover:underline"
           >
-            <Icon icon="hugeicons:delete-03" className="h-6 w-6" />
+            <Icon icon="hugeicons:arrow-left-01" className="h-4 w-4" />
+            Endre datoer
           </button>
-        )}
+        </div>
+
+        <div className="space-y-4">
+          {dayPlans.map((day, index) => {
+            const date = new Date(day.date);
+            return (
+              <div
+                key={day.date}
+                className="flex flex-col items-start gap-4 rounded-3xl border border-gray-100 bg-white p-6 shadow-sm md:flex-row md:items-center"
+              >
+                <div className="min-w-[120px]">
+                  <div className="text-xs font-bold tracking-wider text-blue-600 uppercase">
+                    {date.toLocaleDateString("no-NO", { weekday: "short" })}
+                  </div>
+                  <div className="text-lg font-bold text-gray-900">
+                    {date.toLocaleDateString("no-NO", {
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </div>
+                </div>
+
+                <div className="w-full flex-1 space-y-2">
+                  <select
+                    value={day.recipe_id}
+                    onChange={(e) => handleRecipeChange(index, e.target.value)}
+                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">(Ingen oppskrift valgt)</option>
+                    {recipes.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.title}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="text"
+                    placeholder="Notater (f.eks. Spise ute, rester...)"
+                    value={day.notes}
+                    onChange={(e) => handleNotesChange(index, e.target.value)}
+                    className="w-full rounded-lg border border-gray-200 px-4 py-2 text-sm outline-none focus:border-blue-300"
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="flex gap-4">
+          <button
+            onClick={() => savePlan(true)}
+            disabled={loading}
+            className="flex-1 rounded-2xl bg-blue-600 py-4 font-bold text-white shadow-lg shadow-blue-100 transition-colors hover:bg-blue-700 disabled:opacity-50"
+          >
+            {loading ? "Lagrer..." : "Lagre og se handleliste"}
+            <Icon
+              icon="hugeicons:arrow-right-01"
+              className="ml-2 inline-block h-5 w-5"
+            />
+          </button>
+          <button
+            onClick={() => savePlan(false)}
+            disabled={loading}
+            className="flex-1 rounded-2xl bg-green-600 py-4 font-bold text-white shadow-lg shadow-green-100 transition-colors hover:bg-green-700 disabled:opacity-50"
+          >
+            {loading ? "Lagrer..." : "Bare lagre plan"}
+          </button>
+          <a
+            href="/plan"
+            className="flex items-center rounded-2xl bg-gray-100 px-8 py-4 font-bold text-gray-700 transition-colors hover:bg-gray-200"
+          >
+            Avbryt
+          </a>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  if (step === 3) {
+    return (
+      <div className="mx-auto max-w-2xl space-y-6">
+        <div className="flex items-center justify-between rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
+          <h2 className="text-2xl font-bold text-gray-900">
+            Steg 3: Sjekk handlelisten
+          </h2>
+          <button
+            onClick={() => setStep(2)}
+            className="flex items-center gap-1 text-sm font-medium text-blue-600 hover:underline"
+          >
+            <Icon icon="hugeicons:arrow-left-01" className="h-4 w-4" />
+            Tilbake til meny
+          </button>
+        </div>
+
+        <div className="rounded-3xl border border-gray-100 bg-white p-8 shadow-sm">
+          <p className="mb-6 text-gray-500">
+            Her er ingrediensene du trenger. Kryss av det du allerede har i
+            skapet.
+          </p>
+
+          {shoppingItems.length > 0 ? (
+            <div className="space-y-3">
+              {shoppingItems.map((item, index) => (
+                <div
+                  key={index}
+                  onClick={() => toggleShoppingItem(index)}
+                  className={`flex cursor-pointer items-center justify-between rounded-xl border p-4 transition-all ${
+                    item.checked
+                      ? "border-green-100 bg-green-50 opacity-60"
+                      : "border-gray-100 bg-gray-50 hover:border-gray-200"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`flex h-6 w-6 items-center justify-center rounded-full border-2 transition-colors ${
+                        item.checked
+                          ? "border-green-500 bg-green-500 text-white"
+                          : "border-gray-300 bg-white"
+                      }`}
+                    >
+                      {item.checked && (
+                        <Icon icon="hugeicons:tick-01" className="h-4 w-4" />
+                      )}
+                    </div>
+                    <div>
+                      <span
+                        className={`font-medium ${item.checked ? "text-gray-400 line-through" : "text-gray-900"}`}
+                      >
+                        {item.name}
+                      </span>
+                      <span className="ml-2 text-sm text-gray-500">
+                        {item.amount} {item.unit}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="py-8 text-center text-gray-400">
+              <Icon
+                icon="hugeicons:shopping-basket-01"
+                className="mx-auto mb-3 h-12 w-12 opacity-20"
+              />
+              Ingen varer å handle for disse oppskriftene.
+            </div>
+          )}
+        </div>
+
+        <div className="flex gap-4">
+          <button
+            onClick={() => (window.location.href = `/plan`)}
+            className="flex-1 rounded-2xl bg-green-600 py-4 font-bold text-white shadow-lg shadow-green-100 transition-colors hover:bg-green-700"
+          >
+            Ferdig
+          </button>
+        </div>
+      </div>
+    );
+  }
 };
