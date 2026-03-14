@@ -22,14 +22,18 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
   initialItems,
   userId,
 }) => {
-  const [localItems, setLocalItems] =
-    useState<ShoppingListItem[]>(initialItems);
+  const [items, setItems] = useState<ShoppingListItem[]>(initialItems);
   const [loading, setLoading] = useState(false);
   const [newItem, setNewItem] = useState({
     name: "",
     amount: 1,
     unit: "stk",
   });
+
+  // Get unique names of previously completed items for autosuggestion
+  const suggestions = Array.from(
+    new Set(items.filter((item) => item.completed).map((item) => item.name)),
+  ).sort();
 
   const handleAddItem = async () => {
     if (!newItem.name.trim()) return;
@@ -50,7 +54,7 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
 
       if (error) throw error;
 
-      setLocalItems([...localItems, data]);
+      setItems([...items, data]);
       setNewItem({ name: "", amount: 1, unit: "stk" });
     } catch (err: any) {
       alert("Error adding item: " + err.message);
@@ -71,8 +75,8 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
 
       if (error) throw error;
 
-      setLocalItems(
-        localItems.map((item) =>
+      setItems(
+        items.map((item) =>
           item.id === itemId ? { ...item, completed: !currentStatus } : item,
         ),
       );
@@ -90,24 +94,34 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
 
       if (error) throw error;
 
-      setLocalItems(localItems.filter((item) => item.id !== itemId));
+      setItems(items.filter((item) => item.id !== itemId));
     } catch (err: any) {
       alert("Error deleting item: " + err.message);
     }
   };
 
+  const activeItems = items.filter((i) => !i.completed);
+  const completedItems = items.filter((i) => i.completed);
+
   return (
     <div className="rounded-lg border border-gray-100 bg-white p-6 shadow-sm">
       <h2 className="mb-4 text-xl font-semibold text-gray-900">Handleliste</h2>
 
+      <datalist id="shopping-suggestions">
+        {suggestions.map((name) => (
+          <option key={name} value={name} />
+        ))}
+      </datalist>
+
       {/* Add new item form */}
-      <div className="mb-6 rounded-lg bg-gray-50 p-4">
+      <div className="mb-8 rounded-lg bg-gray-50 p-4">
         <h3 className="mb-3 font-medium text-gray-900">Legg til ny vare</h3>
         <div className="grid grid-cols-1 items-end gap-3 md:grid-cols-4">
           <div className="md:col-span-2">
             <label className="mb-1 block text-sm text-gray-600">Navn</label>
             <input
               type="text"
+              list="shopping-suggestions"
               value={newItem.name}
               onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
               className="w-full rounded-md border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
@@ -140,32 +154,70 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
         </div>
         <button
           onClick={handleAddItem}
-          className="mt-4 flex h-10 items-center gap-2 rounded-lg bg-blue-600 px-6 font-semibold text-white transition-all hover:bg-blue-700 active:scale-95"
+          disabled={loading}
+          className="mt-4 flex h-10 items-center gap-2 rounded-lg bg-blue-600 px-6 font-semibold text-white transition-all hover:bg-blue-700 active:scale-95 disabled:opacity-50"
         >
           <Icon icon="hugeicons:plus-sign" className="h-5 w-5" />
-          Legg til
+          {loading ? "Legger til..." : "Legg til"}
         </button>
       </div>
 
-      <ul className="space-y-2">
-        {localItems.map((item) => (
-          <li key={item.id} className="group relative">
-            <Checkbox
-              checked={item.completed}
-              onChange={() => handleToggleComplete(item.id, item.completed)}
-              label={item.name}
-              subLabel={`${item.amount} ${item.unit}${item.notes ? ` • ${item.notes}` : ""}`}
-            />
-            <button
-              onClick={() => handleDeleteItem(item.id)}
-              className="absolute top-1/2 right-4 -translate-y-1/2 p-2 text-red-400 opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-600"
-              title="Remove item"
-            >
-              <Icon icon="hugeicons:delete-03" className="h-5 w-5" />
-            </button>
-          </li>
-        ))}
-      </ul>
+      <div className="space-y-6">
+        {activeItems.length > 0 ? (
+          <ul className="space-y-2">
+            {activeItems.map((item) => (
+              <li key={item.id} className="group relative">
+                <Checkbox
+                  checked={item.completed}
+                  onChange={() => handleToggleComplete(item.id, item.completed)}
+                  label={item.name}
+                  subLabel={`${item.amount} ${item.unit}${item.notes ? ` • ${item.notes}` : ""}`}
+                />
+                <button
+                  onClick={() => handleDeleteItem(item.id)}
+                  className="absolute top-1/2 right-4 -translate-y-1/2 p-2 text-red-400 opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-600"
+                  title="Remove item"
+                >
+                  <Icon icon="hugeicons:delete-03" className="h-5 w-5" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          !completedItems.length && (
+            <p className="py-8 text-center text-gray-400">Handlelista er tom</p>
+          )
+        )}
+
+        {completedItems.length > 0 && (
+          <details className="group border-t border-gray-100 pt-4" open>
+            <summary className="cursor-pointer text-sm font-medium text-gray-400 hover:text-gray-600 focus:outline-none">
+              Fullførte varer ({completedItems.length})
+            </summary>
+            <ul className="mt-4 space-y-2">
+              {completedItems.map((item) => (
+                <li key={item.id} className="group relative">
+                  <Checkbox
+                    checked={item.completed}
+                    onChange={() =>
+                      handleToggleComplete(item.id, item.completed)
+                    }
+                    label={item.name}
+                    subLabel={`${item.amount} ${item.unit}${item.notes ? ` • ${item.notes}` : ""}`}
+                  />
+                  <button
+                    onClick={() => handleDeleteItem(item.id)}
+                    className="absolute top-1/2 right-4 -translate-y-1/2 p-2 text-red-400 opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-600"
+                    title="Remove item"
+                  >
+                    <Icon icon="hugeicons:delete-03" className="h-5 w-5" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </details>
+        )}
+      </div>
     </div>
   );
 };
