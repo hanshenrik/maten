@@ -1,121 +1,121 @@
 import React, { useState } from "react";
 import { Icon } from "@iconify/react";
+import { supabase } from "../lib/supabase";
 import { Checkbox } from "./Checkbox";
 import { UnitSelect } from "./UnitSelect";
 
 export interface ShoppingListItem {
   id: string;
   name: string;
-  amount: number;
+  amount: number | null;
   unit: string;
-  category: string;
+  completed: boolean;
   notes?: string;
-  completed: boolean;
-}
-
-export interface ShoppingList {
-  id: string;
-  items: ShoppingListItem[];
-  createdAt: Date;
-  updatedAt: Date;
-  completed: boolean;
 }
 
 interface ShoppingListProps {
-  shoppingList: ShoppingList;
-  onUpdate: (updatedList: ShoppingList) => void;
+  initialItems: ShoppingListItem[];
+  userId: string;
 }
 
 export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
-  shoppingList,
-  onUpdate,
+  initialItems,
+  userId,
 }) => {
-  const [newItem, setNewItem] = useState<
-    Omit<ShoppingListItem, "id" | "completed">
-  >({
+  const [localItems, setLocalItems] =
+    useState<ShoppingListItem[]>(initialItems);
+  const [loading, setLoading] = useState(false);
+  const [newItem, setNewItem] = useState({
     name: "",
     amount: 1,
-    unit: "pcs",
-    category: "general",
-    notes: "",
+    unit: "stk",
   });
 
-  const handleAddItem = () => {
+  const handleAddItem = async () => {
     if (!newItem.name.trim()) return;
+    setLoading(true);
 
-    const updatedItems = [
-      ...shoppingList.items,
-      {
-        id: Date.now().toString(),
-        ...newItem,
-        completed: false,
-      },
-    ];
+    try {
+      const { data, error } = await supabase
+        .from("shopping_items")
+        .insert({
+          user_id: userId,
+          name: newItem.name,
+          amount: newItem.amount || null,
+          unit: newItem.unit,
+          completed: false,
+        })
+        .select()
+        .single();
 
-    const updatedList = {
-      ...shoppingList,
-      items: updatedItems,
-      updatedAt: new Date(),
-    };
+      if (error) throw error;
 
-    onUpdate(updatedList);
-    setNewItem({
-      name: "",
-      amount: 1,
-      unit: "pcs",
-      category: "general",
-      notes: "",
-    });
+      setLocalItems([...localItems, data]);
+      setNewItem({ name: "", amount: 1, unit: "stk" });
+    } catch (err: any) {
+      alert("Error adding item: " + err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleToggleComplete = (itemId: string) => {
-    const updatedItems = shoppingList.items.map((item) =>
-      item.id === itemId ? { ...item, completed: !item.completed } : item,
-    );
+  const handleToggleComplete = async (
+    itemId: string,
+    currentStatus: boolean,
+  ) => {
+    try {
+      const { error } = await supabase
+        .from("shopping_items")
+        .update({ completed: !currentStatus })
+        .eq("id", itemId);
 
-    const updatedList = {
-      ...shoppingList,
-      items: updatedItems,
-      updatedAt: new Date(),
-    };
+      if (error) throw error;
 
-    onUpdate(updatedList);
+      setLocalItems(
+        localItems.map((item) =>
+          item.id === itemId ? { ...item, completed: !currentStatus } : item,
+        ),
+      );
+    } catch (err: any) {
+      alert("Error updating item: " + err.message);
+    }
   };
 
-  const handleDeleteItem = (itemId: string) => {
-    const updatedItems = shoppingList.items.filter(
-      (item) => item.id !== itemId,
-    );
+  const handleDeleteItem = async (itemId: string) => {
+    try {
+      const { error } = await supabase
+        .from("shopping_items")
+        .delete()
+        .eq("id", itemId);
 
-    const updatedList = {
-      ...shoppingList,
-      items: updatedItems,
-      updatedAt: new Date(),
-    };
+      if (error) throw error;
 
-    onUpdate(updatedList);
+      setLocalItems(localItems.filter((item) => item.id !== itemId));
+    } catch (err: any) {
+      alert("Error deleting item: " + err.message);
+    }
   };
 
   return (
     <div className="rounded-lg border border-gray-100 bg-white p-6 shadow-sm">
-      <h2 className="text-primary mb-4 text-xl font-semibold">Handleliste</h2>
+      <h2 className="mb-4 text-xl font-semibold text-gray-900">Handleliste</h2>
 
       {/* Add new item form */}
       <div className="mb-6 rounded-lg bg-gray-50 p-4">
-        <h3 className="text-primary mb-3 font-medium">Legg til ny vare</h3>
+        <h3 className="mb-3 font-medium text-gray-900">Legg til ny vare</h3>
         <div className="grid grid-cols-1 items-end gap-3 md:grid-cols-4">
-          <div>
-            <label className="text-secondary mb-1 block text-sm">Navn</label>
+          <div className="md:col-span-2">
+            <label className="mb-1 block text-sm text-gray-600">Navn</label>
             <input
               type="text"
               value={newItem.name}
               onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-              className="focus:ring-accent w-full rounded-md border border-gray-200 px-3 py-2 focus:ring-2 focus:outline-none"
+              className="w-full rounded-md border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               placeholder="f.eks., Epler"
             />
           </div>
           <div>
-            <label className="text-secondary mb-1 block text-sm">Antall</label>
+            <label className="mb-1 block text-sm text-gray-600">Antall</label>
             <input
               type="number"
               value={newItem.amount}
@@ -125,12 +125,12 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
                   amount: parseFloat(e.target.value) || 1,
                 })
               }
-              className="focus:ring-accent w-full rounded-md border border-gray-200 px-3 py-2 focus:ring-2 focus:outline-none"
+              className="w-full rounded-md border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               min="1"
             />
           </div>
           <div>
-            <label className="text-secondary mb-1 block text-sm">Enhet</label>
+            <label className="mb-1 block text-sm text-gray-600">Enhet</label>
             <UnitSelect
               value={newItem.unit}
               onChange={(value) => setNewItem({ ...newItem, unit: value })}
@@ -140,7 +140,7 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
         </div>
         <button
           onClick={handleAddItem}
-          className="bg-accent hover:bg-opacity-90 mt-3 flex items-center gap-2 rounded-md px-4 py-2 text-white transition-colors"
+          className="mt-4 flex h-10 items-center gap-2 rounded-lg bg-blue-600 px-6 font-semibold text-white transition-all hover:bg-blue-700 active:scale-95"
         >
           <Icon icon="hugeicons:plus-sign" className="h-5 w-5" />
           Legg til
@@ -148,11 +148,11 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
       </div>
 
       <ul className="space-y-2">
-        {shoppingList.items.map((item) => (
+        {localItems.map((item) => (
           <li key={item.id} className="group relative">
             <Checkbox
               checked={item.completed}
-              onChange={() => handleToggleComplete(item.id)}
+              onChange={() => handleToggleComplete(item.id, item.completed)}
               label={item.name}
               subLabel={`${item.amount} ${item.unit}${item.notes ? ` • ${item.notes}` : ""}`}
             />

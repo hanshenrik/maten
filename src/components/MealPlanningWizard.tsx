@@ -216,9 +216,29 @@ export const MealPlanningWizard: React.FC<{
 
       if (daysError) throw daysError;
 
-      if (showShopping) {
-        generateShoppingList();
-        // Update URL to edit mode quietly or just stay in wizard
+      // Insert ingredients into the PERSISTENT shopping list
+      if (showShopping && shoppingItems.length > 0) {
+        const userId = (await supabase.auth.getUser()).data.user?.id;
+        if (userId) {
+          const itemsToInsert = shoppingItems
+            .filter((item) => !item.checked) // Only add things we don't have
+            .map((item) => ({
+              user_id: userId,
+              name: item.name,
+              amount: item.amount,
+              unit: item.unit,
+              completed: false,
+            }));
+
+          if (itemsToInsert.length > 0) {
+            const { error: shoppingError } = await supabase
+              .from("shopping_items")
+              .insert(itemsToInsert);
+            if (shoppingError) throw shoppingError;
+          }
+        }
+
+        setStep(3);
       } else {
         window.location.href = `/plan/${planId}`;
       }
@@ -297,11 +317,25 @@ export const MealPlanningWizard: React.FC<{
           </div>
           <button
             onClick={handleDateSelection}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-green-600 py-4 font-bold text-white shadow-lg shadow-green-100 transition-colors hover:bg-green-700"
+            className="flex-1 items-center justify-center gap-2 rounded-2xl bg-green-600 py-4 font-bold text-white shadow-lg shadow-green-100 transition-colors hover:bg-green-700"
           >
             Velg oppskrifter
-            <Icon icon="hugeicons:arrow-right-01" className="h-5 w-5" />
+            <Icon
+              icon="hugeicons:arrow-right-01"
+              className="ml-2 inline-block h-5 w-5"
+            />
           </button>
+          {initialData && (
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={loading}
+              className="flex items-center rounded-2xl border border-gray-100 bg-white px-6 py-4 text-gray-600 shadow-sm transition-colors hover:text-red-600 disabled:opacity-50"
+              title="Slett plan"
+            >
+              <Icon icon="hugeicons:delete-03" className="h-6 w-6" />
+            </button>
+          )}
         </div>
       </div>
     );
@@ -394,6 +428,17 @@ export const MealPlanningWizard: React.FC<{
           >
             Avbryt
           </a>
+          {initialData && (
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={loading}
+              className="flex items-center rounded-2xl border border-gray-100 bg-white px-6 py-4 text-gray-600 shadow-sm transition-colors hover:text-red-600 disabled:opacity-50"
+              title="Slett plan"
+            >
+              <Icon icon="hugeicons:delete-03" className="h-6 w-6" />
+            </button>
+          )}
         </div>
       </div>
     );
@@ -451,6 +496,17 @@ export const MealPlanningWizard: React.FC<{
           >
             Ferdig
           </button>
+          {initialData && (
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={loading}
+              className="flex items-center rounded-2xl border border-gray-100 bg-white px-6 py-4 text-gray-600 shadow-sm transition-colors hover:text-red-600 disabled:opacity-50"
+              title="Slett plan"
+            >
+              <Icon icon="hugeicons:delete-03" className="h-6 w-6" />
+            </button>
+          )}
         </div>
       </div>
     );
