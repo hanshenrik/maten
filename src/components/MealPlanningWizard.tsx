@@ -144,6 +144,29 @@ export const MealPlanningWizard: React.FC<{
     }
   };
 
+  const handleDelete = async () => {
+    if (!initialData?.id) return;
+    if (!confirm("Er du sikker på at du vil slette denne middagsplanen?"))
+      return;
+
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("meal_plans")
+        .delete()
+        .eq("id", initialData.id);
+
+      if (error) throw error;
+
+      window.location.href = "/plan";
+    } catch (err: any) {
+      console.error("Feil ved sletting av plan:", err);
+      alert("Feil ved sletting: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (step === 1) {
     return (
       <div className="mx-auto max-w-md rounded-3xl border border-gray-100 bg-white p-8 shadow-sm">
@@ -224,10 +247,10 @@ export const MealPlanningWizard: React.FC<{
             >
               <div className="min-w-[120px]">
                 <div className="text-xs font-bold tracking-wider text-blue-600 uppercase">
-                  {date.toLocaleDateString("en-US", { weekday: "short" })}
+                  {date.toLocaleDateString("no-NO", { weekday: "short" })}
                 </div>
                 <div className="text-lg font-bold text-gray-900">
-                  {date.toLocaleDateString("en-US", {
+                  {date.toLocaleDateString("no-NO", {
                     month: "short",
                     day: "numeric",
                   })}
@@ -278,6 +301,17 @@ export const MealPlanningWizard: React.FC<{
         >
           Avbryt
         </a>
+        {initialData && (
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={loading}
+            className="flex items-center rounded-2xl border border-gray-100 bg-white px-4 py-2 text-gray-600 shadow-sm transition-colors hover:text-red-600 disabled:opacity-50"
+            title="Slett plan"
+          >
+            <Icon icon="hugeicons:delete-03" className="h-6 w-6" />
+          </button>
+        )}
       </div>
     </div>
   );

@@ -20,9 +20,18 @@ const { data: plans = [] } = await Astro.locals.supabase
   )
   .order("start_date", { ascending: false });
 
-// For now, we'll keep the UI similar but adapted to the new schema
-// This part will be fully implemented during the Wizard task
-const recipesById = {};
+const today = new Date().toISOString().split("T")[0];
+
+const activePlans = plans.filter((p) => p.end_date >= today);
+const outdatedPlans = plans.filter((p) => p.end_date < today);
+
+const formatDate = (dateStr: string) => {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("no-NO", {
+    day: "numeric",
+    month: "short",
+  });
+};
 ---
 
 <BaseLayout title={title}>
@@ -40,16 +49,19 @@ const recipesById = {};
       </div>
 
       {
-        plans && plans.length > 0 ? (
+        activePlans.length > 0 ? (
           <div class="space-y-12">
-            {plans.map((plan) => (
+            {activePlans.map((plan) => (
               <section class="space-y-4">
                 <div class="flex items-center justify-between">
                   <a href={`/plan/${plan.id}`} class="group">
                     <h2 class="text-2xl font-bold text-gray-900 transition-colors group-hover:text-blue-600">
-                      {plan.title ||
-                        `Plan: ${plan.start_date} - ${plan.end_date}`}
+                      {plan.title || "Middagsplan"}
                     </h2>
+                    <p class="text-secondary text-sm font-medium">
+                      {formatDate(plan.start_date)} -{" "}
+                      {formatDate(plan.end_date)}
+                    </p>
                   </a>
                 </div>
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -61,7 +73,10 @@ const recipesById = {};
                         notes: day.notes,
                       }}
                       recipes={{
-                        [day.recipe_id]: { title: day.recipes?.title },
+                        [day.recipe_id]: {
+                          title: day.recipes?.title,
+                          image_url: day.recipes?.image_url,
+                        },
                       }}
                     />
                   ))}
@@ -69,13 +84,61 @@ const recipesById = {};
               </section>
             ))}
           </div>
-        ) : (
+        ) : outdatedPlans.length === 0 ? (
           <div class="rounded-lg border border-gray-100 bg-white p-6 shadow-sm">
             <p class="text-secondary mb-4">Ingen middagsplaner funnet.</p>
             <p class="text-secondary">
               Opprett en ny middagsplan for å komme i gang.
             </p>
           </div>
+        ) : null
+      }
+
+      {
+        outdatedPlans.length > 0 && (
+          <details class="group mt-16">
+            <summary class="flex cursor-pointer list-none items-center gap-2 text-xl font-bold text-gray-500 transition-colors hover:text-gray-700">
+              <Icon
+                name="hugeicons:arrow-right-01"
+                class="h-5 w-5 transition-transform group-open:rotate-90"
+              />
+              Gamle planer ({outdatedPlans.length})
+            </summary>
+            <div class="mt-8 space-y-12">
+              {outdatedPlans.map((plan) => (
+                <section class="space-y-4">
+                  <div class="flex items-center justify-between">
+                    <a href={`/plan/${plan.id}`} class="group">
+                      <h2 class="text-xl font-bold text-gray-700 transition-colors group-hover:text-blue-600">
+                        {plan.title || "Middagsplan"}
+                      </h2>
+                      <p class="text-secondary text-sm">
+                        {formatDate(plan.start_date)} -{" "}
+                        {formatDate(plan.end_date)}
+                      </p>
+                    </a>
+                  </div>
+                  <div class="grid grid-cols-1 gap-6 opacity-60 grayscale-[0.5] md:grid-cols-2 lg:grid-cols-3">
+                    {plan.planned_meals?.map((day: any) => (
+                      <PlannedMeal
+                        day={{
+                          day_of_week: day.date,
+                          recipeId: day.recipe_id,
+                          notes: day.notes,
+                        }}
+                        recipes={{
+                          [day.recipe_id]: {
+                            title: day.recipes?.title,
+                            image_url: day.recipes?.image_url,
+                          },
+                        }}
+                      />
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
+          </details>
         )
       }
     </main>

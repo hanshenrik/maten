@@ -7,7 +7,7 @@ interface PlannedMealComponentProps {
     recipeId: string;
     notes?: string;
   };
-  recipes: Record<string, { title: string }>;
+  recipes: Record<string, { title: string; image_url?: string }>;
 }
 
 export const PlannedMealComponent: React.FC<PlannedMealComponentProps> = ({
@@ -18,20 +18,33 @@ export const PlannedMealComponent: React.FC<PlannedMealComponentProps> = ({
   return (
     <div className="rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
       <h3 className="text-primary mb-3 text-lg font-semibold uppercase">
-        {dateObj.toLocaleDateString("en-US", { weekday: "long" })}
+        {dateObj.toLocaleDateString("no-NO", { weekday: "long" })}
       </h3>
       <p className="text-secondary mb-4 text-sm">
         {dateObj.toLocaleDateString()}
       </p>
+
+      {day.recipeId && recipes[day.recipeId]?.image_url && (
+        <div className="mb-4 h-32 w-full overflow-hidden rounded-xl">
+          <img
+            src={recipes[day.recipeId].image_url}
+            alt={recipes[day.recipeId].title}
+            className="h-full w-full object-cover"
+          />
+        </div>
+      )}
 
       <div className="space-y-3">
         {day.recipeId && recipes[day.recipeId] ? (
           <div className="flex items-center justify-between rounded bg-gray-50 p-2">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium capitalize">Middag</span>
-              <span className="text-secondary text-sm">
+              <a
+                href={`/recipes/${day.recipeId}`}
+                className="text-secondary font-medium transition-colors hover:text-blue-600 hover:underline"
+              >
                 {recipes[day.recipeId].title}
-              </span>
+              </a>
             </div>
             {day.notes && (
               <span className="text-xs text-gray-500">({day.notes})</span>

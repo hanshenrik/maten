@@ -44,16 +44,8 @@ const title = plan.title || `Plan: ${plan.start_date} - ${plan.end_date}`;
             class="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-2 font-semibold text-gray-600 shadow-sm transition-colors hover:bg-gray-50"
           >
             <Icon name="hugeicons:pencil-edit-02" class="h-5 w-5" />
-            Rediger plan
+            Rediger
           </a>
-          <button
-            id="delete-plan"
-            data-id={id}
-            class="flex items-center gap-2 rounded-xl bg-red-50 px-6 py-2 font-semibold text-red-600 shadow-sm transition-colors hover:bg-red-100"
-          >
-            <Icon name="hugeicons:delete-03" class="h-5 w-5" />
-            Slett
-          </button>
         </div>
       </div>
 
@@ -68,7 +60,12 @@ const title = plan.title || `Plan: ${plan.start_date} - ${plan.end_date}`;
                   recipeId: day.recipe_id,
                   notes: day.notes,
                 }}
-                recipes={{ [day.recipe_id]: { title: day.recipes?.title } }}
+                recipes={{
+                  [day.recipe_id]: {
+                    title: day.recipes?.title,
+                    image_url: day.recipes?.image_url,
+                  },
+                }}
               />
             );
           })
@@ -79,24 +76,3 @@ const title = plan.title || `Plan: ${plan.start_date} - ${plan.end_date}`;
     <MainNavigation />
   </div>
 </BaseLayout>
-
-<script>
-  import { supabase } from "../../lib/supabase";
-
-  const deleteBtn = document.getElementById("delete-plan");
-  deleteBtn?.addEventListener("click", async () => {
-    if (!confirm("Er du sikker på at du vil slette denne middagsplanen?"))
-      return;
-
-    const id = deleteBtn.getAttribute("data-id");
-    if (!id) return;
-
-    const { error } = await supabase.from("meal_plans").delete().eq("id", id);
-
-    if (error) {
-      alert("Feil ved sletting: " + error.message);
-    } else {
-      window.location.href = "/plan";
-    }
-  });
-</script>
