@@ -2,6 +2,7 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import MainNavigation from "../components/MainNavigation.astro";
 import { RecipeCard } from "../components/RecipeCard";
+import { Icon } from "astro-icon/components";
 const title = "Recipes";
 
 // Get recipes from Supabase using the authenticated client from locals
@@ -22,9 +23,10 @@ if (error) {
         <h1 class="text-primary text-3xl font-bold">Oppskrifter</h1>
         <a
           href="/recipes/new"
-          class="rounded-lg bg-green-600 px-4 py-2 font-semibold text-white shadow-sm transition-colors hover:bg-green-700"
+          class="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 font-semibold text-white shadow-sm transition-colors hover:bg-green-700"
         >
-          + Ny oppskrift
+          <Icon name="hugeicons:plus-sign" class="h-5 w-5" />
+          Ny oppskrift
         </a>
       </div>
 

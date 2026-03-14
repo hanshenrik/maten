@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import MainNavigation from "../components/MainNavigation.astro";
+import { Icon } from "astro-icon/components";
 
 const title = "Hjem";
 ---
@@ -10,37 +11,76 @@ const title = "Hjem";
     <main class="container mx-auto max-w-6xl flex-1 px-4 py-8">
       <h1 class="text-primary mb-6 text-3xl font-bold">Maten</h1>
 
-      <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <div class="rounded-lg border border-gray-100 bg-white p-6 shadow-sm">
-          <h2 class="text-primary mb-4 text-xl font-semibold">Oppskrifter</h2>
-          <p class="text-secondary mb-4">
+      <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
+        <div
+          class="rounded-3xl border border-gray-100 bg-white p-8 shadow-sm transition-all hover:shadow-md"
+        >
+          <div
+            class="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50"
+          >
+            <Icon
+              name="streamline-ultimate-color:archive-books"
+              class="h-10 w-10"
+            />
+          </div>
+          <h2 class="text-primary mb-2 text-2xl font-bold">Oppskrifter</h2>
+          <p class="text-secondary mb-6 leading-relaxed">
             Bla gjennom og administrer favorittoppskriftene dine.
           </p>
-          <a href="/recipes" class="text-accent font-medium hover:underline"
-            >Se oppskrifter</a
+          <a
+            href="/recipes"
+            class="text-accent flex items-center gap-2 font-bold hover:underline"
           >
+            Se oppskrifter
+            <Icon name="hugeicons:arrow-right-01" class="h-4 w-4" />
+          </a>
         </div>
 
-        <div class="rounded-lg border border-gray-100 bg-white p-6 shadow-sm">
-          <h2 class="text-primary mb-4 text-xl font-semibold">
+        <div
+          class="rounded-3xl border border-gray-100 bg-white p-8 shadow-sm transition-all hover:shadow-md"
+        >
+          <div
+            class="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-50"
+          >
+            <Icon name="streamline-ultimate-color:tea-pot" class="h-10 w-10" />
+          </div>
+          <h2 class="text-primary mb-2 text-2xl font-bold">
             Middagsplanlegging
           </h2>
-          <p class="text-secondary mb-4">
+          <p class="text-secondary mb-6 leading-relaxed">
             Planlegg ukentlige middager lekende lett.
           </p>
-          <a href="/plan" class="text-accent font-medium hover:underline"
-            >Planlegg middager</a
+          <a
+            href="/plan"
+            class="text-accent flex items-center gap-2 font-bold hover:underline"
           >
+            Planlegg middager
+            <Icon name="hugeicons:arrow-right-01" class="h-4 w-4" />
+          </a>
         </div>
 
-        <div class="rounded-lg border border-gray-100 bg-white p-6 shadow-sm">
-          <h2 class="text-primary mb-4 text-xl font-semibold">Handleliste</h2>
-          <p class="text-secondary mb-4">
+        <div
+          class="rounded-3xl border border-gray-100 bg-white p-8 shadow-sm transition-all hover:shadow-md"
+        >
+          <div
+            class="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-green-50"
+          >
+            <Icon
+              name="streamline-ultimate-color:notes-checklist-flip"
+              class="h-10 w-10"
+            />
+          </div>
+          <h2 class="text-primary mb-2 text-2xl font-bold">Handleliste</h2>
+          <p class="text-secondary mb-6 leading-relaxed">
             Generer handleliste fra middagsplanene dine.
           </p>
-          <a href="/shopping" class="text-accent font-medium hover:underline"
-            >Se handleliste</a
+          <a
+            href="/shopping"
+            class="text-accent flex items-center gap-2 font-bold hover:underline"
           >
+            Se handleliste
+            <Icon name="hugeicons:arrow-right-01" class="h-4 w-4" />
+          </a>
         </div>
       </div>
     </main>

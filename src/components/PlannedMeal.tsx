@@ -1,4 +1,6 @@
 import React from "react";
+import { Icon } from "@iconify/react";
+
 interface PlannedMealComponentProps {
   day: {
     day_of_week: string; // This will now be the date string
@@ -36,7 +38,11 @@ export const PlannedMealComponent: React.FC<PlannedMealComponentProps> = ({
             )}
           </div>
         ) : (
-          <div className="flex items-center justify-between rounded bg-gray-50 p-2">
+          <div className="flex items-center gap-2 rounded bg-gray-50 p-2">
+            <Icon
+              icon="hugeicons:circle-off-01"
+              className="h-4 w-4 text-gray-400"
+            />
             <span className="text-sm text-gray-400">Ingen middag planlagt</span>
           </div>
         )}

@@ -1,4 +1,5 @@
 import React from "react";
+import { Icon } from "@iconify/react";
 
 interface RecipeCardProps {
   recipe: {
@@ -26,19 +27,10 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onClick }) => {
         </div>
       ) : (
         <div className="flex h-48 w-full flex-col items-center justify-center bg-gray-50 text-gray-300">
-          <svg
-            className="mb-2 h-10 w-10"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0V17a2 2 0 01-2 2H6a2 2 0 01-2-2v-5z"
-            />
-          </svg>
+          <Icon
+            icon="streamline-ultimate-color:stamps-image"
+            className="mb-2 h-10 w-10 text-gray-300"
+          />
           <span className="text-xs font-medium tracking-wider uppercase">
             No Image
           </span>

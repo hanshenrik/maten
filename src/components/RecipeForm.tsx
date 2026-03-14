@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { supabase } from "../lib/supabase";
+import { Icon } from "@iconify/react";
 
 interface Ingredient {
   name: string;
@@ -136,6 +137,28 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
     } catch (err: any) {
       console.error("Feil ved lagring av oppskrift:", err);
       alert("Feil ved lagring av oppskrift: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!initialData?.id) return;
+    if (!confirm("Er du sikker på at du vil slette denne oppskriften?")) return;
+
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("recipes")
+        .delete()
+        .eq("id", initialData.id);
+
+      if (error) throw error;
+
+      window.location.href = "/recipes";
+    } catch (err: any) {
+      console.error("Feil ved sletting av oppskrift:", err);
+      alert("Feil ved sletting: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -287,19 +310,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
                 onClick={() => removeIngredient(index)}
                 className="p-1 text-red-400 opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-600"
               >
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
-                </svg>
+                <Icon icon="hugeicons:delete-03" className="h-5 w-5" />
               </button>
             </div>
           ))}
@@ -320,6 +331,17 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
         >
           Avbryt
         </a>
+        {isEditing && (
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={loading}
+            className="rounded-lg border border-gray-100 bg-white p-2 text-gray-600 shadow-sm transition-colors hover:text-red-600 disabled:opacity-50"
+            title="Slett oppskrift"
+          >
+            <Icon icon="hugeicons:delete-03" className="h-6 w-6" />
+          </button>
+        )}
       </div>
     </form>
   );

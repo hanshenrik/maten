@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Icon } from "@iconify/react";
 
 export interface ShoppingListItem {
   id: string;
@@ -173,8 +174,9 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
         </div>
         <button
           onClick={handleAddItem}
-          className="bg-accent hover:bg-opacity-90 mt-3 rounded-md px-4 py-2 text-white transition-colors"
+          className="bg-accent hover:bg-opacity-90 mt-3 flex items-center gap-2 rounded-md px-4 py-2 text-white transition-colors"
         >
+          <Icon icon="hugeicons:plus-sign" className="h-5 w-5" />
           Legg til
         </button>
       </div>
@@ -182,7 +184,37 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
       {/* Shopping list items by category */}
       {Object.entries(groupedItems).map(([category, items]) => (
         <div key={category} className="mb-6">
-          <h3 className="text-primary mb-3 text-lg font-medium capitalize">
+          <h3 className="text-primary mb-3 flex items-center gap-2 text-lg font-medium capitalize">
+            {category === "produce" && (
+              <Icon
+                icon="streamline-ultimate-color:apple-1"
+                className="h-5 w-5"
+              />
+            )}
+            {category === "dairy" && (
+              <Icon
+                icon="streamline-ultimate-color:cheese-1"
+                className="h-5 w-5"
+              />
+            )}
+            {category === "meat" && (
+              <Icon
+                icon="streamline-ultimate-color:meat-1"
+                className="h-5 w-5"
+              />
+            )}
+            {category === "bakery" && (
+              <Icon
+                icon="streamline-ultimate-color:bread-1"
+                className="h-5 w-5"
+              />
+            )}
+            {category === "general" && (
+              <Icon
+                icon="streamline-ultimate-color:shopping-basket-3"
+                className="h-5 w-5"
+              />
+            )}
             {category}
           </h3>
           <ul className="space-y-2">
@@ -219,17 +251,7 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
                   className="text-danger hover:text-opacity-80 transition-colors"
                   title="Remove item"
                 >
-                  <svg
-                    className="h-5 w-5"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
+                  <Icon icon="hugeicons:delete-03" className="h-5 w-5" />
                 </button>
               </li>
             ))}

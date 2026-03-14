@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
+import { Icon } from "@iconify/react";
 
 interface Recipe {
   id: string;
@@ -188,9 +189,10 @@ export const MealPlanningWizard: React.FC<{
           </div>
           <button
             onClick={handleDateSelection}
-            className="w-full rounded-2xl bg-green-600 py-4 font-bold text-white shadow-lg shadow-green-100 transition-colors hover:bg-green-700"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-green-600 py-4 font-bold text-white shadow-lg shadow-green-100 transition-colors hover:bg-green-700"
           >
-            Velg oppskrifter →
+            Velg oppskrifter
+            <Icon icon="hugeicons:arrow-right-01" className="h-5 w-5" />
           </button>
         </div>
       </div>
@@ -205,9 +207,10 @@ export const MealPlanningWizard: React.FC<{
         </h2>
         <button
           onClick={() => setStep(1)}
-          className="text-sm font-medium text-blue-600 hover:underline"
+          className="flex items-center gap-1 text-sm font-medium text-blue-600 hover:underline"
         >
-          ← Endre datoer
+          <Icon icon="hugeicons:arrow-left-01" className="h-4 w-4" />
+          Endre datoer
         </button>
       </div>
 

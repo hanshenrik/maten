@@ -2,6 +2,7 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import MainNavigation from "../../components/MainNavigation.astro";
 import { PlannedMealComponent as PlannedMeal } from "../../components/PlannedMeal";
+import { Icon } from "astro-icon/components";
 
 const { id } = Astro.params;
 
@@ -40,15 +41,17 @@ const title = plan.title || `Plan: ${plan.start_date} - ${plan.end_date}`;
         <div class="flex gap-3">
           <a
             href={`/plan/${id}/edit`}
-            class="rounded-xl border border-gray-200 bg-white px-6 py-2 font-semibold text-gray-600 shadow-sm transition-colors hover:bg-gray-50"
+            class="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-2 font-semibold text-gray-600 shadow-sm transition-colors hover:bg-gray-50"
           >
+            <Icon name="hugeicons:pencil-edit-02" class="h-5 w-5" />
             Rediger plan
           </a>
           <button
             id="delete-plan"
             data-id={id}
-            class="rounded-xl bg-red-50 px-6 py-2 font-semibold text-red-600 shadow-sm transition-colors hover:bg-red-100"
+            class="flex items-center gap-2 rounded-xl bg-red-50 px-6 py-2 font-semibold text-red-600 shadow-sm transition-colors hover:bg-red-100"
           >
+            <Icon name="hugeicons:delete-03" class="h-5 w-5" />
             Slett
           </button>
         </div>

@@ -2,6 +2,7 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import MainNavigation from "../components/MainNavigation.astro";
 import { PlannedMealComponent as PlannedMeal } from "../components/PlannedMeal";
+import { Icon } from "astro-icon/components";
 
 const title = "Plan";
 
@@ -31,9 +32,10 @@ const recipesById = {};
         <h1 class="text-primary text-3xl font-bold">Ukens middagsplan</h1>
         <a
           href="/plan/new"
-          class="rounded-lg bg-green-600 px-4 py-2 font-semibold text-white shadow-sm transition-colors hover:bg-green-700"
+          class="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 font-semibold text-white shadow-sm transition-colors hover:bg-green-700"
         >
-          + Ny Plan
+          <Icon name="hugeicons:calendar-add-01" class="h-5 w-5" />
+          Ny Plan
         </a>
       </div>
 
