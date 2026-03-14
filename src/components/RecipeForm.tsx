@@ -27,6 +27,8 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
   const [instructions, setInstructions] = useState(
     initialData?.instructions || "",
   );
+  const [imageUrl, setImageUrl] = useState(initialData?.image_url || "");
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [ingredients, setIngredients] = useState<Ingredient[]>(
     initialData?.ingredients || [
       { name: "", amount: "", unit: "", is_basic: false },
@@ -59,7 +61,29 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
     e.preventDefault();
     setLoading(true);
     try {
-      const recipeData = { title, description, instructions };
+      let uploadedImageUrl = imageUrl;
+      if (imageFile) {
+        const fileExt = imageFile.name.split(".").pop();
+        const fileName = `${userId}/${Date.now()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from("recipe-images")
+          .upload(fileName, imageFile);
+
+        if (uploadError) throw uploadError;
+
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("recipe-images").getPublicUrl(fileName);
+
+        uploadedImageUrl = publicUrl;
+      }
+
+      const recipeData = {
+        title,
+        description,
+        instructions,
+        image_url: uploadedImageUrl,
+      };
       let recipeId = initialData?.id;
 
       if (isEditing) {
@@ -162,6 +186,32 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
             className="w-full rounded-xl border border-gray-300 px-4 py-3 transition-all outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500"
             rows={6}
             placeholder="Step by step instructions..."
+          />
+        </div>
+
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700">
+            Cover Image
+          </label>
+          {imageUrl && !imageFile && (
+            <div className="relative mb-3 h-48 w-full max-w-md overflow-hidden rounded-xl border border-gray-200">
+              <img
+                src={imageUrl}
+                alt="Recipe cover"
+                className="h-full w-full object-cover"
+              />
+            </div>
+          )}
+          {imageFile && (
+            <div className="mb-3 text-sm font-medium text-blue-600">
+              Selected: {imageFile.name}
+            </div>
+          )}
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+            className="w-full rounded-xl border border-gray-300 px-3 py-2 transition-all outline-none file:mr-4 file:rounded-full file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100 focus:border-transparent focus:ring-2 focus:ring-blue-500"
           />
         </div>
       </div>
