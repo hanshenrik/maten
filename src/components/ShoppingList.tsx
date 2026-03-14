@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { Icon } from "@iconify/react";
+import { Checkbox } from "./Checkbox";
+import { UnitSelect } from "./UnitSelect";
 
 export interface ShoppingListItem {
   id: string;
@@ -94,18 +96,6 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
     onUpdate(updatedList);
   };
 
-  // Group items by category
-  const groupedItems = shoppingList.items.reduce(
-    (groups, item) => {
-      if (!groups[item.category]) {
-        groups[item.category] = [];
-      }
-      groups[item.category].push(item);
-      return groups;
-    },
-    {} as Record<string, ShoppingListItem[]>,
-  );
-
   return (
     <div className="rounded-lg border border-gray-100 bg-white p-6 shadow-sm">
       <h2 className="text-primary mb-4 text-xl font-semibold">Handleliste</h2>
@@ -141,35 +131,11 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
           </div>
           <div>
             <label className="text-secondary mb-1 block text-sm">Enhet</label>
-            <select
+            <UnitSelect
               value={newItem.unit}
-              onChange={(e) => setNewItem({ ...newItem, unit: e.target.value })}
-              className="focus:ring-accent w-full rounded-md border border-gray-200 px-3 py-2 focus:ring-2 focus:outline-none"
-            >
-              <option value="stk">Stk</option>
-              <option value="kg">Kilo</option>
-              <option value="g">Gram</option>
-              <option value="L">Liter</option>
-              <option value="ml">Milliliter</option>
-            </select>
-          </div>
-          <div>
-            <label className="text-secondary mb-1 block text-sm">
-              Kategori
-            </label>
-            <select
-              value={newItem.category}
-              onChange={(e) =>
-                setNewItem({ ...newItem, category: e.target.value })
-              }
-              className="focus:ring-accent w-full rounded-md border border-gray-200 px-3 py-2 focus:ring-2 focus:outline-none"
-            >
-              <option value="general">Generelt</option>
-              <option value="produce">Frukt og Grønt</option>
-              <option value="dairy">Meieri</option>
-              <option value="meat">Kjøtt</option>
-              <option value="bakery">Bakeri</option>
-            </select>
+              onChange={(value) => setNewItem({ ...newItem, unit: value })}
+              className="w-full"
+            />
           </div>
         </div>
         <button
@@ -181,83 +147,25 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
         </button>
       </div>
 
-      {/* Shopping list items by category */}
-      {Object.entries(groupedItems).map(([category, items]) => (
-        <div key={category} className="mb-6">
-          <h3 className="text-primary mb-3 flex items-center gap-2 text-lg font-medium capitalize">
-            {category === "produce" && (
-              <Icon
-                icon="streamline-ultimate-color:apple-1"
-                className="h-5 w-5"
-              />
-            )}
-            {category === "dairy" && (
-              <Icon
-                icon="streamline-ultimate-color:cheese-1"
-                className="h-5 w-5"
-              />
-            )}
-            {category === "meat" && (
-              <Icon
-                icon="streamline-ultimate-color:meat-1"
-                className="h-5 w-5"
-              />
-            )}
-            {category === "bakery" && (
-              <Icon
-                icon="streamline-ultimate-color:bread-1"
-                className="h-5 w-5"
-              />
-            )}
-            {category === "general" && (
-              <Icon
-                icon="streamline-ultimate-color:shopping-basket-3"
-                className="h-5 w-5"
-              />
-            )}
-            {category}
-          </h3>
-          <ul className="space-y-2">
-            {items.map((item) => (
-              <li
-                key={item.id}
-                className={`flex items-center justify-between rounded border p-3 ${item.completed ? "border-green-200 bg-green-50" : "border-gray-200 bg-white"}`}
-              >
-                <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    checked={item.completed}
-                    onChange={() => handleToggleComplete(item.id)}
-                    className="text-accent focus:ring-accent h-4 w-4 rounded"
-                  />
-                  <div>
-                    <span
-                      className={`font-medium ${item.completed ? "text-gray-400 line-through" : "text-primary"}`}
-                    >
-                      {item.name}
-                    </span>
-                    <span className="text-secondary ml-2 text-sm">
-                      {item.amount} {item.unit}
-                    </span>
-                    {item.notes && (
-                      <span className="block text-xs text-gray-500">
-                        {item.notes}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <button
-                  onClick={() => handleDeleteItem(item.id)}
-                  className="text-danger hover:text-opacity-80 transition-colors"
-                  title="Remove item"
-                >
-                  <Icon icon="hugeicons:delete-03" className="h-5 w-5" />
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
+      <ul className="space-y-2">
+        {shoppingList.items.map((item) => (
+          <li key={item.id} className="group relative">
+            <Checkbox
+              checked={item.completed}
+              onChange={() => handleToggleComplete(item.id)}
+              label={item.name}
+              subLabel={`${item.amount} ${item.unit}${item.notes ? ` • ${item.notes}` : ""}`}
+            />
+            <button
+              onClick={() => handleDeleteItem(item.id)}
+              className="absolute top-1/2 right-4 -translate-y-1/2 p-2 text-red-400 opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-600"
+              title="Remove item"
+            >
+              <Icon icon="hugeicons:delete-03" className="h-5 w-5" />
+            </button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };

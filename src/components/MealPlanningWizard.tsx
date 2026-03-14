@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import { Icon } from "@iconify/react";
+import { Checkbox } from "./Checkbox";
 
 interface Ingredient {
   name: string;
@@ -423,39 +424,13 @@ export const MealPlanningWizard: React.FC<{
           {shoppingItems.length > 0 ? (
             <div className="space-y-3">
               {shoppingItems.map((item, index) => (
-                <div
+                <Checkbox
                   key={index}
-                  onClick={() => toggleShoppingItem(index)}
-                  className={`flex cursor-pointer items-center justify-between rounded-xl border p-4 transition-all ${
-                    item.checked
-                      ? "border-green-100 bg-green-50 opacity-60"
-                      : "border-gray-100 bg-gray-50 hover:border-gray-200"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`flex h-6 w-6 items-center justify-center rounded-full border-2 transition-colors ${
-                        item.checked
-                          ? "border-green-500 bg-green-500 text-white"
-                          : "border-gray-300 bg-white"
-                      }`}
-                    >
-                      {item.checked && (
-                        <Icon icon="hugeicons:tick-01" className="h-4 w-4" />
-                      )}
-                    </div>
-                    <div>
-                      <span
-                        className={`font-medium ${item.checked ? "text-gray-400 line-through" : "text-gray-900"}`}
-                      >
-                        {item.name}
-                      </span>
-                      <span className="ml-2 text-sm text-gray-500">
-                        {item.amount} {item.unit}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                  checked={item.checked}
+                  onChange={() => toggleShoppingItem(index)}
+                  label={item.name}
+                  subLabel={`${item.amount} ${item.unit}`}
+                />
               ))}
             </div>
           ) : (
