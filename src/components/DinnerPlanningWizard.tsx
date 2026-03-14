@@ -134,7 +134,7 @@ export const DinnerPlanningWizard: React.FC<{
 
       window.location.href = `/plan/${planId}`;
     } catch (err: any) {
-      alert("Error saving plan: " + err.message);
+      alert("Feil ved lagring av plan: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -144,25 +144,25 @@ export const DinnerPlanningWizard: React.FC<{
     return (
       <div className="mx-auto max-w-md rounded-3xl border border-gray-100 bg-white p-8 shadow-sm">
         <h2 className="mb-6 text-2xl font-bold text-gray-900">
-          Step 1: Choose Dates
+          Steg 1: Velg datoer
         </h2>
         <div className="space-y-6">
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
-              Plan Title (Optional)
+              Navn på plan (Valgfritt)
             </label>
             <input
               type="text"
               value={planTitle}
               onChange={(e) => setPlanTitle(e.target.value)}
-              placeholder="e.g. Next Week's Yummy Meals"
+              placeholder="f.eks. Neste ukes middager"
               className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">
-                Start Date
+                Startdato
               </label>
               <input
                 type="date"
@@ -173,7 +173,7 @@ export const DinnerPlanningWizard: React.FC<{
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">
-                End Date
+                Sluttdato
               </label>
               <input
                 type="date"
@@ -187,7 +187,7 @@ export const DinnerPlanningWizard: React.FC<{
             onClick={handleDateSelection}
             className="w-full rounded-2xl bg-green-600 py-4 font-bold text-white shadow-lg shadow-green-100 transition-colors hover:bg-green-700"
           >
-            Choose Recipes →
+            Velg oppskrifter →
           </button>
         </div>
       </div>
@@ -198,13 +198,13 @@ export const DinnerPlanningWizard: React.FC<{
     <div className="mx-auto max-w-2xl space-y-6">
       <div className="flex items-center justify-between rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
         <h2 className="text-2xl font-bold text-gray-900">
-          Step 2: Assign Meals
+          Steg 2: Velg middager
         </h2>
         <button
           onClick={() => setStep(1)}
           className="text-sm font-medium text-blue-600 hover:underline"
         >
-          ← Change Dates
+          ← Endre datoer
         </button>
       </div>
 
@@ -234,7 +234,7 @@ export const DinnerPlanningWizard: React.FC<{
                   onChange={(e) => handleRecipeChange(index, e.target.value)}
                   className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">(No recipe selected)</option>
+                  <option value="">(Ingen oppskrift valgt)</option>
                   {recipes.map((r) => (
                     <option key={r.id} value={r.id}>
                       {r.title}
@@ -243,7 +243,7 @@ export const DinnerPlanningWizard: React.FC<{
                 </select>
                 <input
                   type="text"
-                  placeholder="Notes (e.g. Eating out, left-overs...)"
+                  placeholder="Notater (f.eks. Spise ute, rester...)"
                   value={day.notes}
                   onChange={(e) => handleNotesChange(index, e.target.value)}
                   className="w-full rounded-lg border border-gray-200 px-4 py-2 text-sm outline-none focus:border-blue-300"
@@ -261,16 +261,16 @@ export const DinnerPlanningWizard: React.FC<{
           className="flex-1 rounded-2xl bg-green-600 py-4 font-bold text-white shadow-lg shadow-green-100 transition-colors hover:bg-green-700 disabled:opacity-50"
         >
           {loading
-            ? "Saving Plan..."
+            ? "Lagrer plan..."
             : initialData
-              ? "Update Weekly Plan"
-              : "Create Weekly Plan"}
+              ? "Oppdater ukeplan"
+              : "Opprett ukeplan"}
         </button>
         <a
           href="/plan"
           className="flex items-center rounded-2xl bg-gray-100 px-8 py-4 font-bold text-gray-700 transition-colors hover:bg-gray-200"
         >
-          Cancel
+          Avbryt
         </a>
       </div>
     </div>

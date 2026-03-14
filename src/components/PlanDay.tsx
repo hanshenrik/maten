@@ -26,7 +26,7 @@ export const PlanDayComponent: React.FC<PlanDayComponentProps> = ({
         {day.recipeId && recipes[day.recipeId] ? (
           <div className="flex items-center justify-between rounded bg-gray-50 p-2">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium capitalize">Dinner</span>
+              <span className="text-sm font-medium capitalize">Middag</span>
               <span className="text-secondary text-sm">
                 {recipes[day.recipeId].title}
               </span>
@@ -37,7 +37,7 @@ export const PlanDayComponent: React.FC<PlanDayComponentProps> = ({
           </div>
         ) : (
           <div className="flex items-center justify-between rounded bg-gray-50 p-2">
-            <span className="text-sm text-gray-400">No dinner planned</span>
+            <span className="text-sm text-gray-400">Ingen middag planlagt</span>
           </div>
         )}
       </div>

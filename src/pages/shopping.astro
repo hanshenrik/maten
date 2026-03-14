@@ -3,7 +3,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import MainNavigation from "../components/MainNavigation.astro";
 import { ShoppingListComponent } from "../components/ShoppingList";
 
-const title = "Shopping List";
+const title = "Handleliste";
 
 // 1. Fetch the most recent plan using authenticated client from locals
 const { data: activePlan } = await Astro.locals.supabase
@@ -65,7 +65,7 @@ const currentShoppingList = {
 <BaseLayout title={title}>
   <div class="flex min-h-screen flex-col">
     <main class="container mx-auto max-w-6xl flex-1 px-4 py-8">
-      <h1 class="text-primary mb-6 text-3xl font-bold">Shopping List</h1>
+      <h1 class="text-primary mb-6 text-3xl font-bold">Handleliste</h1>
 
       {
         currentShoppingList.items.length > 0 ? (

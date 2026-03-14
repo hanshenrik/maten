@@ -1,5 +1,22 @@
 import React, { useState } from "react";
-import type { ShoppingList, ShoppingListItem } from "../content/config";
+
+export interface ShoppingListItem {
+  id: string;
+  name: string;
+  amount: number;
+  unit: string;
+  category: string;
+  notes?: string;
+  completed: boolean;
+}
+
+export interface ShoppingList {
+  id: string;
+  items: ShoppingListItem[];
+  createdAt: Date;
+  updatedAt: Date;
+  completed: boolean;
+}
 
 interface ShoppingListProps {
   shoppingList: ShoppingList;
@@ -90,24 +107,24 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
 
   return (
     <div className="rounded-lg border border-gray-100 bg-white p-6 shadow-sm">
-      <h2 className="text-primary mb-4 text-xl font-semibold">Shopping List</h2>
+      <h2 className="text-primary mb-4 text-xl font-semibold">Handleliste</h2>
 
       {/* Add new item form */}
       <div className="mb-6 rounded-lg bg-gray-50 p-4">
-        <h3 className="text-primary mb-3 font-medium">Add New Item</h3>
+        <h3 className="text-primary mb-3 font-medium">Legg til ny vare</h3>
         <div className="grid grid-cols-1 items-end gap-3 md:grid-cols-4">
           <div>
-            <label className="text-secondary mb-1 block text-sm">Name</label>
+            <label className="text-secondary mb-1 block text-sm">Navn</label>
             <input
               type="text"
               value={newItem.name}
               onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
               className="focus:ring-accent w-full rounded-md border border-gray-200 px-3 py-2 focus:ring-2 focus:outline-none"
-              placeholder="e.g., Apples"
+              placeholder="f.eks., Epler"
             />
           </div>
           <div>
-            <label className="text-secondary mb-1 block text-sm">Amount</label>
+            <label className="text-secondary mb-1 block text-sm">Antall</label>
             <input
               type="number"
               value={newItem.amount}
@@ -122,22 +139,22 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
             />
           </div>
           <div>
-            <label className="text-secondary mb-1 block text-sm">Unit</label>
+            <label className="text-secondary mb-1 block text-sm">Enhet</label>
             <select
               value={newItem.unit}
               onChange={(e) => setNewItem({ ...newItem, unit: e.target.value })}
               className="focus:ring-accent w-full rounded-md border border-gray-200 px-3 py-2 focus:ring-2 focus:outline-none"
             >
-              <option value="pcs">Pieces</option>
-              <option value="kg">Kilograms</option>
-              <option value="g">Grams</option>
-              <option value="L">Liters</option>
-              <option value="ml">Milliliters</option>
+              <option value="stk">Stk</option>
+              <option value="kg">Kilo</option>
+              <option value="g">Gram</option>
+              <option value="L">Liter</option>
+              <option value="ml">Milliliter</option>
             </select>
           </div>
           <div>
             <label className="text-secondary mb-1 block text-sm">
-              Category
+              Kategori
             </label>
             <select
               value={newItem.category}
@@ -146,11 +163,11 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
               }
               className="focus:ring-accent w-full rounded-md border border-gray-200 px-3 py-2 focus:ring-2 focus:outline-none"
             >
-              <option value="general">General</option>
-              <option value="produce">Produce</option>
-              <option value="dairy">Dairy</option>
-              <option value="meat">Meat</option>
-              <option value="bakery">Bakery</option>
+              <option value="general">Generelt</option>
+              <option value="produce">Frukt og Grønt</option>
+              <option value="dairy">Meieri</option>
+              <option value="meat">Kjøtt</option>
+              <option value="bakery">Bakeri</option>
             </select>
           </div>
         </div>
@@ -158,7 +175,7 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
           onClick={handleAddItem}
           className="bg-accent hover:bg-opacity-90 mt-3 rounded-md px-4 py-2 text-white transition-colors"
         >
-          Add Item
+          Legg til
         </button>
       </div>
 

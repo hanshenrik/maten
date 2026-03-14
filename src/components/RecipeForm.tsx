@@ -134,8 +134,8 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
         window.location.href = isEditing ? `/recipes/${recipeId}` : "/recipes";
       }
     } catch (err: any) {
-      console.error("Error saving recipe:", err);
-      alert("Error saving recipe: " + err.message);
+      console.error("Feil ved lagring av oppskrift:", err);
+      alert("Feil ved lagring av oppskrift: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -145,12 +145,12 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
     <form onSubmit={handleSubmit} className="space-y-8 pb-12">
       <div className="space-y-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
         <h2 className="text-xl font-semibold text-gray-900">
-          General Information
+          Generell informasjon
         </h2>
 
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">
-            Recipe Title
+            Tittel på oppskrift
           </label>
           <input
             type="text"
@@ -158,26 +158,26 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             className="w-full rounded-xl border border-gray-300 px-4 py-3 transition-all outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500"
-            placeholder="e.g. Classic Margherita Pizza"
+            placeholder="f.eks. Klassisk Margherita Pizza"
           />
         </div>
 
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">
-            Description
+            Beskrivelse
           </label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             className="w-full rounded-xl border border-gray-300 px-4 py-3 transition-all outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500"
             rows={3}
-            placeholder="A short summary of the dish..."
+            placeholder="Et kort sammendrag av retten..."
           />
         </div>
 
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">
-            Instructions
+            Fremgangsmåte
           </label>
           <textarea
             required
@@ -185,13 +185,13 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
             onChange={(e) => setInstructions(e.target.value)}
             className="w-full rounded-xl border border-gray-300 px-4 py-3 transition-all outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500"
             rows={6}
-            placeholder="Step by step instructions..."
+            placeholder="Steg for steg fremgangsmåte..."
           />
         </div>
 
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">
-            Cover Image
+            Bilde
           </label>
           {imageUrl && !imageFile && (
             <div className="relative mb-3 h-48 w-full max-w-md overflow-hidden rounded-xl border border-gray-200">
@@ -204,7 +204,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
           )}
           {imageFile && (
             <div className="mb-3 text-sm font-medium text-blue-600">
-              Selected: {imageFile.name}
+              Valgt: {imageFile.name}
             </div>
           )}
           <input
@@ -218,13 +218,13 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
 
       <div className="space-y-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-gray-900">Ingredients</h2>
+          <h2 className="text-xl font-semibold text-gray-900">Ingredienser</h2>
           <button
             type="button"
             onClick={addIngredient}
             className="rounded-lg bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100"
           >
-            + Add Ingredient
+            + Legg til ingrediens
           </button>
         </div>
 
@@ -238,7 +238,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
                 <input
                   type="text"
                   required
-                  placeholder="Ingredient name"
+                  placeholder="Navn på ingrediens"
                   value={ing.name}
                   onChange={(e) =>
                     handleIngredientChange(index, "name", e.target.value)
@@ -249,7 +249,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
                   <input
                     type="number"
                     step="any"
-                    placeholder="Amt"
+                    placeholder="Mengde"
                     value={ing.amount}
                     onChange={(e) =>
                       handleIngredientChange(index, "amount", e.target.value)
@@ -258,7 +258,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
                   />
                   <input
                     type="text"
-                    placeholder="Unit"
+                    placeholder="Enhet"
                     value={ing.unit}
                     onChange={(e) =>
                       handleIngredientChange(index, "unit", e.target.value)
@@ -278,7 +278,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
                       }
                       className="rounded text-blue-600"
                     />
-                    Basics
+                    Basis
                   </label>
                 </div>
               </div>
@@ -312,13 +312,13 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
           disabled={loading}
           className="flex-1 transform rounded-2xl bg-green-600 px-6 py-4 font-bold text-white shadow-lg shadow-green-100 transition-all hover:bg-green-700 active:scale-[0.98] disabled:opacity-50"
         >
-          {loading ? "Saving..." : "Save Recipe"}
+          {loading ? "Lagrer..." : "Lagre oppskrift"}
         </button>
         <a
           href="/recipes"
           className="flex items-center rounded-2xl bg-gray-100 px-8 py-4 font-bold text-gray-700 transition-all hover:bg-gray-200"
         >
-          Cancel
+          Avbryt
         </a>
       </div>
     </form>
