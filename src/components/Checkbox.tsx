@@ -42,9 +42,7 @@ export const Checkbox: React.FC<CheckboxProps> = ({
             </span>
           )}
           {subLabel && (
-            <span className="ml-2 text-sm text-gray-500">
-              {subLabel}
-            </span>
+            <span className="ml-2 text-sm text-gray-500">{subLabel}</span>
           )}
         </div>
       </div>
