@@ -31,8 +31,9 @@ interface ShoppingItem {
 
 export const MealPlanningWizard: React.FC<{
   userId: string;
+  householdId: string;
   initialData?: any;
-}> = ({ userId, initialData }) => {
+}> = ({ userId, householdId, initialData }) => {
   const [step, setStep] = useState(initialData ? 2 : 1);
   const [startDate, setStartDate] = useState(initialData?.start_date || "");
   const [endDate, setEndDate] = useState(initialData?.end_date || "");
@@ -191,6 +192,7 @@ export const MealPlanningWizard: React.FC<{
           .from("meal_plans")
           .insert({
             user_id: userId,
+            household_id: householdId,
             start_date: startDate,
             end_date: endDate,
             title: planTitle || `Plan for ${startDate}`,
@@ -224,6 +226,7 @@ export const MealPlanningWizard: React.FC<{
             .filter((item) => !item.checked) // Only add things we don't have
             .map((item) => ({
               user_id: userId,
+              household_id: householdId,
               name: item.name,
               amount: item.amount,
               unit: item.unit,
@@ -365,7 +368,7 @@ export const MealPlanningWizard: React.FC<{
                 key={day.date}
                 className="flex flex-col items-start gap-4 rounded-3xl border border-gray-100 bg-white p-6 shadow-sm md:flex-row md:items-center"
               >
-                <div className="min-w-[120px]">
+                <div className="min-w-30">
                   <div className="text-xs font-bold tracking-wider text-blue-600 uppercase">
                     {date.toLocaleDateString("no-NO", { weekday: "short" })}
                   </div>

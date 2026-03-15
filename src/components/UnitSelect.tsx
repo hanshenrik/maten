@@ -17,6 +17,8 @@ export const UnitSelect: React.FC<UnitSelectProps> = ({
     { value: "g", label: "g" },
     { value: "l", label: "l" },
     { value: "ml", label: "ml" },
+    { value: "ss", label: "ss" },
+    { value: "ts", label: "ts" },
   ];
 
   return (

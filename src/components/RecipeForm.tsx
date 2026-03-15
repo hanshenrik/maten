@@ -14,12 +14,14 @@ interface RecipeFormProps {
   initialData?: any;
   onSuccess?: (id: string) => void;
   userId: string;
+  householdId: string;
 }
 
 export const RecipeForm: React.FC<RecipeFormProps> = ({
   initialData,
   onSuccess,
   userId,
+  householdId,
 }) => {
   const isEditing = !!initialData?.id;
   const [title, setTitle] = useState(initialData?.title || "");
@@ -105,6 +107,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
           .insert({
             ...recipeData,
             user_id: userId,
+            household_id: householdId,
           })
           .select()
           .single();

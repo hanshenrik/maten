@@ -14,7 +14,11 @@ const title = "New Recipe";
         <p class="text-gray-500">Legg til en ny favoritt i samlingen din</p>
       </div>
 
-      <RecipeForm client:load userId={Astro.locals.user.id} />
+      <RecipeForm
+        client:load
+        userId={Astro.locals.user.id}
+        householdId={Astro.locals.householdId}
+      />
     </main>
 
     <MainNavigation />

@@ -1,6 +1,6 @@
 ---
 import { Icon } from "astro-icon/components";
-const { user } = Astro.locals;
+const { user, pendingInvitesCount } = Astro.locals;
 ---
 
 <nav
@@ -43,6 +43,18 @@ const { user } = Astro.locals;
         class="mb-1 h-6 w-6"
       />
       <span class="mt-1 text-xs">Handleliste</span>
+    </a>
+    <a
+      href="/settings"
+      class="text-secondary hover:text-primary relative flex flex-col items-center transition-colors"
+    >
+      <Icon name="hugeicons:settings-03" class="mb-1 h-6 w-6" />
+      {
+        pendingInvitesCount > 0 && (
+          <span class="absolute top-0 right-1 h-2.5 w-2.5 rounded-full bg-red-500 shadow-sm" />
+        )
+      }
+      <span class="mt-1 text-xs">Instillinger</span>
     </a>
     {
       user && (

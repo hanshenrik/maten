@@ -37,6 +37,7 @@ const title = "Rediger middagsplan";
       <MealPlanningWizard
         client:load
         userId={Astro.locals.user.id}
+        householdId={Astro.locals.householdId}
         initialData={plan}
       />
     </main>

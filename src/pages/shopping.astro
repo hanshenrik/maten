@@ -11,7 +11,7 @@ const { data: shoppingItems } = await Astro.locals.supabase
   .order("created_at", { ascending: true });
 
 const initialItems = shoppingItems || [];
-const userId = Astro.locals.user.id;
+const { user, householdId } = Astro.locals;
 ---
 
 <BaseLayout title={title}>
@@ -22,7 +22,8 @@ const userId = Astro.locals.user.id;
       <ShoppingListComponent
         client:load
         initialItems={initialItems}
-        userId={userId}
+        userId={user.id}
+        householdId={householdId}
       />
     </main>
 

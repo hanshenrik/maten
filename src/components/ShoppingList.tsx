@@ -16,11 +16,13 @@ export interface ShoppingListItem {
 interface ShoppingListProps {
   initialItems: ShoppingListItem[];
   userId: string;
+  householdId: string;
 }
 
 export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
   initialItems,
   userId,
+  householdId,
 }) => {
   const [items, setItems] = useState<ShoppingListItem[]>(initialItems);
   const [loading, setLoading] = useState(false);
@@ -44,6 +46,7 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
         .from("shopping_items")
         .insert({
           user_id: userId,
+          household_id: householdId,
           name: newItem.name,
           amount: newItem.amount || null,
           unit: newItem.unit,

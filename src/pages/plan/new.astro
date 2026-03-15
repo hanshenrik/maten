@@ -16,7 +16,11 @@ const title = "Ny middagsplan";
         </p>
       </div>
 
-      <MealPlanningWizard client:load userId={Astro.locals.user.id} />
+      <MealPlanningWizard
+        client:load
+        userId={Astro.locals.user.id}
+        householdId={Astro.locals.householdId}
+      />
     </main>
 
     <MainNavigation />
