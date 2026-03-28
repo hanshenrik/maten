@@ -10,6 +10,9 @@ export default defineConfig({
   integrations: [react(), icon()],
 
   site: "https://maten.hanshenrik.com",
+  security: {
+    checkOrigin: false,
+  },
 
   vite: {
     define: {
