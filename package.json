@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
+    "network": "astro dev --host",
     "start": "astro dev",
     "build": "astro build",
-    "preview": "astro preview",
     "check": "astro check",
     "format": "prettier --write ."
   },

@@ -1,6 +1,7 @@
 ---
 import Analytics from "@vercel/analytics/astro";
 import SpeedInsights from "@vercel/speed-insights/astro";
+import { ClientRouter } from "astro:transitions";
 import type { PropsWithChildren } from "react";
 import "../styles/global.css";
 
@@ -35,10 +36,11 @@ const { title } = Astro.props;
     <!-- Theme color -->
     <meta name="theme-color" content="#4299E1" />
 
+    <ClientRouter />
     <Analytics />
     <SpeedInsights />
   </head>
-  <body class="bg-light text-dark min-h-screen pb-20">
+  <body class="bg-light text-dark min-h-screen pb-20" transition:animate="fade">
     <slot />
     <script>
       if ("serviceWorker" in navigator) {
