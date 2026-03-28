@@ -2,6 +2,12 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import { Icon } from "@iconify/react";
 import { Checkbox } from "./Checkbox";
+import {
+  formatISODate,
+  formatShortDay,
+  formatMonthDay,
+  formatDateRange,
+} from "../utils/date";
 
 interface Ingredient {
   name: string;
@@ -59,8 +65,8 @@ export const MealPlanningWizard: React.FC<{
     const nextSunday = new Date(nextMonday);
     nextSunday.setDate(nextMonday.getDate() + 6);
 
-    setStartDate(nextMonday.toISOString().split("T")[0]);
-    setEndDate(nextSunday.toISOString().split("T")[0]);
+    setStartDate(formatISODate(nextMonday));
+    setEndDate(formatISODate(nextSunday));
 
     // Fetch recipes for the picker
     const fetchRecipes = async () => {
@@ -109,7 +115,7 @@ export const MealPlanningWizard: React.FC<{
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
       const sourceMeal = sourceMeals[i];
       days.push({
-        date: d.toISOString().split("T")[0],
+        date: formatISODate(d),
         recipe_id: sourceMeal?.recipe_id || "",
         notes: sourceMeal?.notes || "",
       });
@@ -131,7 +137,7 @@ export const MealPlanningWizard: React.FC<{
     setDayPlans(newPlans);
   };
 
-  const generateShoppingList = () => {
+  const calculateShoppingItems = () => {
     const itemMap: Record<string, ShoppingItem> = {};
 
     dayPlans.forEach((plan) => {
@@ -153,7 +159,12 @@ export const MealPlanningWizard: React.FC<{
       });
     });
 
-    setShoppingItems(Object.values(itemMap));
+    return Object.values(itemMap);
+  };
+
+  const generateShoppingList = () => {
+    const items = calculateShoppingItems();
+    setShoppingItems(items);
     setStep(3);
   };
 
@@ -175,7 +186,12 @@ export const MealPlanningWizard: React.FC<{
           .update({
             start_date: startDate,
             end_date: endDate,
-            title: planTitle || `Plan for ${startDate}`,
+            title:
+              planTitle ||
+              `Plan for ${formatDateRange({
+                start: startDate,
+                end: endDate,
+              })}`,
           })
           .eq("id", planId);
 
@@ -195,7 +211,12 @@ export const MealPlanningWizard: React.FC<{
             household_id: householdId,
             start_date: startDate,
             end_date: endDate,
-            title: planTitle || `Plan for ${startDate}`,
+            title:
+              planTitle ||
+              `Plan for ${formatDateRange({
+                start: startDate,
+                end: endDate,
+              })}`,
           })
           .select()
           .single();
@@ -218,35 +239,50 @@ export const MealPlanningWizard: React.FC<{
 
       if (daysError) throw daysError;
 
-      // Insert ingredients into the PERSISTENT shopping list
-      if (showShopping && shoppingItems.length > 0) {
-        const userId = (await supabase.auth.getUser()).data.user?.id;
-        if (userId) {
-          const itemsToInsert = shoppingItems
-            .filter((item) => !item.checked) // Only add things we don't have
-            .map((item) => ({
-              user_id: userId,
-              household_id: householdId,
-              name: item.name,
-              amount: item.amount,
-              unit: item.unit,
-              completed: false,
-            }));
-
-          if (itemsToInsert.length > 0) {
-            const { error: shoppingError } = await supabase
-              .from("shopping_items")
-              .insert(itemsToInsert);
-            if (shoppingError) throw shoppingError;
-          }
-        }
-
+      // Prepare shopping items if needed
+      if (showShopping) {
+        const items = calculateShoppingItems();
+        setShoppingItems(items);
         setStep(3);
       } else {
         window.location.href = `/plan/${planId}`;
       }
     } catch (err: any) {
       alert("Feil ved lagring av plan: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFinishWizard = async () => {
+    setLoading(true);
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user && shoppingItems.length > 0) {
+        const itemsToInsert = shoppingItems
+          .filter((item) => !item.checked) // Only add things we don't have
+          .map((item) => ({
+            user_id: user.id,
+            household_id: householdId,
+            name: item.name,
+            amount: item.amount,
+            unit: item.unit,
+            completed: false,
+          }));
+
+        if (itemsToInsert.length > 0) {
+          const { error: shoppingError } = await supabase
+            .from("shopping_items")
+            .insert(itemsToInsert);
+          if (shoppingError) throw shoppingError;
+        }
+      }
+      window.location.href = `/plan`;
+    } catch (err: any) {
+      console.error("Feil ved ferdigstilling av handleliste:", err);
+      alert("Feil ved ferdigstilling: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -370,13 +406,10 @@ export const MealPlanningWizard: React.FC<{
               >
                 <div className="min-w-30">
                   <div className="text-xs font-bold tracking-wider text-blue-600 uppercase">
-                    {date.toLocaleDateString("no-NO", { weekday: "short" })}
+                    {formatShortDay(day.date)}
                   </div>
                   <div className="text-lg font-bold text-gray-900">
-                    {date.toLocaleDateString("no-NO", {
-                      month: "short",
-                      day: "numeric",
-                    })}
+                    {formatMonthDay(day.date)}
                   </div>
                 </div>
 
@@ -494,10 +527,11 @@ export const MealPlanningWizard: React.FC<{
 
         <div className="flex gap-4">
           <button
-            onClick={() => (window.location.href = `/plan`)}
-            className="flex-1 rounded-2xl bg-green-600 py-4 font-bold text-white shadow-lg shadow-green-100 transition-colors hover:bg-green-700"
+            onClick={handleFinishWizard}
+            disabled={loading}
+            className="flex-1 rounded-2xl bg-green-600 py-4 font-bold text-white shadow-lg shadow-green-100 transition-colors hover:bg-green-700 disabled:opacity-50"
           >
-            Ferdig
+            {loading ? "Fullfører..." : "Ferdig"}
           </button>
           {initialData && (
             <button

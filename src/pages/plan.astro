@@ -3,6 +3,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import MainNavigation from "../components/MainNavigation.astro";
 import { PlannedMealComponent as PlannedMeal } from "../components/PlannedMeal";
 import { Icon } from "astro-icon/components";
+import { formatISODate, formatDateRange } from "../utils/date";
 
 const title = "Plan";
 
@@ -20,18 +21,10 @@ const { data: plans = [] } = await Astro.locals.supabase
   )
   .order("start_date", { ascending: false });
 
-const today = new Date().toISOString().split("T")[0];
+const today = formatISODate(new Date());
 
 const activePlans = plans.filter((p) => p.end_date >= today);
 const outdatedPlans = plans.filter((p) => p.end_date < today);
-
-const formatDate = (dateStr: string) => {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("no-NO", {
-    day: "numeric",
-    month: "short",
-  });
-};
 ---
 
 <BaseLayout title={title}>
@@ -59,8 +52,10 @@ const formatDate = (dateStr: string) => {
                       {plan.title || "Middagsplan"}
                     </h2>
                     <p class="text-secondary text-sm font-medium">
-                      {formatDate(plan.start_date)} -{" "}
-                      {formatDate(plan.end_date)}
+                      {formatDateRange({
+                        start: plan.start_date,
+                        end: plan.end_date,
+                      })}
                     </p>
                   </a>
                 </div>
@@ -113,8 +108,10 @@ const formatDate = (dateStr: string) => {
                         {plan.title || "Middagsplan"}
                       </h2>
                       <p class="text-secondary text-sm">
-                        {formatDate(plan.start_date)} -{" "}
-                        {formatDate(plan.end_date)}
+                        {formatDateRange({
+                          start: plan.start_date,
+                          end: plan.end_date,
+                        })}
                       </p>
                     </a>
                   </div>

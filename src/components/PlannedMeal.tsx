@@ -1,4 +1,5 @@
 import React from "react";
+import { formatLongDay, formatMonthDay } from "../utils/date";
 import { Icon } from "@iconify/react";
 
 interface PlannedMealComponentProps {
@@ -14,14 +15,13 @@ export const PlannedMealComponent: React.FC<PlannedMealComponentProps> = ({
   day,
   recipes,
 }) => {
-  const dateObj = new Date(day.day_of_week);
   return (
     <div className="rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
-      <h3 className="text-primary mb-3 text-lg font-semibold uppercase">
-        {dateObj.toLocaleDateString("no-NO", { weekday: "long" })}
+      <h3 className="text-primary mb-3 text-lg font-semibold">
+        {formatLongDay(day.day_of_week)}
       </h3>
       <p className="text-secondary mb-4 text-sm">
-        {dateObj.toLocaleDateString()}
+        {formatMonthDay(day.day_of_week)}
       </p>
 
       {day.recipeId && recipes[day.recipeId]?.image_url && (
@@ -36,18 +36,15 @@ export const PlannedMealComponent: React.FC<PlannedMealComponentProps> = ({
 
       <div className="space-y-3">
         {day.recipeId && recipes[day.recipeId] ? (
-          <div className="flex items-center justify-between rounded bg-gray-50 p-2">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium capitalize">Middag</span>
-              <a
-                href={`/recipes/${day.recipeId}`}
-                className="text-secondary font-medium transition-colors hover:text-blue-600 hover:underline"
-              >
-                {recipes[day.recipeId].title}
-              </a>
-            </div>
+          <div className="flex flex-col gap-1 rounded bg-gray-50 p-2">
+            <a
+              href={`/recipes/${day.recipeId}`}
+              className="text-secondary font-medium transition-colors hover:text-blue-600 hover:underline"
+            >
+              {recipes[day.recipeId].title}
+            </a>
             {day.notes && (
-              <span className="text-xs text-gray-500">({day.notes})</span>
+              <span className="text-xs text-gray-500">{day.notes}</span>
             )}
           </div>
         ) : (
