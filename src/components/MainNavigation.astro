@@ -7,37 +7,25 @@ const { user, pendingInvitesCount } = Astro.locals;
   class="fixed bottom-0 left-0 z-50 w-full border-t border-gray-200 bg-white px-4 pt-4 pb-6"
 >
   <div class="container mx-auto flex justify-around">
-    <a
-      href="/"
-      class="text-secondary hover:text-primary flex flex-col items-center transition-colors"
-    >
+    <a href="/" class="text-secondary group flex flex-col items-center">
       <Icon
         name="streamline-ultimate-color:ice-cream-cone"
         class="mb-1 h-6 w-6"
       />
       <span class="mt-1 text-xs">Hjem</span>
     </a>
-    <a
-      href="/recipes"
-      class="text-secondary hover:text-primary flex flex-col items-center transition-colors"
-    >
+    <a href="/recipes" class="text-secondary group flex flex-col items-center">
       <Icon
         name="streamline-ultimate-color:archive-books"
         class="mb-1 h-6 w-6"
       />
       <span class="mt-1 text-xs">Oppskrifter</span>
     </a>
-    <a
-      href="/plan"
-      class="text-secondary hover:text-primary flex flex-col items-center transition-colors"
-    >
+    <a href="/plan" class="text-secondary group flex flex-col items-center">
       <Icon name="streamline-ultimate-color:tea-pot" class="mb-1 h-6 w-6" />
       <span class="mt-1 text-xs">Planlegg</span>
     </a>
-    <a
-      href="/shopping"
-      class="text-secondary hover:text-primary flex flex-col items-center transition-colors"
-    >
+    <a href="/shopping" class="text-secondary group flex flex-col items-center">
       <Icon
         name="streamline-ultimate-color:notes-checklist-flip"
         class="mb-1 h-6 w-6"
@@ -46,7 +34,7 @@ const { user, pendingInvitesCount } = Astro.locals;
     </a>
     <a
       href="/settings"
-      class="text-secondary hover:text-primary relative flex flex-col items-center transition-colors"
+      class="text-secondary group relative flex flex-col items-center"
     >
       <Icon name="hugeicons:settings-03" class="mb-1 h-6 w-6" />
       {

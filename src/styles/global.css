@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
-:root {
-  --primary-color: #2d3748;
-  --secondary-color: #4a5568;
-  --accent-color: #4299e1;
-  --light-color: #f7fafc;
-  --dark-color: #1a202c;
-  --success-color: #48bb78;
-  --warning-color: #ed8936;
-  --danger-color: #f56565;
+@theme {
+  --color-primary: #2d3748;
+  --color-secondary: #4a5568;
+  --color-accent: #4299e1;
+  --color-light: #f7fafc;
+  --color-dark: #1a202c;
+  --color-success: #48bb78;
+  --color-warning: #ed8936;
+  --color-danger: #f56565;
 }
 
 body {
@@ -19,14 +19,7 @@ body {
     "Segoe UI",
     Roboto,
     sans-serif;
-  background-color: var(--light-color);
-  color: var(--dark-color);
+  background-color: var(--color-light);
+  color: var(--color-dark);
   line-height: 1.6;
-}
-
-/* Add smooth transitions for better UX */
-* {
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease;
 }
