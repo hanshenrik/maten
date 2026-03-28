@@ -3,6 +3,8 @@ import { Icon } from "@iconify/react";
 import { supabase } from "../lib/supabase";
 import { Checkbox } from "./Checkbox";
 import { UnitSelect } from "./UnitSelect";
+import { EmojiSelect } from "./EmojiSelect";
+import { combineEmojiAndName } from "../utils/emoji";
 
 export interface ShoppingListItem {
   id: string;
@@ -27,6 +29,7 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
   const [items, setItems] = useState<ShoppingListItem[]>(initialItems);
   const [loading, setLoading] = useState(false);
   const [newItem, setNewItem] = useState({
+    emoji: "",
     name: "",
     amount: 1,
     unit: "stk",
@@ -47,7 +50,7 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
         .insert({
           user_id: userId,
           household_id: householdId,
-          name: newItem.name,
+          name: combineEmojiAndName(newItem.emoji, newItem.name),
           amount: newItem.amount || null,
           unit: newItem.unit,
           completed: false,
@@ -58,7 +61,7 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
       if (error) throw error;
 
       setItems([...items, data]);
-      setNewItem({ name: "", amount: 1, unit: "stk" });
+      setNewItem({ emoji: "", name: "", amount: 1, unit: "stk" });
     } catch (err: any) {
       alert("Error adding item: " + err.message);
     } finally {
@@ -122,14 +125,22 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
         <div className="grid grid-cols-1 items-end gap-3 md:grid-cols-4">
           <div className="md:col-span-2">
             <label className="mb-1 block text-sm text-gray-600">Navn</label>
-            <input
-              type="text"
-              list="shopping-suggestions"
-              value={newItem.name}
-              onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-              className="w-full rounded-md border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="f.eks., Epler"
-            />
+            <div className="flex gap-2">
+              <EmojiSelect
+                value={newItem.emoji}
+                onChange={(emoji) => setNewItem({ ...newItem, emoji })}
+              />
+              <input
+                type="text"
+                list="shopping-suggestions"
+                value={newItem.name}
+                onChange={(e) =>
+                  setNewItem({ ...newItem, name: e.target.value })
+                }
+                className="w-full rounded-md border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                placeholder="f.eks., Epler"
+              />
+            </div>
           </div>
           <div>
             <label className="mb-1 block text-sm text-gray-600">Antall</label>

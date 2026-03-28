@@ -2,9 +2,12 @@ import React, { useState } from "react";
 import { supabase } from "../lib/supabase";
 import { Icon } from "@iconify/react";
 import { UnitSelect } from "./UnitSelect";
+import { EmojiSelect } from "./EmojiSelect";
+import { splitEmojiFromName, combineEmojiAndName } from "../utils/emoji";
 
 interface Ingredient {
   name: string;
+  emoji?: string;
   amount: string;
   unit: string;
   is_basic: boolean;
@@ -34,16 +37,22 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
   const [imageUrl, setImageUrl] = useState(initialData?.image_url || "");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [ingredients, setIngredients] = useState<Ingredient[]>(
-    initialData?.ingredients || [
-      { name: "", amount: "", unit: "", is_basic: false },
-    ],
+    initialData?.ingredients?.map((ing: any) => {
+      const { emoji, name } = splitEmojiFromName(ing.name);
+      return {
+        ...ing,
+        emoji,
+        name,
+        amount: ing.amount?.toString() || "",
+      };
+    }) || [{ emoji: "", name: "", amount: "", unit: "", is_basic: false }],
   );
   const [loading, setLoading] = useState(false);
 
   const addIngredient = () => {
     setIngredients([
       ...ingredients,
-      { name: "", amount: "", unit: "", is_basic: false },
+      { emoji: "", name: "", amount: "", unit: "", is_basic: false },
     ]);
   };
 
@@ -120,7 +129,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
         const ingredientsToInsert = ingredients
           .filter((ing) => ing.name.trim())
           .map((ing) => ({
-            name: ing.name,
+            name: combineEmojiAndName(ing.emoji || "", ing.name),
             amount: ing.amount ? parseFloat(String(ing.amount)) : null,
             unit: ing.unit,
             is_basic: !!ing.is_basic,
@@ -264,16 +273,24 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
               className="group relative flex items-start gap-3 rounded-xl bg-gray-50 p-4"
             >
               <div className="flex-1">
-                <input
-                  type="text"
-                  required
-                  placeholder="Navn på ingrediens"
-                  value={ing.name}
-                  onChange={(e) =>
-                    handleIngredientChange(index, "name", e.target.value)
-                  }
-                  className="mb-2 w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                />
+                <div className="mb-2 flex gap-2">
+                  <EmojiSelect
+                    value={ing.emoji || ""}
+                    onChange={(emoji) =>
+                      handleIngredientChange(index, "emoji", emoji)
+                    }
+                  />
+                  <input
+                    type="text"
+                    required
+                    placeholder="Navn på ingrediens"
+                    value={ing.name}
+                    onChange={(e) =>
+                      handleIngredientChange(index, "name", e.target.value)
+                    }
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
                 <div className="flex gap-2">
                   <input
                     type="number"
