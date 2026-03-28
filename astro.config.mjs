@@ -9,12 +9,12 @@ export default defineConfig({
   adapter: vercel(),
   integrations: [react(), icon()],
 
-  site: "https://mat.hanshenrik.com",
+  site: "https://maten.hanshenrik.com",
 
   vite: {
     define: {
       "import.meta.env.PUBLIC_SITE_URL": JSON.stringify(
-        "https://mat.hanshenrik.com",
+        "https://maten.hanshenrik.com",
       ),
     },
     plugins: [tailwindcss()],
