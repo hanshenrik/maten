@@ -1,11 +1,5 @@
 const CACHE_NAME = "maten-v2"; // Increment version
-const ASSETS_TO_CACHE = [
-  "/",
-  "/manifest.json",
-  "/favicon.svg",
-  "/favicon.png",
-  "/apple-touch-icon.png",
-];
+const ASSETS_TO_CACHE = ["/", "/manifest.json"];
 
 // Install: Cache essential assets
 self.addEventListener("install", (event) => {
