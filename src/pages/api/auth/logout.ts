@@ -29,6 +29,14 @@ export const POST: APIRoute = async ({ cookies, redirect, request }) => {
     },
   );
 
+  // Clear household caching cookies
+  const allCookies = cookies.getAll();
+  allCookies.forEach((c) => {
+    if (c.name.startsWith("maten_")) {
+      cookies.delete(c.name, { path: "/" });
+    }
+  });
+
   await supabase.auth.signOut();
   return redirect("/login");
 };
@@ -60,6 +68,14 @@ export const GET: APIRoute = async ({ cookies, redirect, request }) => {
       },
     },
   );
+
+  // Clear household caching cookies
+  const allCookies = cookies.getAll();
+  allCookies.forEach((c) => {
+    if (c.name.startsWith("maten_")) {
+      cookies.delete(c.name, { path: "/" });
+    }
+  });
 
   await supabase.auth.signOut();
   return redirect("/login");

@@ -8,6 +8,7 @@ export default defineConfig({
   output: "server",
   adapter: vercel(),
   integrations: [react(), icon()],
+  prefetch: true,
 
   site: "https://maten.hanshenrik.com",
   security: {

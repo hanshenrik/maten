@@ -100,6 +100,20 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
     }
   }, [householdId, userEmail]);
 
+  const clearHouseholdCache = () => {
+    const cookies = document.cookie.split(";");
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i];
+      const eqPos = cookie.indexOf("=");
+      const name =
+        eqPos > -1 ? cookie.substring(0, eqPos).trim() : cookie.trim();
+      if (name.startsWith("maten_")) {
+        document.cookie =
+          name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      }
+    }
+  };
+
   const handleAcceptInvite = async (inviteId: string) => {
     try {
       const { error } = await supabase
@@ -108,6 +122,9 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
         .eq("id", inviteId);
 
       if (error) throw error;
+
+      // Clear cache before reload
+      clearHouseholdCache();
 
       // Reload the page to trigger middleware and update locals
       window.location.reload();
