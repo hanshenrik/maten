@@ -12,9 +12,9 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "@astrojs/db": "^0.19.0",
-    "@astrojs/react": "^4.4.2",
-    "@astrojs/vercel": "^9.0.5",
+    "@astrojs/db": "^0.20.1",
+    "@astrojs/react": "^5.0.3",
+    "@astrojs/vercel": "^10.0.4",
     "@iconify-json/hugeicons": "^1.2.23",
     "@iconify-json/streamline-ultimate-color": "^1.2.2",
     "@iconify/react": "^6.0.2",
@@ -25,7 +25,7 @@
     "@types/react-dom": "^19.2.3",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
-    "astro": "^5.18.1",
+    "astro": "^6.1.5",
     "astro-icon": "^1.1.5",
     "date-fns": "^4.1.0",
     "react": "^19.2.4",
