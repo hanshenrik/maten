@@ -137,22 +137,22 @@ export const EmojiSelect: React.FC<EmojiSelectProps> = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="border-border bg-surface text-text hover:border-primary focus:ring-primary flex h-10 w-10 items-center justify-center rounded-lg border transition-all focus:ring-2 focus:outline-none"
+        className="border-border bg-surface text-text hover:border-primary focus:ring-primary flex h-10 w-10 items-center justify-center rounded-xl border transition-all focus:ring-2 focus:outline-none"
         title="Velg emoji"
       >
         {value ? (
           <span className="text-xl">{value}</span>
         ) : (
-          <Icon icon="hugeicons:smile" className="h-5 w-5 text-gray-400" />
+          <Icon icon="hugeicons:smile" className="text-text-muted h-5 w-5" />
         )}
       </button>
 
       {isOpen && (
         <div className="animate-in fade-in zoom-in border-border bg-surface absolute left-0 z-50 mt-2 w-64 rounded-xl border p-2 duration-200">
-          <div className="border-border focus-within:ring-primary mb-2 flex items-center gap-2 rounded-lg border px-2 py-1 focus-within:ring-2">
+          <div className="border-border focus-within:ring-primary mb-2 flex items-center gap-2 rounded-xl border px-2 py-1 focus-within:ring-2">
             <Icon
               icon="hugeicons:search-01"
-              className="h-4 w-4 text-gray-400"
+              className="text-text-muted h-4 w-4"
             />
             <input
               type="text"
@@ -165,7 +165,7 @@ export const EmojiSelect: React.FC<EmojiSelectProps> = ({
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm("")}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-text-muted hover:text-text"
               >
                 <Icon icon="hugeicons:cancel-circle" className="h-4 w-4" />
               </button>
@@ -184,7 +184,7 @@ export const EmojiSelect: React.FC<EmojiSelectProps> = ({
             >
               <Icon
                 icon="hugeicons:cancel-01"
-                className="h-4 w-4 text-gray-400"
+                className="text-text-muted h-4 w-4"
               />
             </button>
             {filteredEmojis.map((item) => (
@@ -205,7 +205,7 @@ export const EmojiSelect: React.FC<EmojiSelectProps> = ({
             ))}
           </div>
           {filteredEmojis.length === 0 && (
-            <div className="py-2 text-center text-xs text-gray-400">
+            <div className="text-text-muted py-2 text-center text-xs">
               Ingen emojis funnet
             </div>
           )}

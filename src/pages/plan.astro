@@ -81,7 +81,7 @@ const outdatedPlans = plans.filter((p) => p.end_date < today);
             ))}
           </div>
         ) : outdatedPlans.length === 0 ? (
-          <div class="border-border bg-surface rounded-lg border p-6">
+          <div class="border-border bg-surface rounded-xl border p-6">
             <p class="text-text-muted mb-4">Ingen middagsplaner funnet.</p>
             <p class="text-text-muted">
               Opprett en ny middagsplan for å komme i gang.
@@ -93,7 +93,7 @@ const outdatedPlans = plans.filter((p) => p.end_date < today);
       {
         outdatedPlans.length > 0 && (
           <details class="group mt-16">
-            <summary class="flex cursor-pointer list-none items-center gap-2 text-xl font-bold text-gray-500 transition-colors hover:text-gray-700">
+            <summary class="text-text-muted hover:text-text flex cursor-pointer list-none items-center gap-2 text-xl font-bold transition-colors">
               <Icon
                 name="hugeicons:arrow-right-01"
                 class="h-5 w-5 transition-transform group-open:rotate-90"

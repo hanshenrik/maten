@@ -500,7 +500,7 @@ export const MealPlanningWizard: React.FC<{
               ))}
             </div>
           ) : (
-            <div className="py-8 text-center text-gray-400">
+            <div className="text-text-muted py-8 text-center">
               <Icon
                 icon="hugeicons:shopping-basket-01"
                 className="mx-auto mb-3 h-12 w-12 opacity-20"

@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import MainNavigation from "../../components/MainNavigation.astro";
+import { BasicTag } from "../../components/BasicTag";
 import { Icon } from "astro-icon/components";
 import { Button } from "../../components/ui/Button";
 
@@ -33,7 +34,7 @@ const title = recipe.title;
           href="/recipes"
           class="text-primary flex items-center gap-1 font-medium hover:underline"
         >
-          <Icon name="hugeicons:arrow-left-04" class="h-4 w-4" />
+          <Icon name="hugeicons:arrow-left-01" class="h-4 w-4" />
           Tilbake til biblioteket
         </a>
         <div class="flex gap-2">
@@ -63,30 +64,33 @@ const title = recipe.title;
         }
 
         <div class="p-8">
-          <h1 class="text-text mb-4 flex items-center gap-3 text-4xl font-bold">
-            <Icon
-              name="streamline-ultimate-color:archive-books"
-              class="h-10 w-10"
-            />
-            {recipe.title}
-          </h1>
+          <div class="flex flex-col items-center justify-between md:flex-row">
+            <h1
+              class="text-text mb-4 flex items-center gap-3 text-2xl font-bold md:text-4xl"
+            >
+              <Icon
+                name="streamline-ultimate-color:archive-books"
+                class="h-6 w-6 md:h-10 md:w-10"
+              />
+              {recipe.title}
+            </h1>
+            {
+              recipe.source_url && (
+                <div class="mb-8">
+                  <a
+                    href={recipe.source_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="bg-primary/10 text-primary hover:bg-primary/20 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors"
+                  >
+                    <Icon name="hugeicons:link-01" class="h-4 w-4" />
+                    Se originaloppskrift
+                  </a>
+                </div>
+              )
+            }
+          </div>
           <p class="text-text-muted mb-4 text-lg">{recipe.description}</p>
-
-          {
-            recipe.source_url && (
-              <div class="mb-8">
-                <a
-                  href={recipe.source_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="bg-primary/10 text-primary hover:bg-primary/20 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors"
-                >
-                  <Icon name="hugeicons:link-01" class="h-4 w-4" />
-                  Se originaloppskrift
-                </a>
-              </div>
-            )
-          }
 
           <div class="grid gap-8 md:grid-cols-3">
             <div class="md:col-span-1">
@@ -94,23 +98,16 @@ const title = recipe.title;
               <ul class="list-disc space-y-3">
                 {
                   recipe.ingredients.map((ing: any) => (
-                    <li class="grid grid-cols-2 items-center gap-2">
+                    <li class="text-text grid grid-cols-2 items-center gap-2">
                       <span class="flex items-center gap-1">
                         {ing.name}
-                        {ing.is_basic && (
-                          <span class="bg-bg text-text-muted ml-1 rounded px-1.5 py-0.5 text-xs">
-                            B
-                          </span>
-                        )}
+                        {ing.is_basic && <BasicTag />}
                       </span>
-                      <span>
-                        {ing.amount && (
-                          <span class="font-medium">{ing.amount} </span>
-                        )}
-                        {ing.unit && (
-                          <span class="text-text-muted">{ing.unit} </span>
-                        )}
-                      </span>
+                      {ing.amount && (
+                        <span class="text-text text-sm">
+                          {ing.amount} {ing.unit}
+                        </span>
+                      )}
                     </li>
                   ))
                 }

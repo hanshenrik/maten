@@ -48,7 +48,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
     setTheme(savedTheme);
   }, []);
 
-  const handleThemeChange = (newTheme: "light" | "dark" | "auto") => {
+  const handleThemeChange = async (newTheme: "light" | "dark" | "auto") => {
     setTheme(newTheme);
     localStorage.setItem("theme", newTheme);
 
@@ -57,6 +57,19 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
     } else {
       document.documentElement.dataset.theme = newTheme;
     }
+
+    // Clear caches to ensure no "cached look" remains
+    if ("caches" in window) {
+      try {
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map((name) => caches.delete(name)));
+      } catch (err) {
+        console.error("Error clearing caches on theme change:", err);
+      }
+    }
+
+    // Also clear the custom cookie cache used for performance
+    clearHouseholdCache();
   };
 
   const fetchInvites = async () => {
@@ -251,14 +264,12 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
     return <div className="text-text-muted">Laster innstillinger...</div>;
   }
 
-  if (!householdId) {
-    return (
-      <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-6 text-red-500">
-        Fant ingen aktiv husstand. Vennligst logg ut og inn igjen for å
-        initialisere din profil.
-      </div>
-    );
-  }
+  return (
+    <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-6 text-red-500">
+      <h2 className="mb-2 text-lg font-bold">Ingen husstand funnet</h2>
+      <p>Vennligst logg ut og inn igjen for å initialisere din profil.</p>
+    </div>
+  );
 
   const isOwner = members.find((m) => m.user_id === userId)?.role === "owner";
 
@@ -385,7 +396,11 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
           </Button>
         </form>
 
-        {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+        {error && (
+          <div className="mt-3 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-500">
+            {error}
+          </div>
+        )}
       </Card>
 
       <Card>
@@ -401,7 +416,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
             >
               <div className="flex items-center gap-3">
                 <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-full">
-                  <Icon icon="hugeicons:user-multiple" className="h-5 w-5" />
+                  <Icon icon="hugeicons:user" className="h-5 w-5" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">

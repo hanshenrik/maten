@@ -19,6 +19,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onClick }) => {
       className="group flex h-full cursor-pointer flex-col"
       noPadding
       onClick={onClick}
+      isClickable
     >
       {recipe.image_url ? (
         <div className="h-48 w-full overflow-hidden">
@@ -50,7 +51,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onClick }) => {
         </div>
       )}
       <div className="flex flex-1 flex-col p-4">
-        <h3 className="text-text mb-2 line-clamp-1 text-lg font-semibold group-hover:underline">
+        <h3 className="text-text mb-2 line-clamp-1 text-lg font-semibold">
           {recipe.title}
         </h3>
         {recipe.description && (

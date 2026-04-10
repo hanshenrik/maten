@@ -122,7 +122,7 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
       </datalist>
 
       {/* Add new item form */}
-      <div className="bg-bg border-border mb-8 rounded-lg border p-4">
+      <div className="bg-bg border-border mb-8 rounded-xl border p-4">
         <h3 className="text-text mb-3 font-medium">Legg til ny vare</h3>
         <div className="grid grid-cols-1 items-end gap-3 md:grid-cols-4">
           <div className="md:col-span-2">
@@ -139,7 +139,7 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
                 onChange={(e) =>
                   setNewItem({ ...newItem, name: e.target.value })
                 }
-                className="border-border bg-surface text-text focus:ring-primary w-full rounded-md border px-3 py-2 focus:ring-2 focus:outline-none"
+                className="border-border bg-surface text-text focus:ring-primary w-full rounded-xl border px-3 py-2 transition-all outline-none focus:ring-2"
                 placeholder="f.eks., Epler"
               />
             </div>
@@ -155,7 +155,7 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
                   amount: parseFloat(e.target.value) || 1,
                 })
               }
-              className="border-border bg-surface text-text focus:ring-primary w-full rounded-md border px-3 py-2 focus:ring-2 focus:outline-none"
+              className="border-border bg-surface text-text focus:ring-primary w-full rounded-xl border px-3 py-2 transition-all outline-none focus:ring-2"
               min="1"
             />
           </div>
@@ -193,7 +193,7 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
                   onClick={() => handleDeleteItem(item.id)}
                   variant="danger"
                   size="sm"
-                  className="absolute top-1/2 right-4 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100"
+                  className="absolute top-1/2 right-4 -translate-y-1/2 opacity-0 transition-all group-hover:opacity-100"
                   title="Fjern vare"
                 >
                   <Icon icon="hugeicons:delete-03" className="h-5 w-5" />

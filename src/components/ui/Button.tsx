@@ -35,17 +35,17 @@ export const Button = React.forwardRef<
     ref,
   ) => {
     const baseStyles =
-      "inline-flex items-center justify-center rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer disabled:cursor-not-allowed";
+      "inline-flex items-center justify-center rounded-xl font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer";
 
     const variants = {
       primary:
         "bg-primary text-white hover:bg-primary-hover focus:ring-primary border border-transparent",
       secondary:
-        "bg-surface text-text hover:bg-bg focus:ring-border border border-border",
+        "bg-surface text-text hover:text-primary hover:border-current hover:bg-primary/5 focus:ring-border border border-border transition-all",
       danger:
-        "bg-surface text-red-500 hover:bg-red-500/10 focus:ring-red-500 border border-border hover:border-red-500",
+        "bg-surface text-red-500 hover:bg-red-500/10 focus:ring-red-500 border border-border hover:border-current transition-all",
       ghost:
-        "bg-transparent text-text-muted hover:bg-surface focus:ring-border hover:text-text text-left",
+        "bg-transparent text-text-muted hover:bg-surface hover:text-current hover:border-current border border-transparent focus:ring-border transition-all",
     };
 
     const sizes = {

@@ -4,6 +4,7 @@ import { Icon } from "@iconify/react";
 import { UnitSelect } from "./UnitSelect";
 import { EmojiSelect } from "./EmojiSelect";
 import { splitEmojiFromName, combineEmojiAndName } from "../utils/emoji";
+import { BasicTag } from "./BasicTag";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
 import { Input } from "./ui/Input";
@@ -198,38 +199,38 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
         />
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">
+          <label className="text-text mb-1 block text-sm font-medium">
             Beskrivelse
           </label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 transition-all outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500"
+            className="border-border bg-surface text-text focus:ring-primary w-full rounded-xl border px-4 py-3 transition-all outline-none focus:border-transparent focus:ring-2"
             rows={3}
             placeholder="Et kort sammendrag av retten..."
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">
+          <label className="text-text mb-1 block text-sm font-medium">
             Fremgangsmåte
           </label>
           <textarea
             required
             value={instructions}
             onChange={(e) => setInstructions(e.target.value)}
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 transition-all outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500"
+            className="border-border bg-surface text-text focus:ring-primary w-full rounded-xl border px-4 py-3 transition-all outline-none focus:border-transparent focus:ring-2"
             rows={6}
             placeholder="Steg for steg fremgangsmåte..."
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">
+          <label className="text-text mb-1 block text-sm font-medium">
             Bilde
           </label>
           {imageUrl && !imageFile && (
-            <div className="relative mb-3 h-48 w-full max-w-md overflow-hidden rounded-xl border border-gray-200">
+            <div className="border-border relative mb-3 h-48 w-full max-w-md overflow-hidden rounded-xl border">
               <img
                 src={imageUrl}
                 alt="Recipe cover"
@@ -238,7 +239,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
             </div>
           )}
           {imageFile && (
-            <div className="mb-3 text-sm font-medium text-blue-600">
+            <div className="text-primary mb-3 text-sm font-medium">
               Valgt: {imageFile.name}
             </div>
           )}
@@ -246,7 +247,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
             type="file"
             accept="image/*"
             onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-            className="w-full rounded-xl border border-gray-300 px-3 py-2 transition-all outline-none file:mr-4 file:rounded-full file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+            className="border-border bg-surface text-text focus:ring-primary file:bg-primary/10 file:text-primary hover:file:bg-primary/20 w-full rounded-xl border px-3 py-2 transition-all outline-none file:mr-4 file:rounded-full file:border-0 file:px-4 file:py-2 file:text-sm file:font-semibold focus:border-transparent focus:ring-2"
           />
         </div>
 
@@ -293,7 +294,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
                     onChange={(e) =>
                       handleIngredientChange(index, "name", e.target.value)
                     }
-                    className="bg-bg w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                    className="bg-bg border-border focus:ring-primary w-full rounded-xl border px-3 py-2 focus:ring-2"
                   />
                 </div>
                 <div className="flex gap-2">
@@ -305,7 +306,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
                     onChange={(e) =>
                       handleIngredientChange(index, "amount", e.target.value)
                     }
-                    className="bg-bg w-20 rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                    className="bg-bg border-border focus:ring-primary w-20 rounded-xl border px-3 py-2 focus:ring-2"
                   />
                   <UnitSelect
                     value={ing.unit}
@@ -325,19 +326,21 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
                           e.target.checked,
                         )
                       }
-                      className="rounded text-blue-600"
+                      className="text-primary rounded"
                     />
-                    Basis
+                    Basis <BasicTag />
                   </label>
                 </div>
               </div>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => removeIngredient(index)}
-                className="p-1 text-red-400 opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-600"
+                className="text-text-muted opacity-0 transition-all group-hover:opacity-100 hover:text-red-500"
               >
                 <Icon icon="hugeicons:delete-03" className="h-5 w-5" />
-              </button>
+              </Button>
             </div>
           ))}
         </div>

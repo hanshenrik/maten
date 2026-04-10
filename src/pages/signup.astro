@@ -68,7 +68,7 @@ if (Astro.request.method === "POST") {
       {
         errorMessage && (
           <div
-            class="mb-6 rounded-lg bg-red-100 p-4 text-sm text-red-700"
+            class="mb-6 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-500"
             role="alert"
           >
             {errorMessage}
@@ -79,7 +79,7 @@ if (Astro.request.method === "POST") {
       {
         successMessage && (
           <div
-            class="mb-6 rounded-lg bg-green-100 p-4 text-sm text-green-700"
+            class="bg-primary/10 border-primary/20 text-primary mb-6 rounded-xl border p-4 text-sm"
             role="alert"
           >
             {successMessage}
@@ -126,7 +126,7 @@ if (Astro.request.method === "POST") {
 
             <button
               type="submit"
-              class="bg-primary hover:bg-primary-hover w-full transform rounded-xl border border-transparent px-4 py-3 font-semibold text-white transition-all active:scale-[0.98]"
+              class="bg-primary hover:bg-primary-hover hover:border-primary-hover w-full transform rounded-xl border border-transparent px-4 py-3 font-semibold text-white transition-all active:scale-[0.98]"
             >
               Create Account
             </button>

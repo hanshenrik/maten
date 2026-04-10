@@ -1,5 +1,6 @@
 import React from "react";
 import { formatLongDay, formatMonthDay } from "../utils/date";
+import { Card } from "./ui/Card";
 import { Icon } from "@iconify/react";
 
 interface PlannedMealComponentProps {
@@ -16,7 +17,7 @@ export const PlannedMealComponent: React.FC<PlannedMealComponentProps> = ({
   recipes,
 }) => {
   return (
-    <div className="border-border bg-surface text-text rounded-lg border p-4">
+    <Card className="flex flex-col">
       <h3 className="mb-3 text-lg font-semibold">
         {formatLongDay(day.day_of_week)}
       </h3>
@@ -59,6 +60,6 @@ export const PlannedMealComponent: React.FC<PlannedMealComponentProps> = ({
           </div>
         )}
       </div>
-    </div>
+    </Card>
   );
 };
