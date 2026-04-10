@@ -1,7 +1,6 @@
 ---
 import Analytics from "@vercel/analytics/astro";
 import SpeedInsights from "@vercel/speed-insights/astro";
-import { ClientRouter } from "astro:transitions";
 import type { PropsWithChildren } from "react";
 import "../styles/global.css";
 
@@ -16,7 +15,10 @@ const { title } = Astro.props;
 <html lang="no">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
     <meta
       name="description"
       content="Maten – din venn på kjøkkenet. Lag menyer, lagre oppskrifter og få matinnkjøpene unnagjort på et blunk."
@@ -48,16 +50,12 @@ const { title } = Astro.props;
 
       // Apply on initial load
       applyTheme();
-
-      // Apply after view transition (Astro component swap)
-      document.addEventListener("astro:after-swap", applyTheme);
     </script>
 
-    <ClientRouter />
     <Analytics />
     <SpeedInsights />
   </head>
-  <body class="min-h-screen pb-20" transition:animate="fade">
+  <body class="bg-bg min-h-dvh pb-[calc(5rem+env(safe-area-inset-bottom))]">
     <slot />
     <script>
       if ("serviceWorker" in navigator) {
