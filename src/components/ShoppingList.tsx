@@ -5,6 +5,8 @@ import { Checkbox } from "./Checkbox";
 import { UnitSelect } from "./UnitSelect";
 import { EmojiSelect } from "./EmojiSelect";
 import { combineEmojiAndName } from "../utils/emoji";
+import { Card } from "./ui/Card";
+import { Button } from "./ui/Button";
 
 export interface ShoppingListItem {
   id: string;
@@ -110,7 +112,7 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
   const completedItems = items.filter((i) => i.completed);
 
   return (
-    <div className="rounded-lg border border-gray-100 bg-white p-6 shadow-sm">
+    <Card>
       <h2 className="mb-4 text-xl font-semibold text-gray-900">Handleliste</h2>
 
       <datalist id="shopping-suggestions">
@@ -166,14 +168,14 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
             />
           </div>
         </div>
-        <button
+        <Button
           onClick={handleAddItem}
           disabled={loading}
-          className="mt-4 flex h-10 items-center gap-2 rounded-lg bg-blue-600 px-6 font-semibold text-white transition-all hover:bg-blue-700 active:scale-95 disabled:opacity-50"
+          className="mt-4 gap-2"
         >
           <Icon icon="hugeicons:plus-sign" className="h-5 w-5" />
           {loading ? "Legger til..." : "Legg til"}
-        </button>
+        </Button>
       </div>
 
       <div className="space-y-6">
@@ -187,13 +189,15 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
                   label={item.name}
                   subLabel={`${item.amount} ${item.unit}${item.notes ? ` • ${item.notes}` : ""}`}
                 />
-                <button
+                <Button
                   onClick={() => handleDeleteItem(item.id)}
-                  className="absolute top-1/2 right-4 -translate-y-1/2 p-2 text-red-400 opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-600"
-                  title="Remove item"
+                  variant="danger"
+                  size="sm"
+                  className="absolute top-1/2 right-4 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100"
+                  title="Fjern vare"
                 >
                   <Icon icon="hugeicons:delete-03" className="h-5 w-5" />
-                </button>
+                </Button>
               </li>
             ))}
           </ul>
@@ -219,19 +223,21 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
                     label={item.name}
                     subLabel={`${item.amount} ${item.unit}${item.notes ? ` • ${item.notes}` : ""}`}
                   />
-                  <button
+                  <Button
                     onClick={() => handleDeleteItem(item.id)}
-                    className="absolute top-1/2 right-4 -translate-y-1/2 p-2 text-red-400 opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-600"
-                    title="Remove item"
+                    variant="danger"
+                    size="sm"
+                    className="absolute top-1/2 right-4 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100"
+                    title="Fjern vare"
                   >
                     <Icon icon="hugeicons:delete-03" className="h-5 w-5" />
-                  </button>
+                  </Button>
                 </li>
               ))}
             </ul>
           </details>
         )}
       </div>
-    </div>
+    </Card>
   );
 };

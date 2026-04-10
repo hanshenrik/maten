@@ -92,7 +92,6 @@ const COMMON_FOOD_EMOJIS: EmojiItem[] = [
   { emoji: "🥫", name: "Hermetikk" },
   { emoji: "🧈", name: "Smør" },
   // Spices
-  { emoji: "🌶️", name: "Chili" },
   { emoji: "🪴", name: "Urter" },
   { emoji: "🫚", name: "Ingefær" },
   { emoji: "🧂", name: "Salt" },

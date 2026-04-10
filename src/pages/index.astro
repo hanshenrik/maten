@@ -9,7 +9,10 @@ const title = "Hjem";
 <BaseLayout title={title}>
   <div class="flex min-h-screen flex-col">
     <main class="container mx-auto max-w-6xl flex-1 px-4 py-8">
-      <h1 class="text-primary mb-6 text-3xl font-bold">Maten</h1>
+      <h1 class="mb-6 flex items-center gap-3 text-3xl font-bold text-gray-900">
+        <Icon name="streamline-ultimate-color:ice-cream-cone" class="h-8 w-8" />
+        Maten
+      </h1>
 
       <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
         <a
@@ -24,7 +27,7 @@ const title = "Hjem";
               class="h-10 w-10"
             />
           </div>
-          <h2 class="text-primary mb-2 text-2xl font-bold">Oppskrifter</h2>
+          <h2 class="mb-2 text-2xl font-bold text-gray-900">Oppskrifter</h2>
           <p class="text-secondary mb-6 leading-relaxed">
             Bla gjennom og administrer favorittoppskriftene dine.
           </p>
@@ -39,7 +42,7 @@ const title = "Hjem";
           >
             <Icon name="streamline-ultimate-color:tea-pot" class="h-10 w-10" />
           </div>
-          <h2 class="text-primary mb-2 text-2xl font-bold">
+          <h2 class="mb-2 text-2xl font-bold text-gray-900">
             Middagsplanlegging
           </h2>
           <p class="text-secondary mb-6 leading-relaxed">
@@ -55,11 +58,11 @@ const title = "Hjem";
             class="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-green-50"
           >
             <Icon
-              name="streamline-ultimate-color:notes-checklist-flip"
+              name="streamline-ultimate-color:paper-write"
               class="h-10 w-10"
             />
           </div>
-          <h2 class="text-primary mb-2 text-2xl font-bold">Handleliste</h2>
+          <h2 class="mb-2 text-2xl font-bold text-gray-900">Handleliste</h2>
           <p class="text-secondary mb-6 leading-relaxed">
             Generer handleliste fra middagsplanene dine.
           </p>

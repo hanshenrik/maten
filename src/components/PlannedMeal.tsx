@@ -17,7 +17,7 @@ export const PlannedMealComponent: React.FC<PlannedMealComponentProps> = ({
 }) => {
   return (
     <div className="rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
-      <h3 className="text-primary mb-3 text-lg font-semibold">
+      <h3 className="mb-3 text-lg font-semibold">
         {formatLongDay(day.day_of_week)}
       </h3>
       <p className="text-secondary mb-4 text-sm">

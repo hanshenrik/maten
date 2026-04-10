@@ -8,6 +8,9 @@ import {
   formatMonthDay,
   formatDateRange,
 } from "../utils/date";
+import { Card } from "./ui/Card";
+import { Button } from "./ui/Button";
+import { Input } from "./ui/Input";
 
 interface Ingredient {
   name: string;
@@ -313,99 +316,84 @@ export const MealPlanningWizard: React.FC<{
 
   if (step === 1) {
     return (
-      <div className="mx-auto max-w-md rounded-3xl border border-gray-100 bg-white p-8 shadow-sm">
+      <Card className="mx-auto max-w-md">
         <h2 className="mb-6 text-2xl font-bold text-gray-900">
           Steg 1: Velg datoer
         </h2>
         <div className="space-y-6">
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              Navn på plan (Valgfritt)
-            </label>
-            <input
-              type="text"
-              value={planTitle}
-              onChange={(e) => setPlanTitle(e.target.value)}
-              placeholder="f.eks. Neste ukes middager"
-              className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+          <Input
+            label="Navn på plan (Valgfritt)"
+            value={planTitle}
+            onChange={(e) => setPlanTitle(e.target.value)}
+            placeholder="f.eks. Neste ukes middager"
+          />
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              type="date"
+              label="Startdato"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
+            <Input
+              type="date"
+              label="Sluttdato"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Startdato
-              </label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Sluttdato
-              </label>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-          <button
+          <Button
             onClick={handleDateSelection}
-            className="flex-1 items-center justify-center gap-2 rounded-2xl bg-green-600 py-4 font-bold text-white shadow-lg shadow-green-100 transition-colors hover:bg-green-700"
+            size="lg"
+            className="w-full gap-2"
           >
             Velg oppskrifter
-            <Icon
-              icon="hugeicons:arrow-right-01"
-              className="ml-2 inline-block h-5 w-5"
-            />
-          </button>
+            <Icon icon="hugeicons:arrow-right-01" className="h-5 w-5" />
+          </Button>
           {initialData && (
-            <button
+            <Button
               type="button"
+              variant="danger"
+              size="lg"
               onClick={handleDelete}
               disabled={loading}
-              className="flex items-center rounded-2xl border border-gray-100 bg-white px-6 py-4 text-gray-600 shadow-sm transition-colors hover:text-red-600 disabled:opacity-50"
+              className="w-full"
               title="Slett plan"
             >
-              <Icon icon="hugeicons:delete-03" className="h-6 w-6" />
-            </button>
+              <Icon icon="hugeicons:delete-03" className="h-6 w-6" /> Slett plan
+            </Button>
           )}
         </div>
-      </div>
+      </Card>
     );
   }
 
   if (step === 2) {
     return (
       <div className="mx-auto max-w-2xl space-y-6">
-        <div className="flex items-center justify-between rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
+        <Card className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-gray-900">
             Steg 2: Velg middager
           </h2>
-          <button
+          <Button
+            variant="ghost"
             onClick={() => setStep(1)}
-            className="flex items-center gap-1 text-sm font-medium text-blue-600 hover:underline"
+            className="gap-1 text-sm"
           >
             <Icon icon="hugeicons:arrow-left-01" className="h-4 w-4" />
             Endre datoer
-          </button>
-        </div>
+          </Button>
+        </Card>
 
         <div className="space-y-4">
           {dayPlans.map((day, index) => {
             const date = new Date(day.date);
             return (
-              <div
+              <Card
                 key={day.date}
-                className="flex flex-col items-start gap-4 rounded-3xl border border-gray-100 bg-white p-6 shadow-sm md:flex-row md:items-center"
+                className="flex flex-col items-start gap-4 md:flex-row md:items-center"
               >
                 <div className="min-w-30">
-                  <div className="text-xs font-bold tracking-wider text-blue-600 uppercase">
+                  <div className="text-xs font-bold tracking-wider uppercase">
                     {formatShortDay(day.date)}
                   </div>
                   <div className="text-lg font-bold text-gray-900">
@@ -417,7 +405,7 @@ export const MealPlanningWizard: React.FC<{
                   <select
                     value={day.recipe_id}
                     onChange={(e) => handleRecipeChange(index, e.target.value)}
-                    className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                    className="focus:ring-primary w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 outline-none focus:ring-2"
                   >
                     <option value="">(Ingen oppskrift valgt)</option>
                     {recipes.map((r) => (
@@ -426,54 +414,50 @@ export const MealPlanningWizard: React.FC<{
                       </option>
                     ))}
                   </select>
-                  <input
-                    type="text"
+                  <Input
                     placeholder="Notater (f.eks. Spise ute, rester...)"
                     value={day.notes}
                     onChange={(e) => handleNotesChange(index, e.target.value)}
-                    className="w-full rounded-lg border border-gray-200 px-4 py-2 text-sm outline-none focus:border-blue-300"
                   />
                 </div>
-              </div>
+              </Card>
             );
           })}
         </div>
 
         <div className="flex gap-4">
-          <button
+          <Button
             onClick={() => savePlan(true)}
             disabled={loading}
-            className="flex-1 rounded-2xl bg-blue-600 py-4 font-bold text-white shadow-lg shadow-blue-100 transition-colors hover:bg-blue-700 disabled:opacity-50"
+            size="lg"
+            className="flex-1 gap-2"
           >
             {loading ? "Lagrer..." : "Lagre og se handleliste"}
-            <Icon
-              icon="hugeicons:arrow-right-01"
-              className="ml-2 inline-block h-5 w-5"
-            />
-          </button>
-          <button
+            <Icon icon="hugeicons:arrow-right-01" className="h-5 w-5" />
+          </Button>
+          <Button
+            variant="secondary"
             onClick={() => savePlan(false)}
             disabled={loading}
-            className="flex-1 rounded-2xl bg-green-600 py-4 font-bold text-white shadow-lg shadow-green-100 transition-colors hover:bg-green-700 disabled:opacity-50"
+            size="lg"
+            className="flex-1"
           >
             {loading ? "Lagrer..." : "Bare lagre plan"}
-          </button>
-          <a
-            href="/plan"
-            className="flex items-center rounded-2xl bg-gray-100 px-8 py-4 font-bold text-gray-700 transition-colors hover:bg-gray-200"
-          >
+          </Button>
+          <Button as="a" href="/plan" variant="secondary" size="lg">
             Avbryt
-          </a>
+          </Button>
           {initialData && (
-            <button
+            <Button
               type="button"
+              variant="danger"
               onClick={handleDelete}
               disabled={loading}
-              className="flex items-center rounded-2xl border border-gray-100 bg-white px-6 py-4 text-gray-600 shadow-sm transition-colors hover:text-red-600 disabled:opacity-50"
+              size="lg"
               title="Slett plan"
             >
               <Icon icon="hugeicons:delete-03" className="h-6 w-6" />
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -483,20 +467,21 @@ export const MealPlanningWizard: React.FC<{
   if (step === 3) {
     return (
       <div className="mx-auto max-w-2xl space-y-6">
-        <div className="flex items-center justify-between rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
+        <Card className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-gray-900">
             Steg 3: Sjekk handlelisten
           </h2>
-          <button
+          <Button
+            variant="ghost"
             onClick={() => setStep(2)}
-            className="flex items-center gap-1 text-sm font-medium text-blue-600 hover:underline"
+            className="gap-1 text-sm"
           >
             <Icon icon="hugeicons:arrow-left-01" className="h-4 w-4" />
             Tilbake til meny
-          </button>
-        </div>
+          </Button>
+        </Card>
 
-        <div className="rounded-3xl border border-gray-100 bg-white p-8 shadow-sm">
+        <Card>
           <p className="mb-6 text-gray-500">
             Her er ingrediensene du trenger. Kryss av det du allerede har i
             skapet.
@@ -523,26 +508,28 @@ export const MealPlanningWizard: React.FC<{
               Ingen varer å handle for disse oppskriftene.
             </div>
           )}
-        </div>
+        </Card>
 
         <div className="flex gap-4">
-          <button
+          <Button
             onClick={handleFinishWizard}
             disabled={loading}
-            className="flex-1 rounded-2xl bg-green-600 py-4 font-bold text-white shadow-lg shadow-green-100 transition-colors hover:bg-green-700 disabled:opacity-50"
+            size="lg"
+            className="flex-1"
           >
             {loading ? "Fullfører..." : "Ferdig"}
-          </button>
+          </Button>
           {initialData && (
-            <button
+            <Button
               type="button"
+              variant="danger"
+              size="lg"
               onClick={handleDelete}
               disabled={loading}
-              className="flex items-center rounded-2xl border border-gray-100 bg-white px-6 py-4 text-gray-600 shadow-sm transition-colors hover:text-red-600 disabled:opacity-50"
               title="Slett plan"
             >
               <Icon icon="hugeicons:delete-03" className="h-6 w-6" />
-            </button>
+            </Button>
           )}
         </div>
       </div>

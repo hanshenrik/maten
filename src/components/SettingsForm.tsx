@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import { Icon } from "@iconify/react";
+import { Card } from "./ui/Card";
+import { Button } from "./ui/Button";
+import { Input } from "./ui/Input";
 
 interface Member {
   id: string;
@@ -227,33 +230,36 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
   return (
     <div className="space-y-8">
       {isOwner && (
-        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+        <Card>
           <h2 className="mb-4 text-xl font-semibold text-gray-900">
             Husstandsnavn
           </h2>
-          <form onSubmit={handleUpdateHouseholdName} className="flex gap-2">
-            <input
-              type="text"
-              required
-              value={householdName}
-              onChange={(e) => setHouseholdName(e.target.value)}
-              placeholder="Navn på husstanden"
-              className="flex-1 rounded-xl border border-gray-300 px-4 py-3 transition-all outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500"
-            />
-            <button
+          <form
+            onSubmit={handleUpdateHouseholdName}
+            className="flex flex-col items-end gap-2 sm:flex-row sm:items-start"
+          >
+            <div className="flex w-full flex-1">
+              <Input
+                required
+                value={householdName}
+                onChange={(e) => setHouseholdName(e.target.value)}
+                placeholder="Navn på husstanden"
+              />
+            </div>
+            <Button
               type="submit"
               disabled={nameSubmitting}
-              className="rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition-all hover:bg-blue-700 disabled:opacity-50"
+              className="mt-2 w-full px-6 sm:mt-0 sm:w-auto"
             >
               {nameSubmitting ? "Lagrer..." : "Lagre navn"}
-            </button>
+            </Button>
           </form>
-        </div>
+        </Card>
       )}
 
       {invites.length > 0 && (
-        <div className="rounded-2xl border border-blue-100 bg-blue-50 p-6 shadow-sm">
-          <h2 className="mb-4 text-xl font-semibold text-blue-900">
+        <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-6 shadow-sm">
+          <h2 className="mb-4 text-xl font-semibold text-emerald-900">
             Ventende invitasjoner
           </h2>
           <ul className="space-y-4">
@@ -266,23 +272,20 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
                   <p className="font-medium text-gray-900">
                     Du har blitt invitert til:
                   </p>
-                  <p className="text-lg font-bold text-blue-700">
+                  <p className="text-lg font-bold">
                     {invite.households?.name || "En husstand"}
                   </p>
                 </div>
                 <div className="flex gap-2">
-                  <button
+                  <Button
                     onClick={() => handleRefuseInvite(invite.id)}
-                    className="rounded-lg border border-gray-200 bg-white px-4 py-2 font-medium text-gray-700 hover:bg-gray-50 hover:text-red-600"
+                    variant="danger"
                   >
                     Avvis
-                  </button>
-                  <button
-                    onClick={() => handleAcceptInvite(invite.id)}
-                    className="rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700"
-                  >
+                  </Button>
+                  <Button onClick={() => handleAcceptInvite(invite.id)}>
                     Godta og bytt
-                  </button>
+                  </Button>
                 </div>
               </li>
             ))}
@@ -290,7 +293,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
         </div>
       )}
 
-      <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+      <Card>
         <h2 className="mb-4 text-xl font-semibold text-gray-900">
           Inviter til din husstand
         </h2>
@@ -299,28 +302,32 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
           middagsplaner og handleliste. Alt skjer i sanntid!
         </p>
 
-        <form onSubmit={handleAddMember} className="flex gap-2">
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="E-postadresse til den du vil invitere"
-            className="flex-1 rounded-xl border border-gray-300 px-4 py-3 transition-all outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500"
-          />
-          <button
+        <form
+          onSubmit={handleAddMember}
+          className="flex flex-col items-end gap-2 sm:flex-row sm:items-start"
+        >
+          <div className="flex w-full flex-1">
+            <Input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="E-postadresse til den du vil invitere"
+            />
+          </div>
+          <Button
             type="submit"
             disabled={submitting}
-            className="rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition-all hover:bg-blue-700 disabled:opacity-50"
+            className="mt-2 w-full px-6 sm:mt-0 sm:w-auto"
           >
             {submitting ? "Inviterer..." : "Legg til i huset"}
-          </button>
+          </Button>
         </form>
 
         {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
-      </div>
+      </Card>
 
-      <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+      <Card>
         <h2 className="mb-4 text-xl font-semibold text-gray-900">
           Medlemmer i husstanden
         </h2>
@@ -332,7 +339,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
               className="flex items-center justify-between py-4"
             >
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50">
                   <Icon icon="hugeicons:user-multiple" className="h-5 w-5" />
                 </div>
                 <div>
@@ -351,18 +358,19 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
                 </div>
               </div>
               {member.role !== "owner" && (
-                <button
+                <Button
                   onClick={() => handleRemoveMember(member.id, member.email)}
-                  className="rounded-lg p-2 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                  variant="danger"
+                  size="sm"
                   title="Fjern fra husstand"
                 >
                   <Icon icon="hugeicons:delete-03" className="h-5 w-5" />
-                </button>
+                </Button>
               )}
             </li>
           ))}
         </ul>
-      </div>
+      </Card>
     </div>
   );
 };

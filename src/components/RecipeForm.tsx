@@ -4,6 +4,9 @@ import { Icon } from "@iconify/react";
 import { UnitSelect } from "./UnitSelect";
 import { EmojiSelect } from "./EmojiSelect";
 import { splitEmojiFromName, combineEmojiAndName } from "../utils/emoji";
+import { Button } from "./ui/Button";
+import { Card } from "./ui/Card";
+import { Input } from "./ui/Input";
 
 interface Ingredient {
   name: string;
@@ -183,24 +186,16 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8 pb-12">
-      <div className="space-y-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-        <h2 className="text-xl font-semibold text-gray-900">
-          Generell informasjon
-        </h2>
+      <Card className="space-y-6">
+        <h2 className="text-xl font-semibold">Generell informasjon</h2>
 
-        <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">
-            Tittel på oppskrift
-          </label>
-          <input
-            type="text"
-            required
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 transition-all outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500"
-            placeholder="f.eks. Klassisk Margherita Pizza"
-          />
-        </div>
+        <Input
+          label="Tittel på oppskrift"
+          required
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="f.eks. Klassisk Margherita Pizza"
+        />
 
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">
@@ -255,29 +250,25 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
           />
         </div>
 
-        <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">
-            Originaloppskrift
-          </label>
-          <input
-            type="url"
-            value={sourceUrl}
-            onChange={(e) => setSourceUrl(e.target.value)}
-            className="w-full rounded-xl border border-gray-300 px-4 py-3 transition-all outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-      </div>
+        <Input
+          label="Originaloppskrift"
+          type="url"
+          value={sourceUrl}
+          onChange={(e) => setSourceUrl(e.target.value)}
+        />
+      </Card>
 
-      <div className="space-y-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+      <Card className="space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-gray-900">Ingredienser</h2>
-          <button
+          <h2 className="text-xl font-semibold">Ingredienser</h2>
+          <Button
             type="button"
+            variant="secondary"
+            size="sm"
             onClick={addIngredient}
-            className="rounded-lg bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100"
           >
             + Legg til ingrediens
-          </button>
+          </Button>
         </div>
 
         <div className="space-y-4">
@@ -350,32 +341,32 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
             </div>
           ))}
         </div>
-      </div>
+      </Card>
 
       <div className="flex gap-4">
-        <button
-          type="submit"
-          disabled={loading}
-          className="flex-1 transform rounded-2xl bg-green-600 px-6 py-4 font-bold text-white shadow-lg shadow-green-100 transition-all hover:bg-green-700 active:scale-[0.98] disabled:opacity-50"
-        >
+        <Button type="submit" disabled={loading} size="lg" className="flex-1">
           {loading ? "Lagrer..." : "Lagre oppskrift"}
-        </button>
-        <a
-          href="/recipes"
-          className="flex items-center rounded-2xl bg-gray-100 px-8 py-4 font-bold text-gray-700 transition-all hover:bg-gray-200"
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          size="lg"
+          onClick={() => (window.location.href = "/recipes")}
+          className="px-8"
         >
           Avbryt
-        </a>
+        </Button>
         {isEditing && (
-          <button
+          <Button
             type="button"
+            variant="danger"
+            size="lg"
             onClick={handleDelete}
             disabled={loading}
-            className="rounded-lg border border-gray-100 bg-white p-2 text-gray-600 shadow-sm transition-colors hover:text-red-600 disabled:opacity-50"
             title="Slett oppskrift"
           >
             <Icon icon="hugeicons:delete-03" className="h-6 w-6" />
-          </button>
+          </Button>
         )}
       </div>
     </form>

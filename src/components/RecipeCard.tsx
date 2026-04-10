@@ -1,5 +1,6 @@
 import React from "react";
 import { Icon } from "@iconify/react";
+import { Card } from "./ui/Card";
 
 interface RecipeCardProps {
   recipe: {
@@ -14,8 +15,9 @@ interface RecipeCardProps {
 
 export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onClick }) => {
   return (
-    <div
-      className="flex h-full cursor-pointer flex-col overflow-hidden rounded-lg border border-gray-100 bg-white shadow-sm transition-shadow hover:shadow-md"
+    <Card
+      className="flex h-full cursor-pointer flex-col transition-shadow duration-200 hover:-translate-y-1 hover:scale-[1.01] hover:shadow-md"
+      noPadding
       onClick={onClick}
     >
       {recipe.image_url ? (
@@ -48,7 +50,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onClick }) => {
         </div>
       )}
       <div className="flex flex-1 flex-col p-4">
-        <h3 className="text-primary mb-2 line-clamp-1 text-lg font-semibold">
+        <h3 className="mb-2 line-clamp-1 text-lg font-semibold">
           {recipe.title}
         </h3>
         {recipe.description && (
@@ -57,6 +59,6 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onClick }) => {
           </p>
         )}
       </div>
-    </div>
+    </Card>
   );
 };
