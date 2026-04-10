@@ -16,9 +16,16 @@ export const IconBackground = ({
     shopping: "bg-red-100",
     settings: "bg-gray-100",
   };
+  const padding = {
+    home: "p-2",
+    recipes: "p-2",
+    plans: "p-2",
+    shopping: "p-2 pr-1",
+    settings: "p-2",
+  };
   return (
     <div
-      className={`block w-fit rounded-tl-2xl rounded-tr-md rounded-br-xl rounded-bl-lg p-2 ${active ? colors[icon] : ""} ${className}`}
+      className={`block w-fit rounded-tl-2xl rounded-tr-md rounded-br-xl rounded-bl-lg ${active ? colors[icon] : ""} ${padding[icon]} ${className}`}
     >
       {children}
     </div>
