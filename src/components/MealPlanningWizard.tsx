@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import { ui } from "../utils/icons";
 import { Icon } from "@iconify/react";
-import { Checkbox } from "./Checkbox";
+import { CheckboxButton } from "./ui/CheckboxButton";
 import {
   formatISODate,
   formatShortDay,
@@ -493,7 +493,7 @@ export const MealPlanningWizard: React.FC<{
           {shoppingItems.length > 0 ? (
             <div className="space-y-3">
               {shoppingItems.map((item, index) => (
-                <Checkbox
+                <CheckboxButton
                   key={index}
                   checked={item.checked}
                   onChange={() => toggleShoppingItem(index)}

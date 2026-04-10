@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Icon } from "@iconify/react";
 import { Hr } from "./ui/Hr";
 import { supabase } from "../lib/supabase";
-import { Checkbox } from "./Checkbox";
+import { CheckboxButton } from "./ui/CheckboxButton";
 import { UnitSelect } from "./UnitSelect";
 import { EmojiSelect } from "./EmojiSelect";
 import { combineEmojiAndName } from "../utils/emoji";
@@ -207,7 +207,7 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
           <ul className="space-y-2">
             {activeItems.map((item) => (
               <li key={item.id} className="group relative bg-white">
-                <Checkbox
+                <CheckboxButton
                   checked={item.completed}
                   onChange={() => handleToggleComplete(item.id, item.completed)}
                   label={item.name}
@@ -217,10 +217,10 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
                   onClick={() => handleDeleteItem(item.id)}
                   variant="danger"
                   size="sm"
-                  className="absolute top-1/2 right-4 -translate-y-1/2 opacity-0 transition-all group-hover:opacity-100"
+                  className="absolute top-1/2 right-4 -translate-y-1/2"
                   title="Fjern vare"
                 >
-                  <Icon icon={ui.delete} className="h-5 w-5" />
+                  <Icon icon={ui.x} className="h-4 w-4" />
                 </Button>
               </li>
             ))}
@@ -244,7 +244,7 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
               <ul className="mt-4 space-y-2">
                 {completedItems.map((item) => (
                   <li key={item.id} className="group relative">
-                    <Checkbox
+                    <CheckboxButton
                       checked={item.completed}
                       onChange={() =>
                         handleToggleComplete(item.id, item.completed)
@@ -256,10 +256,10 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
                       onClick={() => handleDeleteItem(item.id)}
                       variant="danger"
                       size="sm"
-                      className="absolute top-1/2 right-4 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100"
+                      className="absolute top-1/2 right-4 -translate-y-1/2"
                       title="Fjern vare"
                     >
-                      <Icon icon={ui.delete} className="h-5 w-5" />
+                      <Icon icon={ui.x} className="h-4 w-4" />
                     </Button>
                   </li>
                 ))}

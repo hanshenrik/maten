@@ -43,7 +43,7 @@ export const Button = React.forwardRef<
       secondary:
         "bg-surface text-text hover:text-primary hover:border-current hover:bg-primary/5 focus:ring-border border border-border transition-all",
       danger:
-        "bg-surface text-red-500 hover:bg-red-500/10 focus:ring-red-500 border border-border hover:border-current transition-all",
+        "bg-surface text-black hover:text-red-500 hover:bg-red-500/10 focus:ring-red-500 border border-border hover:border-current transition-all",
       ghost:
         "bg-transparent text-text-muted hover:bg-surface hover:text-current hover:border-current border border-transparent focus:ring-border transition-all",
     };

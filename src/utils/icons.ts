@@ -18,6 +18,7 @@ export const ui = {
   login: "hugeicons:login-01",
   edit: "hugeicons:pencil-edit-02",
   globe: "hugeicons:globe-02",
+  x: "hugeicons:cancel-01",
 };
 
 export const app = {

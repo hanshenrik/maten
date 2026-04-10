@@ -1,15 +1,15 @@
 import React from "react";
 import { Icon } from "@iconify/react";
-import { ui } from "../utils/icons";
+import { ui } from "../../utils/icons";
 
-interface CheckboxProps {
+interface CheckboxButtonProps {
   checked: boolean;
   onChange?: () => void;
   label?: string;
   subLabel?: string;
 }
 
-export const Checkbox: React.FC<CheckboxProps> = ({
+export const CheckboxButton: React.FC<CheckboxButtonProps> = ({
   checked,
   onChange,
   label,
