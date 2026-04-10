@@ -1,0 +1,89 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import MainNavigation from "../components/MainNavigation.astro";
+import { RecipeCard } from "../components/RecipeCard";
+import { Icon } from "astro-icon/components";
+
+const title = "Oppskriftsbiblioteket";
+
+// Get public recipes and their save count
+const { data: recipesData, error } = await Astro.locals.supabase
+  .from("recipes")
+  .select(
+    `
+    *,
+    saved_recipes(count)
+  `,
+  )
+  .eq("is_public", true);
+
+if (error) {
+  console.error("Error fetching library recipes:", error);
+}
+
+// Map the result to extract the count for sorting
+const recipes = (recipesData || [])
+  .map((r: any) => ({
+    ...r,
+    saveCount: r.saved_recipes?.[0]?.count || 0,
+  }))
+  .sort(
+    (a, b) =>
+      b.saveCount - a.saveCount ||
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+  );
+---
+
+<BaseLayout title={title}>
+  <div class="flex min-h-dvh flex-col">
+    <main class="container mx-auto max-w-6xl flex-1 px-4 py-8">
+      <div class="mb-8 flex items-center gap-3">
+        <a
+          href="/recipes"
+          class="text-text hover:text-primary transition-colors"
+        >
+          <Icon name="hugeicons:arrow-left-01" class="h-6 w-6" />
+        </a>
+        <h1 class="text-text flex items-center gap-3 text-3xl font-bold">
+          <Icon name="hugeicons:books-01" class="text-primary h-8 w-8" />
+          Oppskriftsbiblioteket
+        </h1>
+      </div>
+
+      <p class="text-text-muted mb-8 max-w-2xl text-lg">
+        Gå på oppdagelsesferd i oppskrifter delt av andre brukere. Lagre dine
+        favoritter i din egen samling!
+      </p>
+
+      {
+        recipes && recipes.length > 0 ? (
+          <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {recipes.map((recipe) => (
+              <a href={`/recipes/${recipe.id}`} class="group relative block">
+                <RecipeCard recipe={recipe} />
+                <div class="bg-surface border-border text-primary absolute -top-3 -right-3 flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-semibold opacity-90 shadow-sm transition-opacity group-hover:opacity-100">
+                  <Icon name="hugeicons:favourite" class="h-4 w-4" />
+                  {recipe.saveCount}
+                </div>
+                {recipe.author_name && (
+                  <div class="text-text-muted mt-2 px-2 text-sm italic">
+                    Av {recipe.author_name}
+                  </div>
+                )}
+              </a>
+            ))}
+          </div>
+        ) : (
+          <div class="border-border bg-surface rounded-xl border p-6 text-center">
+            <p class="text-text-muted mb-4">
+              Biblioteket er foreløpig tomt. Bli den første til å dele en
+              oppskrift!
+            </p>
+          </div>
+        )
+      }
+    </main>
+
+    <MainNavigation />
+  </div>
+</BaseLayout>

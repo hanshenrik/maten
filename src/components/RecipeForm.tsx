@@ -22,6 +22,7 @@ interface RecipeFormProps {
   onSuccess?: (id: string) => void;
   userId: string;
   householdId: string;
+  authorName?: string;
 }
 
 export const RecipeForm: React.FC<RecipeFormProps> = ({
@@ -29,6 +30,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
   onSuccess,
   userId,
   householdId,
+  authorName,
 }) => {
   const isEditing = !!initialData?.id;
   const [title, setTitle] = useState(initialData?.title || "");
@@ -56,6 +58,22 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
     }) || [{ emoji: "", name: "", amount: "", unit: "", is_basic: false }],
   );
   const [loading, setLoading] = useState(false);
+  const [isPublic, setIsPublic] = useState(initialData?.is_public || false);
+  const [saveCount, setSaveCount] = useState(0);
+
+  React.useEffect(() => {
+    if (isEditing && initialData?.is_public) {
+      supabase
+        .from("saved_recipes")
+        .select("*", { count: "exact", head: true })
+        .eq("recipe_id", initialData.id)
+        .then(({ count, error }) => {
+          if (!error && count !== null) {
+            setSaveCount(count);
+          }
+        });
+    }
+  }, [isEditing, initialData]);
 
   const addIngredient = () => {
     setIngredients([
@@ -106,6 +124,10 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
         image_url: uploadedImageUrl,
         source_url: sourceUrl,
         cook_time: cookTime ? parseInt(cookTime) : null,
+        is_public: isPublic,
+        author_name: isPublic
+          ? initialData?.author_name || authorName || "En matglad kokk"
+          : null,
       };
       let recipeId = initialData?.id;
 
@@ -205,6 +227,34 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
           onChange={(e) => setTitle(e.target.value)}
           placeholder="f.eks. Klassisk Margherita Pizza"
         />
+
+        <div className="border-border bg-surface/50 flex items-center justify-between rounded-xl border p-4">
+          <div>
+            <h3 className="text-text font-medium">
+              Del oppskriften i biblioteket
+            </h3>
+            <p className="text-text-muted mt-1 text-sm">
+              Gjør oppskriften åpen så andre kan lagre den i sin app.
+            </p>
+            {saveCount > 0 && (
+              <p className="text-primary mt-2 text-sm font-medium">
+                Du kan ikke gjøre oppskriften privat igjen fordi{" "}
+                {saveCount === 1 ? "1 person" : `${saveCount} personer`} har
+                lagret den.
+              </p>
+            )}
+          </div>
+          <label className="relative inline-flex cursor-pointer items-center">
+            <input
+              type="checkbox"
+              className="peer sr-only"
+              checked={isPublic}
+              disabled={saveCount > 0}
+              onChange={(e) => setIsPublic(e.target.checked)}
+            />
+            <div className="peer bg-border peer-checked:bg-primary peer-focus:ring-primary/20 h-6 w-11 rounded-full peer-focus:ring-2 peer-focus:outline-none after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white disabled:opacity-50 rtl:peer-checked:after:-translate-x-full dark:border-gray-600 dark:bg-gray-700"></div>
+          </label>
+        </div>
 
         <div>
           <label className="text-text mb-1 block text-sm font-medium">

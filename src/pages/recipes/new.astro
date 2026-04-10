@@ -20,6 +20,9 @@ const title = "Ny godbit";
         client:load
         userId={Astro.locals.user.id}
         householdId={Astro.locals.householdId}
+        authorName={Astro.locals.user.user_metadata?.full_name ||
+          Astro.locals.user.email?.split("@")[0] ||
+          "En kokk"}
       />
     </main>
 

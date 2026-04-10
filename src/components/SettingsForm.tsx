@@ -17,6 +17,8 @@ interface SettingsFormProps {
   userId: string;
   userEmail?: string;
   householdId?: string;
+  fullName?: string;
+  avatarUrl?: string;
 }
 
 interface PendingInvite {
@@ -31,6 +33,8 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
   userId,
   userEmail,
   householdId,
+  fullName: initialFullName,
+  avatarUrl: initialAvatarUrl,
 }) => {
   const [members, setMembers] = useState<Member[]>([]);
   const [invites, setInvites] = useState<PendingInvite[]>([]);
@@ -41,6 +45,11 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [nameSubmitting, setNameSubmitting] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark" | "auto">("auto");
+  const [displayName, setDisplayName] = useState(initialFullName || "");
+  const [displayNameSubmitting, setDisplayNameSubmitting] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(initialAvatarUrl || "");
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
 
   useEffect(() => {
     const savedTheme =
@@ -180,6 +189,27 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
     }
   };
 
+  const handleUpdateDisplayName = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!displayName.trim()) return;
+
+    setDisplayNameSubmitting(true);
+    setError(null);
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        data: { full_name: displayName.trim() },
+      });
+
+      if (error) throw error;
+    } catch (err: any) {
+      console.error("Error updating display name:", err);
+      setError("Ops, vi fikk ikke lagret navnet ditt.");
+    } finally {
+      setDisplayNameSubmitting(false);
+    }
+  };
+
   const handleUpdateHouseholdName = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!householdName.trim() || !householdId) return;
@@ -278,31 +308,114 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
   return (
     <div className="space-y-8">
       <Card>
-        <h2 className="text-text mb-4 text-xl font-semibold">
-          Hvordan skal appen se ut?
-        </h2>
-        <div className="bg-bg border-border flex gap-2 rounded-2xl border p-1">
-          {[
-            { id: "light", label: "Lys", icon: "hugeicons:sun-03" },
-            { id: "dark", label: "Mørk", icon: "hugeicons:moon-02" },
-            { id: "auto", label: "System", icon: "hugeicons:computer-01" },
-          ].map((option) => (
-            <button
-              key={option.id}
-              onClick={() =>
-                handleThemeChange(option.id as "light" | "dark" | "auto")
-              }
-              className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-medium transition-all ${
-                theme === option.id
-                  ? "bg-surface text-primary ring-border shadow-sm ring-1"
-                  : "text-text-muted hover:text-text hover:bg-surface/50"
-              }`}
-            >
-              <Icon icon={option.icon} className="h-4 w-4" />
-              {option.label}
-            </button>
-          ))}
+        <h2 className="text-text mb-4 text-xl font-semibold">Om deg</h2>
+        <p className="text-text-muted mb-6 text-sm">
+          Navnet og bildet ditt vises på oppskrifter du deler i biblioteket.
+        </p>
+
+        <div className="mb-6 flex items-center gap-5">
+          <div className="relative">
+            {avatarUrl && !avatarFile ? (
+              <img
+                src={avatarUrl}
+                alt="Profilbilde"
+                className="border-border h-20 w-20 rounded-full border-2 object-cover"
+              />
+            ) : avatarFile ? (
+              <div className="border-primary bg-primary/10 flex h-20 w-20 items-center justify-center rounded-full border-2">
+                <Icon
+                  icon="hugeicons:image-02"
+                  className="text-primary h-8 w-8"
+                />
+              </div>
+            ) : (
+              <div className="border-border bg-bg flex h-20 w-20 items-center justify-center rounded-full border-2">
+                <Icon
+                  icon="hugeicons:user"
+                  className="text-text-muted h-8 w-8"
+                />
+              </div>
+            )}
+          </div>
+          <div className="flex flex-col gap-2">
+            <label className="cursor-pointer">
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
+              />
+              <span className="text-primary text-sm font-medium hover:underline">
+                {avatarUrl ? "Bytt bilde" : "Last opp bilde"}
+              </span>
+            </label>
+            {avatarFile && (
+              <span className="text-text-muted text-xs">{avatarFile.name}</span>
+            )}
+            {avatarFile && (
+              <Button
+                size="sm"
+                disabled={avatarUploading}
+                onClick={async () => {
+                  setAvatarUploading(true);
+                  setError(null);
+                  try {
+                    const fileExt = avatarFile.name.split(".").pop();
+                    const fileName = `${userId}/avatar.${fileExt}`;
+                    const { error: uploadError } = await supabase.storage
+                      .from("profile-images")
+                      .upload(fileName, avatarFile, { upsert: true });
+                    if (uploadError) throw uploadError;
+
+                    const {
+                      data: { publicUrl },
+                    } = supabase.storage
+                      .from("profile-images")
+                      .getPublicUrl(fileName);
+
+                    const urlWithCacheBust = `${publicUrl}?t=${Date.now()}`;
+                    const { error: updateError } =
+                      await supabase.auth.updateUser({
+                        data: { avatar_url: urlWithCacheBust },
+                      });
+                    if (updateError) throw updateError;
+
+                    setAvatarUrl(urlWithCacheBust);
+                    setAvatarFile(null);
+                  } catch (err: any) {
+                    console.error("Error uploading avatar:", err);
+                    setError("Klarte ikke å laste opp bildet. Prøv igjen.");
+                  } finally {
+                    setAvatarUploading(false);
+                  }
+                }}
+              >
+                {avatarUploading ? "Laster opp..." : "Last opp"}
+              </Button>
+            )}
+          </div>
         </div>
+
+        <form
+          onSubmit={handleUpdateDisplayName}
+          className="flex flex-col items-end gap-2 sm:flex-row sm:items-start"
+        >
+          <div className="flex w-full flex-1">
+            <Input
+              required
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="f.eks. Ola Nordmann"
+            />
+          </div>
+          <Button
+            type="submit"
+            disabled={displayNameSubmitting}
+            className="mt-2 w-full px-6 sm:mt-0 sm:w-auto"
+          >
+            {displayNameSubmitting ? "Lagrer..." : "Lagre navn"}
+          </Button>
+        </form>
       </Card>
 
       {isOwner && (
@@ -332,6 +445,34 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
           </form>
         </Card>
       )}
+
+      <Card>
+        <h2 className="text-text mb-4 text-xl font-semibold">
+          Hvordan skal appen se ut?
+        </h2>
+        <div className="bg-bg border-border flex gap-2 rounded-2xl border p-1">
+          {[
+            { id: "light", label: "Lys", icon: "hugeicons:sun-03" },
+            { id: "dark", label: "Mørk", icon: "hugeicons:moon-02" },
+            { id: "auto", label: "System", icon: "hugeicons:computer-01" },
+          ].map((option) => (
+            <button
+              key={option.id}
+              onClick={() =>
+                handleThemeChange(option.id as "light" | "dark" | "auto")
+              }
+              className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-medium transition-all ${
+                theme === option.id
+                  ? "bg-surface text-primary ring-border shadow-sm ring-1"
+                  : "text-text-muted hover:text-text hover:bg-surface/50"
+              }`}
+            >
+              <Icon icon={option.icon} className="h-4 w-4" />
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </Card>
 
       {invites.length > 0 && (
         <div className="border-primary/20 bg-primary/10 rounded-2xl border p-6 shadow-sm">

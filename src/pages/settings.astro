@@ -26,6 +26,8 @@ const { user, householdId } = Astro.locals;
         userId={user.id}
         userEmail={user.email}
         householdId={householdId}
+        fullName={user.user_metadata?.full_name}
+        avatarUrl={user.user_metadata?.avatar_url}
       />
 
       {

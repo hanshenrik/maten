@@ -6,15 +6,32 @@ import { Icon } from "astro-icon/components";
 import { Button } from "../components/ui/Button";
 const title = "Alle de gode oppskriftene";
 
-// Get recipes from Supabase using the authenticated client from locals
-const { data: recipes, error } = await Astro.locals.supabase
+// Fetch owned recipes
+const { data: myRecipes, error: myError } = await Astro.locals.supabase
   .from("recipes")
   .select("*")
-  .order("created_at", { ascending: false });
+  .eq("household_id", Astro.locals.householdId);
 
-if (error) {
-  console.error("Error fetching recipes:", error);
-}
+if (myError) console.error("Error fetching recipes:", myError);
+
+// Fetch saved public recipes
+const { data: savedRecipesData, error: savedError } =
+  await Astro.locals.supabase
+    .from("saved_recipes")
+    .select("recipes(*)")
+    .eq("household_id", Astro.locals.householdId);
+
+if (savedError) console.error("Error fetching saved recipes:", savedError);
+
+// Combine and sort
+const recipes = [
+  ...(myRecipes || []),
+  ...(savedRecipesData || [])
+    .map((sr: any) => sr.recipes)
+    .filter((r) => r !== null),
+].sort(
+  (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+);
 ---
 
 <BaseLayout title={title}>
@@ -28,15 +45,28 @@ if (error) {
           />
           Mine oppskrifter
         </h1>
-        <div class="hidden md:block">
+        <div class="hidden gap-3 md:flex">
+          <Button as="a" href="/library" variant="secondary" className="gap-2">
+            <Icon name="hugeicons:books-01" class="h-5 w-5" />
+            Biblioteket
+          </Button>
           <Button as="a" href="/recipes/new" className="gap-2">
             <Icon name="hugeicons:plus-sign" class="h-5 w-5" />
-            Legg til ny oppskrift
+            Legg til ny
           </Button>
         </div>
       </div>
 
-      <div class="mb-8 md:hidden">
+      <div class="mb-8 flex flex-col gap-3 md:hidden">
+        <Button
+          as="a"
+          href="/library"
+          variant="secondary"
+          className="flex w-full gap-2"
+        >
+          <Icon name="hugeicons:books-01" class="h-5 w-5" />
+          Utforsk biblioteket
+        </Button>
         <Button as="a" href="/recipes/new" className="flex w-full gap-2">
           <Icon name="hugeicons:plus-sign" class="h-5 w-5" />
           Legg til ny oppskrift

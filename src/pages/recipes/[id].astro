@@ -4,6 +4,7 @@ import MainNavigation from "../../components/MainNavigation.astro";
 import { BasicTag } from "../../components/BasicTag";
 import { Icon } from "astro-icon/components";
 import { Button } from "../../components/ui/Button";
+import { RecipeActions } from "../../components/RecipeActions";
 
 const { id } = Astro.params;
 
@@ -24,6 +25,30 @@ if (recipeError || !recipe) {
 }
 
 const title = recipe.title;
+const householdId = Astro.locals.householdId;
+const isOwner = recipe.household_id === householdId;
+
+// Check if this recipe is saved by the current household
+let isSaved = false;
+if (!isOwner && recipe.is_public) {
+  const { data: savedData } = await Astro.locals.supabase
+    .from("saved_recipes")
+    .select("id")
+    .eq("household_id", householdId)
+    .eq("recipe_id", id)
+    .maybeSingle();
+  isSaved = !!savedData;
+}
+
+// For public recipes, get the save count (statistics)
+let saveCount = 0;
+if (recipe.is_public) {
+  const { count } = await Astro.locals.supabase
+    .from("saved_recipes")
+    .select("*", { count: "exact", head: true })
+    .eq("recipe_id", id);
+  saveCount = count || 0;
+}
 ---
 
 <BaseLayout title={title}>
@@ -35,15 +60,19 @@ const title = recipe.title;
           Tilbake til alle oppskriftene
         </Button>
         <div class="flex gap-2">
-          <Button
-            as="a"
-            href={`/recipes/${id}/edit`}
-            variant="secondary"
-            className="gap-2"
-          >
-            <Icon name="hugeicons:pencil-edit-02" class="h-5 w-5" />
-            Gjør endringer
-          </Button>
+          {
+            isOwner && (
+              <Button
+                as="a"
+                href={`/recipes/${id}/edit`}
+                variant="secondary"
+                className="gap-2"
+              >
+                <Icon name="hugeicons:pencil-edit-02" class="h-5 w-5" />
+                Gjør endringer
+              </Button>
+            )
+          }
         </div>
       </div>
 
@@ -61,9 +90,11 @@ const title = recipe.title;
         }
 
         <div class="p-8">
-          <div class="flex flex-col items-center justify-between md:flex-row">
+          <div
+            class="flex flex-col items-start justify-between md:flex-row md:items-center"
+          >
             <h1
-              class="text-text mb-4 flex items-center gap-3 text-2xl font-bold md:text-4xl"
+              class="text-text mb-4 flex items-center gap-3 text-left text-2xl font-bold md:text-4xl"
             >
               <Icon
                 name="streamline-ultimate-color:archive-books"
@@ -100,8 +131,32 @@ const title = recipe.title;
                 </div>
               )
             }
+            {
+              recipe.is_public && (
+                <div class="flex items-center gap-2">
+                  <div class="bg-primary/10 text-primary flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium">
+                    <Icon name="hugeicons:globe-02" class="h-5 w-5" />
+                    <span>Delt i biblioteket</span>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <div class="bg-primary/10 text-primary flex items-center gap-2 rounded-xl px-4 py-2 text-sm">
+                      <Icon name="hugeicons:favourite" class="h-5 w-5" />
+                      <span class="">{saveCount}</span>
+                    </div>
+                  </div>
+                </div>
+              )
+            }
           </div>
           <p class="text-text-muted mb-4 text-lg">{recipe.description}</p>
+
+          <RecipeActions
+            client:load
+            recipeId={id!}
+            isOwner={isOwner}
+            isPublic={recipe.is_public}
+            initialIsSaved={isSaved}
+          />
 
           <div class="grid gap-8 md:grid-cols-3">
             <div class="md:col-span-1">
