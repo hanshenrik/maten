@@ -113,7 +113,7 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
 
   return (
     <Card>
-      <h2 className="mb-4 text-xl font-semibold text-gray-900">Handleliste</h2>
+      <h2 className="text-text mb-4 text-xl font-semibold">Handleliste</h2>
 
       <datalist id="shopping-suggestions">
         {suggestions.map((name) => (
@@ -122,11 +122,11 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
       </datalist>
 
       {/* Add new item form */}
-      <div className="mb-8 rounded-lg bg-gray-50 p-4">
-        <h3 className="mb-3 font-medium text-gray-900">Legg til ny vare</h3>
+      <div className="bg-bg border-border mb-8 rounded-lg border p-4">
+        <h3 className="text-text mb-3 font-medium">Legg til ny vare</h3>
         <div className="grid grid-cols-1 items-end gap-3 md:grid-cols-4">
           <div className="md:col-span-2">
-            <label className="mb-1 block text-sm text-gray-600">Navn</label>
+            <label className="text-text-muted mb-1 block text-sm">Navn</label>
             <div className="flex gap-2">
               <EmojiSelect
                 value={newItem.emoji}
@@ -139,13 +139,13 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
                 onChange={(e) =>
                   setNewItem({ ...newItem, name: e.target.value })
                 }
-                className="w-full rounded-md border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="border-border bg-surface text-text focus:ring-primary w-full rounded-md border px-3 py-2 focus:ring-2 focus:outline-none"
                 placeholder="f.eks., Epler"
               />
             </div>
           </div>
           <div>
-            <label className="mb-1 block text-sm text-gray-600">Antall</label>
+            <label className="text-text-muted mb-1 block text-sm">Antall</label>
             <input
               type="number"
               value={newItem.amount}
@@ -155,12 +155,12 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
                   amount: parseFloat(e.target.value) || 1,
                 })
               }
-              className="w-full rounded-md border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="border-border bg-surface text-text focus:ring-primary w-full rounded-md border px-3 py-2 focus:ring-2 focus:outline-none"
               min="1"
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm text-gray-600">Enhet</label>
+            <label className="text-text-muted mb-1 block text-sm">Enhet</label>
             <UnitSelect
               value={newItem.unit}
               onChange={(value) => setNewItem({ ...newItem, unit: value })}
@@ -203,13 +203,15 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
           </ul>
         ) : (
           !completedItems.length && (
-            <p className="py-8 text-center text-gray-400">Handlelista er tom</p>
+            <p className="text-text-muted py-8 text-center">
+              Handlelista er tom
+            </p>
           )
         )}
 
         {completedItems.length > 0 && (
-          <details className="group border-t border-gray-100 pt-4" open>
-            <summary className="cursor-pointer text-sm font-medium text-gray-400 hover:text-gray-600 focus:outline-none">
+          <details className="group border-border border-t pt-4" open>
+            <summary className="text-text-muted hover:text-text cursor-pointer text-sm font-medium focus:outline-none">
               Fullførte varer ({completedItems.length})
             </summary>
             <ul className="mt-4 space-y-2">

@@ -40,7 +40,7 @@ const { title } = Astro.props;
     <Analytics />
     <SpeedInsights />
   </head>
-  <body class="bg-light text-dark min-h-screen pb-20" transition:animate="fade">
+  <body class="min-h-screen pb-20" transition:animate="fade">
     <slot />
     <script>
       if ("serviceWorker" in navigator) {

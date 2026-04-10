@@ -317,7 +317,7 @@ export const MealPlanningWizard: React.FC<{
   if (step === 1) {
     return (
       <Card className="mx-auto max-w-md">
-        <h2 className="mb-6 text-2xl font-bold text-gray-900">
+        <h2 className="text-text mb-6 text-2xl font-bold">
           Steg 1: Velg datoer
         </h2>
         <div className="space-y-6">
@@ -371,7 +371,7 @@ export const MealPlanningWizard: React.FC<{
     return (
       <div className="mx-auto max-w-2xl space-y-6">
         <Card className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900">
+          <h2 className="text-text text-2xl font-bold">
             Steg 2: Velg middager
           </h2>
           <Button
@@ -393,10 +393,10 @@ export const MealPlanningWizard: React.FC<{
                 className="flex flex-col items-start gap-4 md:flex-row md:items-center"
               >
                 <div className="min-w-30">
-                  <div className="text-xs font-bold tracking-wider uppercase">
+                  <div className="text-xs font-bold tracking-wider uppercase opacity-60">
                     {formatShortDay(day.date)}
                   </div>
-                  <div className="text-lg font-bold text-gray-900">
+                  <div className="text-text text-lg font-bold">
                     {formatMonthDay(day.date)}
                   </div>
                 </div>
@@ -405,7 +405,7 @@ export const MealPlanningWizard: React.FC<{
                   <select
                     value={day.recipe_id}
                     onChange={(e) => handleRecipeChange(index, e.target.value)}
-                    className="focus:ring-primary w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 outline-none focus:ring-2"
+                    className="focus:ring-primary border-border bg-bg text-text w-full rounded-xl border px-4 py-3 outline-none focus:ring-2"
                   >
                     <option value="">(Ingen oppskrift valgt)</option>
                     {recipes.map((r) => (
@@ -468,7 +468,7 @@ export const MealPlanningWizard: React.FC<{
     return (
       <div className="mx-auto max-w-2xl space-y-6">
         <Card className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900">
+          <h2 className="text-text text-2xl font-bold">
             Steg 3: Sjekk handlelisten
           </h2>
           <Button
@@ -482,7 +482,7 @@ export const MealPlanningWizard: React.FC<{
         </Card>
 
         <Card>
-          <p className="mb-6 text-gray-500">
+          <p className="text-text-muted mb-6">
             Her er ingrediensene du trenger. Kryss av det du allerede har i
             skapet.
           </p>

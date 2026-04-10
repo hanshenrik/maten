@@ -16,7 +16,7 @@ interface RecipeCardProps {
 export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onClick }) => {
   return (
     <Card
-      className="flex h-full cursor-pointer flex-col transition-shadow duration-200 hover:-translate-y-1 hover:scale-[1.01] hover:shadow-md"
+      className="group flex h-full cursor-pointer flex-col"
       noPadding
       onClick={onClick}
     >
@@ -25,36 +25,36 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onClick }) => {
           <img
             src={recipe.image_url}
             alt={recipe.title}
-            className="h-full w-full object-cover transition-transform hover:scale-105"
+            className="h-full w-full object-cover transition-transform group-hover:scale-105"
           />
           {recipe.source_url && (
-            <div className="absolute top-2 right-2 rounded-full bg-white/80 p-1.5 text-blue-600 shadow-sm backdrop-blur-sm transition-colors hover:bg-white">
+            <div className="bg-surface text-primary border-border absolute top-2 right-2 rounded-full border p-1.5 opacity-90 transition-opacity hover:opacity-100">
               <Icon icon="hugeicons:link-01" className="h-4 w-4" />
             </div>
           )}
         </div>
       ) : (
-        <div className="flex h-48 w-full flex-col items-center justify-center bg-gray-50 text-gray-300">
+        <div className="bg-bg text-text-muted flex h-48 w-full flex-col items-center justify-center">
           <Icon
             icon="streamline-ultimate-color:stamps-image"
-            className="mb-2 h-10 w-10 text-gray-300"
+            className="mb-2 h-10 w-10 opacity-30"
           />
           <span className="text-xs font-medium tracking-wider uppercase">
             No Image
           </span>
           {recipe.source_url && (
-            <div className="absolute top-2 right-2 rounded-full bg-white/80 p-1.5 text-blue-600 shadow-sm backdrop-blur-sm transition-colors hover:bg-white">
+            <div className="bg-surface text-primary border-border absolute top-2 right-2 rounded-full border p-1.5 opacity-90 transition-opacity hover:opacity-100">
               <Icon icon="hugeicons:link-01" className="h-4 w-4" />
             </div>
           )}
         </div>
       )}
       <div className="flex flex-1 flex-col p-4">
-        <h3 className="mb-2 line-clamp-1 text-lg font-semibold">
+        <h3 className="text-text mb-2 line-clamp-1 text-lg font-semibold group-hover:underline">
           {recipe.title}
         </h3>
         {recipe.description && (
-          <p className="line-clamp-2 text-sm text-gray-600">
+          <p className="text-text-muted line-clamp-2 text-sm">
             {recipe.description}
           </p>
         )}

@@ -15,17 +15,14 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className={`${fullWidth ? "w-full" : ""} flex flex-col gap-1.5`}>
         {label && (
-          <label
-            htmlFor={inputId}
-            className="text-sm font-medium text-gray-700"
-          >
+          <label htmlFor={inputId} className="text-text text-sm font-medium">
             {label}
           </label>
         )}
         <input
           id={inputId}
           ref={ref}
-          className={`focus:border-primary focus:ring-primary rounded-lg border px-3 py-2 transition-colors focus:ring-1 focus:outline-none ${error ? "border-red-500" : "border-gray-200"} ${className}`}
+          className={`focus:border-primary focus:ring-primary bg-surface text-text rounded-lg border px-3 py-2 transition-colors focus:ring-1 focus:outline-none ${error ? "border-red-500" : "border-border"} ${className}`}
           {...props}
         />
         {error && <span className="text-sm text-red-500">{error}</span>}

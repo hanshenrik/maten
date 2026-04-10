@@ -26,12 +26,12 @@ const title = recipe.title;
 ---
 
 <BaseLayout title={title}>
-  <div class="flex min-h-screen flex-col bg-gray-50">
+  <div class="flex min-h-screen flex-col">
     <main class="container mx-auto max-w-4xl flex-1 px-4 py-12">
       <div class="mb-8 flex items-center justify-between">
         <a
           href="/recipes"
-          class="flex items-center gap-1 font-medium text-blue-600 hover:underline"
+          class="text-primary flex items-center gap-1 font-medium hover:underline"
         >
           <Icon name="hugeicons:arrow-left-04" class="h-4 w-4" />
           Tilbake til biblioteket
@@ -50,7 +50,7 @@ const title = recipe.title;
       </div>
 
       <article
-        class="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm"
+        class="border-border bg-surface overflow-hidden rounded-3xl border"
       >
         {
           recipe.image_url && (
@@ -63,16 +63,14 @@ const title = recipe.title;
         }
 
         <div class="p-8">
-          <h1
-            class="mb-4 flex items-center gap-3 text-4xl font-bold text-gray-900"
-          >
+          <h1 class="text-text mb-4 flex items-center gap-3 text-4xl font-bold">
             <Icon
               name="streamline-ultimate-color:archive-books"
               class="h-10 w-10"
             />
             {recipe.title}
           </h1>
-          <p class="mb-4 text-lg text-gray-600">{recipe.description}</p>
+          <p class="text-text-muted mb-4 text-lg">{recipe.description}</p>
 
           {
             recipe.source_url && (
@@ -81,7 +79,7 @@ const title = recipe.title;
                   href={recipe.source_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-2 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100"
+                  class="bg-primary/10 text-primary hover:bg-primary/20 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors"
                 >
                   <Icon name="hugeicons:link-01" class="h-4 w-4" />
                   Se originaloppskrift
@@ -92,7 +90,7 @@ const title = recipe.title;
 
           <div class="grid gap-8 md:grid-cols-3">
             <div class="md:col-span-1">
-              <h2 class="mb-4 text-xl font-bold text-gray-900">Ingredienser</h2>
+              <h2 class="text-text mb-4 text-xl font-bold">Ingredienser</h2>
               <ul class="list-disc space-y-3">
                 {
                   recipe.ingredients.map((ing: any) => (
@@ -100,7 +98,7 @@ const title = recipe.title;
                       <span class="flex items-center gap-1">
                         {ing.name}
                         {ing.is_basic && (
-                          <span class="ml-1 rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-400">
+                          <span class="bg-bg text-text-muted ml-1 rounded px-1.5 py-0.5 text-xs">
                             B
                           </span>
                         )}
@@ -110,7 +108,7 @@ const title = recipe.title;
                           <span class="font-medium">{ing.amount} </span>
                         )}
                         {ing.unit && (
-                          <span class="text-gray-500">{ing.unit} </span>
+                          <span class="text-text-muted">{ing.unit} </span>
                         )}
                       </span>
                     </li>
@@ -120,10 +118,10 @@ const title = recipe.title;
             </div>
 
             <div class="md:col-span-2">
-              <h2 class="mb-4 text-xl font-bold text-gray-900">
-                Fremgangsmåte
-              </h2>
-              <div class="prose prose-blue prose-lg max-w-none text-gray-700">
+              <h2 class="text-text mb-4 text-xl font-bold">Fremgangsmåte</h2>
+              <div
+                class="prose prose-emerald prose-lg text-text-muted max-w-none"
+              >
                 {recipe.instructions}
               </div>
             </div>

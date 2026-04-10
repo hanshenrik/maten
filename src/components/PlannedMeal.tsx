@@ -16,11 +16,11 @@ export const PlannedMealComponent: React.FC<PlannedMealComponentProps> = ({
   recipes,
 }) => {
   return (
-    <div className="rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
+    <div className="border-border bg-surface text-text rounded-lg border p-4">
       <h3 className="mb-3 text-lg font-semibold">
         {formatLongDay(day.day_of_week)}
       </h3>
-      <p className="text-secondary mb-4 text-sm">
+      <p className="text-text-muted mb-4 text-sm">
         {formatMonthDay(day.day_of_week)}
       </p>
 
@@ -36,24 +36,26 @@ export const PlannedMealComponent: React.FC<PlannedMealComponentProps> = ({
 
       <div className="space-y-3">
         {day.recipeId && recipes[day.recipeId] ? (
-          <div className="flex flex-col gap-1 rounded bg-gray-50 p-2">
+          <div className="bg-bg flex flex-col gap-1 rounded p-2">
             <a
               href={`/recipes/${day.recipeId}`}
-              className="text-secondary font-medium transition-colors hover:text-blue-600 hover:underline"
+              className="text-text hover:text-primary font-medium transition-colors hover:underline"
             >
               {recipes[day.recipeId].title}
             </a>
             {day.notes && (
-              <span className="text-xs text-gray-500">{day.notes}</span>
+              <span className="text-text-muted text-xs">{day.notes}</span>
             )}
           </div>
         ) : (
-          <div className="flex items-center gap-2 rounded bg-gray-50 p-2">
+          <div className="bg-bg flex items-center gap-2 rounded p-2">
             <Icon
               icon="hugeicons:circle-off-01"
-              className="h-4 w-4 text-gray-400"
+              className="text-text-muted h-4 w-4 opacity-50"
             />
-            <span className="text-sm text-gray-400">Ingen middag planlagt</span>
+            <span className="text-text-muted text-sm">
+              Ingen middag planlagt
+            </span>
           </div>
         )}
       </div>

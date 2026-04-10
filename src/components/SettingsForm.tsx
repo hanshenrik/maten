@@ -230,12 +230,12 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
   };
 
   if (loading) {
-    return <div className="text-gray-500">Laster innstillinger...</div>;
+    return <div className="text-text-muted">Laster innstillinger...</div>;
   }
 
   if (!householdId) {
     return (
-      <div className="rounded-2xl border border-red-100 bg-red-50 p-6 text-red-700">
+      <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-6 text-red-500">
         Fant ingen aktiv husstand. Vennligst logg ut og inn igjen for å
         initialisere din profil.
       </div>
@@ -248,7 +248,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
     <div className="space-y-8">
       {isOwner && (
         <Card>
-          <h2 className="mb-4 text-xl font-semibold text-gray-900">
+          <h2 className="text-text mb-4 text-xl font-semibold">
             Husstandsnavn
           </h2>
           <form
@@ -275,18 +275,18 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
       )}
 
       {invites.length > 0 && (
-        <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-6 shadow-sm">
-          <h2 className="mb-4 text-xl font-semibold text-emerald-900">
+        <div className="border-primary/20 bg-primary/10 rounded-2xl border p-6 shadow-sm">
+          <h2 className="text-text mb-4 text-xl font-semibold">
             Ventende invitasjoner
           </h2>
           <ul className="space-y-4">
             {invites.map((invite) => (
               <li
                 key={invite.id}
-                className="flex flex-col gap-4 rounded-xl bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+                className="border-border bg-surface flex flex-col gap-4 rounded-xl border p-4 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div>
-                  <p className="font-medium text-gray-900">
+                  <p className="text-text font-medium">
                     Du har blitt invitert til:
                   </p>
                   <p className="text-lg font-bold">
@@ -311,10 +311,10 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
       )}
 
       <Card>
-        <h2 className="mb-4 text-xl font-semibold text-gray-900">
+        <h2 className="text-text mb-4 text-xl font-semibold">
           Inviter til din husstand
         </h2>
-        <p className="mb-6 text-gray-600">
+        <p className="text-text-muted mb-6">
           Medlemmer i din husstand deler nøyaktig samme oppskriftssamling,
           middagsplaner og handleliste. Alt skjer i sanntid!
         </p>
@@ -345,30 +345,30 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
       </Card>
 
       <Card>
-        <h2 className="mb-4 text-xl font-semibold text-gray-900">
+        <h2 className="text-text mb-4 text-xl font-semibold">
           Medlemmer i husstanden
         </h2>
 
-        <ul className="divide-y divide-gray-100">
+        <ul className="divide-border divide-y">
           {members.map((member) => (
             <li
               key={member.id}
               className="flex items-center justify-between py-4"
             >
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50">
+                <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-full">
                   <Icon icon="hugeicons:user-multiple" className="h-5 w-5" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <p className="font-medium text-gray-900">{member.email}</p>
+                    <p className="text-text font-medium">{member.email}</p>
                     {member.role === "owner" && (
-                      <span className="rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-bold text-green-700 uppercase">
+                      <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-[10px] font-bold uppercase">
                         Eier
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-text-muted text-xs">
                     Medlem siden{" "}
                     {new Date(member.created_at).toLocaleDateString()}
                   </p>

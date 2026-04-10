@@ -19,16 +19,16 @@ export const Checkbox: React.FC<CheckboxProps> = ({
       onClick={onChange}
       className={`flex cursor-pointer items-center justify-between rounded-xl border p-4 transition-all ${
         checked
-          ? "border-green-100 bg-green-50 opacity-60"
-          : "border-gray-100 bg-gray-50 hover:border-gray-200"
+          ? "border-primary/20 bg-primary/10 opacity-60"
+          : "border-border bg-bg hover:border-text/20"
       }`}
     >
       <div className="flex items-center gap-3">
         <div
           className={`flex h-6 w-6 items-center justify-center rounded-full border-2 transition-colors ${
             checked
-              ? "border-green-500 bg-green-500 text-white"
-              : "border-gray-300 bg-white"
+              ? "border-primary bg-primary text-white"
+              : "border-border bg-surface"
           }`}
         >
           {checked && <Icon icon="hugeicons:tick-01" className="h-4 w-4" />}
@@ -36,13 +36,13 @@ export const Checkbox: React.FC<CheckboxProps> = ({
         <div>
           {label && (
             <span
-              className={`font-medium ${checked ? "text-gray-400 line-through" : "text-gray-900"}`}
+              className={`font-medium ${checked ? "text-text-muted line-through" : "text-text"}`}
             >
               {label}
             </span>
           )}
           {subLabel && (
-            <span className="ml-2 text-sm text-gray-500">{subLabel}</span>
+            <span className="text-text-muted ml-2 text-sm">{subLabel}</span>
           )}
         </div>
       </div>

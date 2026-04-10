@@ -137,7 +137,7 @@ export const EmojiSelect: React.FC<EmojiSelectProps> = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white shadow-sm transition-all hover:border-blue-400 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        className="border-border bg-surface text-text hover:border-primary focus:ring-primary flex h-10 w-10 items-center justify-center rounded-lg border transition-all focus:ring-2 focus:outline-none"
         title="Velg emoji"
       >
         {value ? (
@@ -148,8 +148,8 @@ export const EmojiSelect: React.FC<EmojiSelectProps> = ({
       </button>
 
       {isOpen && (
-        <div className="animate-in fade-in zoom-in absolute left-0 z-50 mt-2 w-64 rounded-xl border border-gray-200 bg-white p-2 shadow-xl ring-1 ring-black/5 duration-200">
-          <div className="mb-2 flex items-center gap-2 rounded-lg border border-gray-200 px-2 py-1 focus-within:ring-2 focus-within:ring-blue-500">
+        <div className="animate-in fade-in zoom-in border-border bg-surface absolute left-0 z-50 mt-2 w-64 rounded-xl border p-2 duration-200">
+          <div className="border-border focus-within:ring-primary mb-2 flex items-center gap-2 rounded-lg border px-2 py-1 focus-within:ring-2">
             <Icon
               icon="hugeicons:search-01"
               className="h-4 w-4 text-gray-400"
@@ -160,7 +160,7 @@ export const EmojiSelect: React.FC<EmojiSelectProps> = ({
               placeholder="Søk emoji..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-transparent text-sm text-gray-700 outline-none"
+              className="text-text w-full bg-transparent text-sm outline-none"
             />
             {searchTerm && (
               <button
@@ -179,7 +179,7 @@ export const EmojiSelect: React.FC<EmojiSelectProps> = ({
                 setIsOpen(false);
                 setSearchTerm("");
               }}
-              className="flex h-8 w-8 items-center justify-center rounded hover:bg-gray-100"
+              className="hover:bg-bg flex h-8 w-8 items-center justify-center rounded"
               title="Ingen emoji"
             >
               <Icon
@@ -195,8 +195,8 @@ export const EmojiSelect: React.FC<EmojiSelectProps> = ({
                   setIsOpen(false);
                   setSearchTerm("");
                 }}
-                className={`flex h-8 w-8 items-center justify-center rounded text-lg transition-colors hover:bg-blue-50 ${
-                  value === item.emoji ? "bg-blue-50 ring-1 ring-blue-500" : ""
+                className={`hover:bg-bg flex h-8 w-8 items-center justify-center rounded text-lg transition-colors ${
+                  value === item.emoji ? "bg-bg ring-primary ring-1" : ""
                 }`}
                 title={item.name}
               >

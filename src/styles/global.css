@@ -1,14 +1,43 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #065f46;
-  --color-secondary: #4a5568;
-  --color-accent: #4299e1;
-  --color-light: #f7fafc;
-  --color-dark: #1a202c;
-  --color-success: #48bb78;
-  --color-warning: #ed8936;
+  --color-primary: var(--theme-primary);
+  --color-primary-hover: var(--theme-primary-hover);
+  --color-bg: var(--theme-bg);
+  --color-surface: var(--theme-surface);
+  --color-border: var(--theme-border);
+  --color-text: var(--theme-text);
+  --color-text-muted: var(--theme-text-muted);
   --color-danger: #f56565;
+}
+
+:root {
+  color-scheme: light;
+  /* Light mode default */
+  --theme-bg: #f9fafb;
+  --theme-surface: #ffffff;
+  --theme-border: #e5e7eb;
+  --theme-text: #111827;
+  --theme-text-muted: #6b7280;
+  --theme-primary: #059669;
+  --theme-primary-hover: #047857;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --theme-bg: #121212;
+    --theme-surface: #1e1e1e;
+    --theme-border: #333333;
+    --theme-text: #f9fafb;
+    --theme-text-muted: #9ca3af;
+    --theme-primary: #10b981;
+    --theme-primary-hover: #34d399;
+  }
+
+  input[type="date"] {
+    color-scheme: dark;
+  }
 }
 
 body {
@@ -19,7 +48,7 @@ body {
     "Segoe UI",
     Roboto,
     sans-serif;
-  background-color: var(--color-light);
-  color: var(--color-dark);
+  background-color: var(--theme-bg);
+  color: var(--theme-text);
   line-height: 1.6;
 }

@@ -9,11 +9,14 @@ const { user, householdId } = Astro.locals;
 ---
 
 <BaseLayout title={title}>
-  <div class="flex min-h-screen flex-col bg-gray-50 pb-20">
+  <div class="bg-bg flex min-h-screen flex-col pb-20">
     <main class="container mx-auto max-w-2xl flex-1 px-4 py-12">
       <div class="mb-10">
-        <h1 class="mb-2 text-3xl font-bold text-gray-900">Innstillinger</h1>
-        <p class="text-gray-500">Administrer din konto og din husstand</p>
+        <h1 class="text-text flex items-center gap-3 text-3xl font-bold">
+          <Icon name="streamline-ultimate-color:cog" class="h-8 w-8" />
+          Innstillinger
+        </h1>
+        <p class="text-text-muted">Administrer din konto og din husstand</p>
       </div>
 
       <SettingsForm

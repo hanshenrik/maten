@@ -56,11 +56,13 @@ if (Astro.request.method === "POST") {
 ---
 
 <BaseLayout title="Sign Up">
-  <div class="flex min-h-screen items-center justify-center bg-gray-50 p-4">
-    <div class="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
+  <div class="flex min-h-screen items-center justify-center p-4">
+    <div
+      class="border-border bg-surface w-full max-w-md rounded-2xl border p-8"
+    >
       <div class="mb-10 text-center">
-        <h1 class="mb-2 text-3xl font-bold text-gray-900">Create Account</h1>
-        <p class="text-gray-500">Join Maten and start planning</p>
+        <h1 class="text-text mb-2 text-3xl font-bold">Create Account</h1>
+        <p class="text-text-muted">Join Maten and start planning</p>
       </div>
 
       {
@@ -91,7 +93,7 @@ if (Astro.request.method === "POST") {
             <div>
               <label
                 for="email"
-                class="mb-1 block text-sm font-medium text-gray-700"
+                class="text-text mb-1 block text-sm font-medium"
               >
                 Email address
               </label>
@@ -100,7 +102,7 @@ if (Astro.request.method === "POST") {
                 id="email"
                 name="email"
                 required
-                class="w-full rounded-xl border border-gray-300 px-4 py-3 transition-all outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                class="border-border bg-surface text-text focus:ring-primary w-full rounded-xl border px-4 py-3 transition-all outline-none focus:border-transparent focus:ring-2"
                 placeholder="you@example.com"
               />
             </div>
@@ -108,7 +110,7 @@ if (Astro.request.method === "POST") {
             <div>
               <label
                 for="password"
-                class="mb-1 block text-sm font-medium text-gray-700"
+                class="text-text mb-1 block text-sm font-medium"
               >
                 Password
               </label>
@@ -117,14 +119,14 @@ if (Astro.request.method === "POST") {
                 id="password"
                 name="password"
                 required
-                class="w-full rounded-xl border border-gray-300 px-4 py-3 transition-all outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                class="border-border bg-surface text-text focus:ring-primary w-full rounded-xl border px-4 py-3 transition-all outline-none focus:border-transparent focus:ring-2"
                 placeholder="••••••••"
               />
             </div>
 
             <button
               type="submit"
-              class="w-full transform rounded-xl bg-green-600 px-4 py-3 font-semibold text-white shadow-lg shadow-green-200 transition-all hover:bg-green-700 active:scale-[0.98]"
+              class="bg-primary hover:bg-primary-hover w-full transform rounded-xl border border-transparent px-4 py-3 font-semibold text-white transition-all active:scale-[0.98]"
             >
               Create Account
             </button>
@@ -132,10 +134,10 @@ if (Astro.request.method === "POST") {
         )
       }
 
-      <p class="mt-8 text-center text-sm text-gray-500">
+      <p class="text-text-muted mt-8 text-center text-sm">
         Already have an account? <a
           href="/login"
-          class="font-medium text-blue-600 hover:underline">Sign in</a
+          class="text-primary font-medium hover:underline">Sign in</a
         >
       </p>
     </div>
