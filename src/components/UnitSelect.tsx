@@ -4,12 +4,14 @@ interface UnitSelectProps {
   value: string;
   onChange: (value: string) => void;
   className?: string;
+  label?: string;
 }
 
 export const UnitSelect: React.FC<UnitSelectProps> = ({
   value,
   onChange,
   className = "",
+  label,
 }) => {
   const units = [
     { value: "", label: "" },
@@ -23,16 +25,21 @@ export const UnitSelect: React.FC<UnitSelectProps> = ({
   ];
 
   return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className={`border-border bg-surface text-text focus:ring-primary rounded-md border px-3 py-2 focus:ring-2 focus:outline-none ${className}`}
-    >
-      {units.map((unit) => (
-        <option key={unit.value} value={unit.value}>
-          {unit.label}
-        </option>
-      ))}
-    </select>
+    <div className="flex flex-col gap-1">
+      {label && (
+        <label className="text-text-muted block text-sm">{label}</label>
+      )}
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`border-border bg-surface text-text focus:ring-primary h-10 rounded-xl border px-3 py-2 transition-all outline-none focus:border-transparent focus:ring-2 ${className}`}
+      >
+        {units.map((unit) => (
+          <option key={unit.value} value={unit.value}>
+            {unit.label}
+          </option>
+        ))}
+      </select>
+    </div>
   );
 };

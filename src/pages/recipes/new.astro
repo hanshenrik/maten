@@ -3,15 +3,17 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import MainNavigation from "../../components/MainNavigation.astro";
 import { RecipeForm } from "../../components/RecipeForm";
 
-const title = "New Recipe";
+const title = "Ny godbit";
 ---
 
 <BaseLayout title={title}>
   <div class="bg-bg flex min-h-screen flex-col">
     <main class="container mx-auto max-w-2xl flex-1 px-4 py-12">
       <div class="mb-10 text-center">
-        <h1 class="text-text mb-2 text-3xl font-bold">Ny oppskrift</h1>
-        <p class="text-text-muted">Legg til en ny favoritt i samlingen din</p>
+        <h1 class="text-text mb-2 text-3xl font-bold">Lagre en ny godbit</h1>
+        <p class="text-text-muted">
+          Fyll på med gode smaker og nye favoritter.
+        </p>
       </div>
 
       <RecipeForm

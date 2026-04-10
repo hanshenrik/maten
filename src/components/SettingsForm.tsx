@@ -114,7 +114,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
       setHouseholdName(householdRes.data?.name || "");
     } catch (err: any) {
       console.error("Error fetching members:", err);
-      setError("Kunne ikke hente husstandsmedlemmer.");
+      setError("Huff da, vi klarte ikke å hente inn de som bor her.");
     } finally {
       if (householdId) {
         // Only finish loading if we were actually loading members
@@ -161,7 +161,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
       window.location.reload();
     } catch (err: any) {
       console.error("Error accepting invite:", err);
-      setError("Kunne ikke godta invitasjonen.");
+      setError("Det oppsto en feil da vi prøvde å godta invitasjonen.");
     }
   };
 
@@ -176,7 +176,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
       fetchInvites();
     } catch (err: any) {
       console.error("Error refusing invite:", err);
-      setError("Kunne ikke avvise invitasjonen.");
+      setError("Vi klarte ikke å fjerne invitasjonen.");
     }
   };
 
@@ -196,7 +196,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
       if (error) throw error;
     } catch (err: any) {
       console.error("Error updating household name:", err);
-      setError("Kunne ikke oppdatere husstandsnavn.");
+      setError("Ops, vi fikk ikke lagret det nye navnet.");
     } finally {
       setNameSubmitting(false);
     }
@@ -222,7 +222,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
 
       if (error) {
         if (error.code === "23505") {
-          throw new Error("Denne personen er allerede medlem.");
+          throw new Error("Denne personen er allerede med i gjengen!");
         }
         throw error;
       }
@@ -231,7 +231,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
       fetchMembers();
     } catch (err: any) {
       console.error("Error adding member:", err);
-      setError(err.message || "Kunne ikke invitere person.");
+      setError(err.message || "Vi klarte ikke å sende invitasjonen.");
     } finally {
       setSubmitting(false);
     }
@@ -240,7 +240,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
   const handleRemoveMember = async (id: string, memberEmail: string) => {
     if (
       !confirm(
-        `Er du sikker på at du vil fjerne ${memberEmail} fra husstanden?`,
+        `Er du helt sikker på at du vil fjerne ${memberEmail} fra husstanden?`,
       )
     ) {
       return;
@@ -256,19 +256,19 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
       fetchMembers();
     } catch (err: any) {
       console.error("Error removing member:", err);
-      setError("Kunne ikke fjerne medlem.");
+      setError("Det gikk ikke å fjerne medlemmet.");
     }
   };
 
   if (loading) {
-    return <div className="text-text-muted">Laster innstillinger...</div>;
+    return <div className="text-text-muted">Henter innstillingene dine...</div>;
   }
 
   if (!householdId) {
     return (
       <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-6 text-red-500">
-        <h2 className="mb-2 text-lg font-bold">Ingen husstand funnet</h2>
-        <p>Vennligst logg ut og inn igjen for å initialisere din profil.</p>
+        <h2 className="mb-2 text-lg font-bold">Her mangler det noe...</h2>
+        <p>Prøv å logge ut og inn igjen, så vi får deg helt på plass.</p>
       </div>
     );
   }
@@ -278,7 +278,9 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
   return (
     <div className="space-y-8">
       <Card>
-        <h2 className="text-text mb-4 text-xl font-semibold">Utseende</h2>
+        <h2 className="text-text mb-4 text-xl font-semibold">
+          Hvordan skal appen se ut?
+        </h2>
         <div className="bg-bg border-border flex gap-2 rounded-2xl border p-1">
           {[
             { id: "light", label: "Lys", icon: "hugeicons:sun-03" },
@@ -306,7 +308,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
       {isOwner && (
         <Card>
           <h2 className="text-text mb-4 text-xl font-semibold">
-            Husstandsnavn
+            Hva skal husstanden hete?
           </h2>
           <form
             onSubmit={handleUpdateHouseholdName}
@@ -317,7 +319,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
                 required
                 value={householdName}
                 onChange={(e) => setHouseholdName(e.target.value)}
-                placeholder="Navn på husstanden"
+                placeholder="f.eks. Familien Hansen"
               />
             </div>
             <Button
@@ -325,7 +327,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
               disabled={nameSubmitting}
               className="mt-2 w-full px-6 sm:mt-0 sm:w-auto"
             >
-              {nameSubmitting ? "Lagrer..." : "Lagre navn"}
+              {nameSubmitting ? "Lagrer..." : "Lagre nytt navn"}
             </Button>
           </form>
         </Card>
@@ -334,7 +336,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
       {invites.length > 0 && (
         <div className="border-primary/20 bg-primary/10 rounded-2xl border p-6 shadow-sm">
           <h2 className="text-text mb-4 text-xl font-semibold">
-            Ventende invitasjoner
+            Noen har spurt om du vil være med!
           </h2>
           <ul className="space-y-4">
             {invites.map((invite) => (
@@ -358,7 +360,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
                     Avvis
                   </Button>
                   <Button onClick={() => handleAcceptInvite(invite.id)}>
-                    Godta og bytt
+                    Godta og bli med
                   </Button>
                 </div>
               </li>
@@ -369,11 +371,11 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
 
       <Card>
         <h2 className="text-text mb-4 text-xl font-semibold">
-          Inviter til din husstand
+          Be noen flere inn i varmen
         </h2>
         <p className="text-text-muted mb-6">
-          Medlemmer i din husstand deler nøyaktig samme oppskriftssamling,
-          middagsplaner og handleliste. Alt skjer i sanntid!
+          Alle i husstanden deler de samme oppskriftene, planene og den samme
+          handlelisten. Det du gjør her, ser de andre med en gang!
         </p>
 
         <form
@@ -394,7 +396,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
             disabled={submitting}
             className="mt-2 w-full px-6 sm:mt-0 sm:w-auto"
           >
-            {submitting ? "Inviterer..." : "Legg til i huset"}
+            {submitting ? "Sender invitasjon..." : "Send invitasjon"}
           </Button>
         </form>
 
@@ -407,7 +409,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
 
       <Card>
         <h2 className="text-text mb-4 text-xl font-semibold">
-          Medlemmer i husstanden
+          De som er med i husstanden din
         </h2>
 
         <ul className="divide-border divide-y">

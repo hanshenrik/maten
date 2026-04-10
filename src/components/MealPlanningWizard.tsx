@@ -22,6 +22,7 @@ interface Ingredient {
 interface Recipe {
   id: string;
   title: string;
+  cook_time?: number | null;
   ingredients?: Ingredient[];
 }
 
@@ -75,7 +76,9 @@ export const MealPlanningWizard: React.FC<{
     const fetchRecipes = async () => {
       const { data } = await supabase
         .from("recipes")
-        .select("id, title, ingredients(name, amount, unit, is_basic)")
+        .select(
+          "id, title, cook_time, ingredients(name, amount, unit, is_basic)",
+        )
         .order("title");
       if (data) setRecipes(data as any);
     };
@@ -293,8 +296,7 @@ export const MealPlanningWizard: React.FC<{
 
   const handleDelete = async () => {
     if (!initialData?.id) return;
-    if (!confirm("Er du sikker på at du vil slette denne middagsplanen?"))
-      return;
+    if (!confirm("Er du helt sikker på at du vil slette denne menyen?")) return;
 
     setLoading(true);
     try {
@@ -322,21 +324,21 @@ export const MealPlanningWizard: React.FC<{
         </h2>
         <div className="space-y-6">
           <Input
-            label="Navn på plan (Valgfritt)"
+            label="Navn på plan (valgfritt)"
             value={planTitle}
             onChange={(e) => setPlanTitle(e.target.value)}
-            placeholder="f.eks. Neste ukes middager"
+            placeholder="f.eks. «Italiensk uke»"
           />
           <div className="grid grid-cols-2 gap-4">
             <Input
               type="date"
-              label="Startdato"
+              label="Fra og med"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
             />
             <Input
               type="date"
-              label="Sluttdato"
+              label="Til og med"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
             />
@@ -357,9 +359,9 @@ export const MealPlanningWizard: React.FC<{
               onClick={handleDelete}
               disabled={loading}
               className="w-full"
-              title="Slett plan"
+              title="Slett meny"
             >
-              <Icon icon="hugeicons:delete-03" className="h-6 w-6" /> Slett plan
+              <Icon icon="hugeicons:delete-03" className="h-6 w-6" /> Slett meny
             </Button>
           )}
         </div>
@@ -372,7 +374,7 @@ export const MealPlanningWizard: React.FC<{
       <div className="mx-auto max-w-2xl space-y-6">
         <Card className="flex items-center justify-between">
           <h2 className="text-text text-2xl font-bold">
-            Steg 2: Velg middager
+            Steg 2: Hva har dere lyst på?
           </h2>
           <Button
             variant="ghost"
@@ -407,15 +409,15 @@ export const MealPlanningWizard: React.FC<{
                     onChange={(e) => handleRecipeChange(index, e.target.value)}
                     className="focus:ring-primary border-border bg-bg text-text w-full rounded-xl border px-4 py-3 outline-none focus:ring-2"
                   >
-                    <option value="">(Ingen oppskrift valgt)</option>
+                    <option value="">(Ingenting valgt ennå)</option>
                     {recipes.map((r) => (
                       <option key={r.id} value={r.id}>
-                        {r.title}
+                        {r.title} {r.cook_time ? `(${r.cook_time} min)` : ""}
                       </option>
                     ))}
                   </select>
                   <Input
-                    placeholder="Notater (f.eks. Spise ute, rester...)"
+                    placeholder="Legg til et notat (f.eks. rester, spise ute...)"
                     value={day.notes}
                     onChange={(e) => handleNotesChange(index, e.target.value)}
                   />
@@ -432,7 +434,7 @@ export const MealPlanningWizard: React.FC<{
             size="lg"
             className="flex-1 gap-2"
           >
-            {loading ? "Lagrer..." : "Lagre og se handleliste"}
+            {loading ? "Lagrer..." : "Lag handleliste"}
             <Icon icon="hugeicons:arrow-right-01" className="h-5 w-5" />
           </Button>
           <Button
@@ -442,7 +444,7 @@ export const MealPlanningWizard: React.FC<{
             size="lg"
             className="flex-1"
           >
-            {loading ? "Lagrer..." : "Bare lagre plan"}
+            {loading ? "Lagrer..." : "Bare lagre menyen"}
           </Button>
           <Button as="a" href="/plan" variant="secondary" size="lg">
             Avbryt
@@ -469,7 +471,7 @@ export const MealPlanningWizard: React.FC<{
       <div className="mx-auto max-w-2xl space-y-6">
         <Card className="flex items-center justify-between">
           <h2 className="text-text text-2xl font-bold">
-            Steg 3: Sjekk handlelisten
+            Steg 3: Sjekk hva som mangler
           </h2>
           <Button
             variant="ghost"
@@ -483,8 +485,8 @@ export const MealPlanningWizard: React.FC<{
 
         <Card>
           <p className="text-text-muted mb-6">
-            Her er ingrediensene du trenger. Kryss av det du allerede har i
-            skapet.
+            Her er det dere trenger. Kryss av for det dere allerede har i
+            skapet, så slipper dere å kjøpe det én gang til.
           </p>
 
           {shoppingItems.length > 0 ? (
@@ -505,7 +507,7 @@ export const MealPlanningWizard: React.FC<{
                 icon="hugeicons:shopping-basket-01"
                 className="mx-auto mb-3 h-12 w-12 opacity-20"
               />
-              Ingen varer å handle for disse oppskriftene.
+              Det ser ut til at dere har alt dere trenger for disse rettene!
             </div>
           )}
         </Card>

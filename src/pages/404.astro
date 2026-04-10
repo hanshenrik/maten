@@ -1,8 +1,9 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import MainNavigation from "../components/MainNavigation.astro";
+import { Button } from "../components/ui/Button";
 
-const title = "Page Not Found";
+const title = "Her var det tomt";
 ---
 
 <BaseLayout title={title}>
@@ -11,17 +12,15 @@ const title = "Page Not Found";
       <div class="py-16 text-center">
         <h1 class="text-text mb-4 text-6xl font-bold">404</h1>
         <h2 class="text-secondary mb-6 text-2xl font-semibold">
-          Page Not Found
+          Ops! Denne siden finnes ikke.
         </h2>
         <p class="text-secondary mx-auto mb-8 max-w-md text-lg">
-          The page you're looking for doesn't exist or has been moved.
+          Kanskje siden har flyttet på seg, eller så har vi rotet det til.
+          Uansett er det best å gå tilbake til trygg grunn.
         </p>
-        <a
-          href="/"
-          class="bg-accent hover:bg-opacity-90 inline-block rounded-xl px-6 py-3 font-medium text-white shadow-sm transition-all hover:translate-y-[-1px] active:translate-y-[0px]"
-        >
-          Return to Home
-        </a>
+        <Button as="a" href="/" variant="ghost" className="gap-2">
+          Gå tilbake til oversikten
+        </Button>
       </div>
     </main>
 

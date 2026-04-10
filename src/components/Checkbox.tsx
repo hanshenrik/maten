@@ -33,7 +33,7 @@ export const Checkbox: React.FC<CheckboxProps> = ({
         >
           {checked && <Icon icon="hugeicons:tick-01" className="h-4 w-4" />}
         </div>
-        <div>
+        <div className="flex items-center">
           {label && (
             <span
               className={`font-medium ${checked ? "text-text-muted line-through" : "text-text"}`}

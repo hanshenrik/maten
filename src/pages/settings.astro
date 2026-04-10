@@ -4,7 +4,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import MainNavigation from "../components/MainNavigation.astro";
 import { SettingsForm } from "../components/SettingsForm";
 
-const title = "Settings";
+const title = "Innstillinger";
 const { user, householdId } = Astro.locals;
 ---
 
@@ -16,7 +16,9 @@ const { user, householdId } = Astro.locals;
           <Icon name="streamline-ultimate-color:cog" class="h-8 w-8" />
           Innstillinger
         </h1>
-        <p class="text-text-muted">Administrer din konto og din husstand</p>
+        <p class="text-text-muted">
+          Her styrer du alt som har med deg og huset ditt å gjøre.
+        </p>
       </div>
 
       <SettingsForm

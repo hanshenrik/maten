@@ -9,7 +9,10 @@ interface PlannedMealComponentProps {
     recipeId: string;
     notes?: string;
   };
-  recipes: Record<string, { title: string; image_url?: string }>;
+  recipes: Record<
+    string,
+    { title: string; image_url?: string; cook_time?: number | null }
+  >;
 }
 
 export const PlannedMealComponent: React.FC<PlannedMealComponentProps> = ({
@@ -46,6 +49,12 @@ export const PlannedMealComponent: React.FC<PlannedMealComponentProps> = ({
             </a>
             {day.notes && (
               <span className="text-text-muted text-xs">{day.notes}</span>
+            )}
+            {recipes[day.recipeId]?.cook_time && (
+              <div className="text-text-muted flex items-center gap-1 text-[10px] tracking-wider uppercase opacity-70">
+                <Icon icon="hugeicons:clock-01" className="h-3 w-3" />
+                <span>{recipes[day.recipeId].cook_time} min</span>
+              </div>
             )}
           </div>
         ) : (

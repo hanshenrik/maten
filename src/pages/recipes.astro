@@ -4,7 +4,7 @@ import MainNavigation from "../components/MainNavigation.astro";
 import { RecipeCard } from "../components/RecipeCard";
 import { Icon } from "astro-icon/components";
 import { Button } from "../components/ui/Button";
-const title = "Recipes";
+const title = "Alle de gode oppskriftene";
 
 // Get recipes from Supabase using the authenticated client from locals
 const { data: recipes, error } = await Astro.locals.supabase
@@ -26,11 +26,11 @@ if (error) {
             name="streamline-ultimate-color:archive-books"
             class="h-8 w-8"
           />
-          Oppskrifter
+          Mine oppskrifter
         </h1>
         <Button as="a" href="/recipes/new" className="gap-2">
           <Icon name="hugeicons:plus-sign" class="h-5 w-5" />
-          Ny oppskrift
+          Legg til ny oppskrift
         </Button>
       </div>
 
@@ -45,9 +45,12 @@ if (error) {
           </div>
         ) : (
           <div class="border-border bg-surface rounded-xl border p-6">
-            <p class="text-text-muted mb-4">Oppskriftsboken din er tom.</p>
+            <p class="text-text-muted mb-4">
+              Her var det tomt! Oppskriftsboken din venter på å bli fylt med
+              godsaker.
+            </p>
             <p class="text-text-muted">
-              Legg til oppskrifter for å bygge samlingen din.
+              Hva med å legge inn din første favoritt med en gang?
             </p>
           </div>
         )

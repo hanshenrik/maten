@@ -30,13 +30,10 @@ const title = recipe.title;
   <div class="flex min-h-screen flex-col">
     <main class="container mx-auto max-w-4xl flex-1 px-4 py-12">
       <div class="mb-8 flex items-center justify-between">
-        <a
-          href="/recipes"
-          class="text-primary flex items-center gap-1 font-medium hover:underline"
-        >
+        <Button variant="ghost" as="a" href="/recipes" className="gap-2">
           <Icon name="hugeicons:arrow-left-01" class="h-4 w-4" />
-          Tilbake til biblioteket
-        </a>
+          Tilbake til alle oppskriftene
+        </Button>
         <div class="flex gap-2">
           <Button
             as="a"
@@ -45,7 +42,7 @@ const title = recipe.title;
             className="gap-2"
           >
             <Icon name="hugeicons:pencil-edit-02" class="h-5 w-5" />
-            Rediger
+            Gjør endringer
           </Button>
         </div>
       </div>
@@ -76,16 +73,30 @@ const title = recipe.title;
             </h1>
             {
               recipe.source_url && (
-                <div class="mb-8">
-                  <a
+                <div class="mb-4">
+                  <Button
+                    variant="ghost"
                     href={recipe.source_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="bg-primary/10 text-primary hover:bg-primary/20 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors"
+                    className="flex gap-2"
                   >
                     <Icon name="hugeicons:link-01" class="h-4 w-4" />
-                    Se originaloppskrift
-                  </a>
+                    Originaloppskrift
+                  </Button>
+                </div>
+              )
+            }
+          </div>
+          <div class="mb-8 flex flex-wrap gap-4">
+            {
+              recipe.cook_time && (
+                <div class="bg-surface-elevated text-text-muted border-border flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium">
+                  <Icon
+                    name="hugeicons:clock-01"
+                    class="text-primary h-5 w-5"
+                  />
+                  <span>{recipe.cook_time} minutter</span>
                 </div>
               )
             }
@@ -94,7 +105,7 @@ const title = recipe.title;
 
           <div class="grid gap-8 md:grid-cols-3">
             <div class="md:col-span-1">
-              <h2 class="text-text mb-4 text-xl font-bold">Ingredienser</h2>
+              <h2 class="text-text mb-4 text-xl font-bold">Dette trenger du</h2>
               <ul class="list-disc space-y-3">
                 {
                   recipe.ingredients.map((ing: any) => (
@@ -115,7 +126,7 @@ const title = recipe.title;
             </div>
 
             <div class="md:col-span-2">
-              <h2 class="text-text mb-4 text-xl font-bold">Fremgangsmåte</h2>
+              <h2 class="text-text mb-4 text-xl font-bold">Slik gjør du det</h2>
               <div
                 class="prose prose-emerald prose-lg text-text-muted max-w-none"
               >

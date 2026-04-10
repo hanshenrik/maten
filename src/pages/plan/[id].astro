@@ -4,6 +4,7 @@ import MainNavigation from "../../components/MainNavigation.astro";
 import { PlannedMealComponent as PlannedMeal } from "../../components/PlannedMeal";
 import { Icon } from "astro-icon/components";
 import { formatDateRange } from "../../utils/date";
+import { Button } from "../../components/ui/Button";
 
 const { id } = Astro.params;
 
@@ -28,7 +29,7 @@ if (error || !plan) {
 
 const title =
   plan.title ||
-  `Plan: ${formatDateRange({ start: plan.start_date, end: plan.end_date })}`;
+  `Meny: ${formatDateRange({ start: plan.start_date, end: plan.end_date })}`;
 ---
 
 <BaseLayout title={title}>
@@ -38,7 +39,7 @@ const title =
         <div>
           <h1 class="text-text text-3xl font-bold">{title}</h1>
           <p class="text-text-muted">
-            Middagsplan for {
+            Her er menyen deres for {
               formatDateRange({
                 start: plan.start_date,
                 end: plan.end_date,
@@ -47,20 +48,24 @@ const title =
           </p>
         </div>
         <div class="flex gap-3">
-          <a
+          <Button
+            as="a"
             href={`/plan/${id}/edit`}
-            class="border-border bg-surface text-text-muted hover:bg-bg hover:text-text flex items-center gap-2 rounded-xl border px-6 py-2 font-semibold transition-colors"
+            variant="secondary"
+            className="gap-2"
           >
             <Icon name="hugeicons:pencil-edit-02" class="h-5 w-5" />
-            Rediger
-          </a>
-          <a
+            Gjør endringer
+          </Button>
+          <Button
+            as="a"
             href={`/plan/new?copyFrom=${id}`}
-            class="border-border bg-surface text-text-muted hover:bg-bg hover:text-text flex items-center gap-2 rounded-xl border px-6 py-2 font-semibold transition-colors"
+            variant="secondary"
+            className="gap-2"
           >
             <Icon name="hugeicons:copy-01" class="h-5 w-5" />
-            Kopier
-          </a>
+            Lag kopi
+          </Button>
         </div>
       </div>
 

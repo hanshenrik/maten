@@ -40,6 +40,9 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
   );
   const [imageUrl, setImageUrl] = useState(initialData?.image_url || "");
   const [sourceUrl, setSourceUrl] = useState(initialData?.source_url || "");
+  const [cookTime, setCookTime] = useState<string>(
+    initialData?.cook_time?.toString() || "",
+  );
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [ingredients, setIngredients] = useState<Ingredient[]>(
     initialData?.ingredients?.map((ing: any) => {
@@ -102,6 +105,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
         instructions,
         image_url: uploadedImageUrl,
         source_url: sourceUrl,
+        cook_time: cookTime ? parseInt(cookTime) : null,
       };
       let recipeId = initialData?.id;
 
@@ -157,7 +161,10 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
       }
     } catch (err: any) {
       console.error("Feil ved lagring av oppskrift:", err);
-      alert("Feil ved lagring av oppskrift: " + err.message);
+      alert(
+        "Huff da, det skjedde en feil da vi prøvde å lagre oppskriften: " +
+          err.message,
+      );
     } finally {
       setLoading(false);
     }
@@ -165,7 +172,8 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
 
   const handleDelete = async () => {
     if (!initialData?.id) return;
-    if (!confirm("Er du sikker på at du vil slette denne oppskriften?")) return;
+    if (!confirm("Er du helt sikker på at du vil slette denne godbiten?"))
+      return;
 
     setLoading(true);
     try {
@@ -179,7 +187,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
       window.location.href = "/recipes";
     } catch (err: any) {
       console.error("Feil ved sletting av oppskrift:", err);
-      alert("Feil ved sletting: " + err.message);
+      alert("Vi klarte desverre ikke å slette oppskriften: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -188,10 +196,10 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-8 pb-12">
       <Card className="space-y-6">
-        <h2 className="text-xl font-semibold">Generell informasjon</h2>
+        <h2 className="text-xl font-semibold">Litt om retten</h2>
 
         <Input
-          label="Tittel på oppskrift"
+          label="Hva skal vi kalle den?"
           required
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -200,20 +208,20 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
 
         <div>
           <label className="text-text mb-1 block text-sm font-medium">
-            Beskrivelse
+            Hva gjør denne retten god?
           </label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             className="border-border bg-surface text-text focus:ring-primary w-full rounded-xl border px-4 py-3 transition-all outline-none focus:border-transparent focus:ring-2"
             rows={3}
-            placeholder="Et kort sammendrag av retten..."
+            placeholder="En kort og fristende forklaring..."
           />
         </div>
 
         <div>
           <label className="text-text mb-1 block text-sm font-medium">
-            Fremgangsmåte
+            Hvordan lager vi den?
           </label>
           <textarea
             required
@@ -227,7 +235,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
 
         <div>
           <label className="text-text mb-1 block text-sm font-medium">
-            Bilde
+            Et fristende bilde
           </label>
           {imageUrl && !imageFile && (
             <div className="border-border relative mb-3 h-48 w-full max-w-md overflow-hidden rounded-xl border">
@@ -251,12 +259,21 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
           />
         </div>
 
-        <Input
-          label="Originaloppskrift"
-          type="url"
-          value={sourceUrl}
-          onChange={(e) => setSourceUrl(e.target.value)}
-        />
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <Input
+            label="Hvor fant du den? (URL)"
+            type="url"
+            value={sourceUrl}
+            onChange={(e) => setSourceUrl(e.target.value)}
+          />
+          <Input
+            label="Hvor lang tid tar det? (minutter)"
+            type="number"
+            value={cookTime}
+            onChange={(e) => setCookTime(e.target.value)}
+            placeholder="f.eks. 30"
+          />
+        </div>
       </Card>
 
       <Card className="space-y-6">
@@ -268,7 +285,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
             size="sm"
             onClick={addIngredient}
           >
-            + Legg til ingrediens
+            + Legg til noe mer
           </Button>
         </div>
 
@@ -289,7 +306,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
                   <input
                     type="text"
                     required
-                    placeholder="Navn på ingrediens"
+                    placeholder="Hva trenger vi?"
                     value={ing.name}
                     onChange={(e) =>
                       handleIngredientChange(index, "name", e.target.value)
@@ -301,7 +318,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
                   <input
                     type="number"
                     step="any"
-                    placeholder="Mengde"
+                    placeholder="Hvor mye?"
                     value={ing.amount}
                     onChange={(e) =>
                       handleIngredientChange(index, "amount", e.target.value)
@@ -348,7 +365,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
 
       <div className="flex gap-4">
         <Button type="submit" disabled={loading} size="lg" className="flex-1">
-          {loading ? "Lagrer..." : "Lagre oppskrift"}
+          {loading ? "Lagrer..." : "Lagre"}
         </Button>
         <Button
           type="button"

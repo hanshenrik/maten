@@ -47,22 +47,24 @@ if (Astro.request.method === "POST") {
       errorMessage = error.message;
     } else {
       successMessage =
-        "Success! Please check your email to confirm your account (if email confirmation is enabled). You can now try to log in.";
+        "Herlig! Sjekk e-posten din for å vise at du er du. Etter det er det bare å logge inn.";
     }
   } else {
-    errorMessage = "Please enter both email and password.";
+    errorMessage = "Husk å fylle inn både e-post og passord.";
   }
 }
 ---
 
-<BaseLayout title="Sign Up">
+<BaseLayout title="Bli med">
   <div class="flex min-h-screen items-center justify-center p-4">
     <div
       class="border-border bg-surface w-full max-w-md rounded-2xl border p-8"
     >
       <div class="mb-10 text-center">
-        <h1 class="text-text mb-2 text-3xl font-bold">Create Account</h1>
-        <p class="text-text-muted">Join Maten and start planning</p>
+        <h1 class="text-text mb-2 text-3xl font-bold">Lag deg en konto</h1>
+        <p class="text-text-muted">
+          Bli med i Maten og få full kontroll på middagene
+        </p>
       </div>
 
       {
@@ -95,7 +97,7 @@ if (Astro.request.method === "POST") {
                 for="email"
                 class="text-text mb-1 block text-sm font-medium"
               >
-                Email address
+                E-post
               </label>
               <input
                 type="email"
@@ -112,7 +114,7 @@ if (Astro.request.method === "POST") {
                 for="password"
                 class="text-text mb-1 block text-sm font-medium"
               >
-                Password
+                Passord
               </label>
               <input
                 type="password"
@@ -128,16 +130,16 @@ if (Astro.request.method === "POST") {
               type="submit"
               class="bg-primary hover:bg-primary-hover hover:border-primary-hover w-full transform rounded-xl border border-transparent px-4 py-3 font-semibold text-white transition-all active:scale-[0.98]"
             >
-              Create Account
+              Kjør på!
             </button>
           </form>
         )
       }
 
       <p class="text-text-muted mt-8 text-center text-sm">
-        Already have an account? <a
+        Har du allerede en konto? <a
           href="/login"
-          class="text-primary font-medium hover:underline">Sign in</a
+          class="text-primary font-medium hover:underline">Logg inn her</a
         >
       </p>
     </div>

@@ -7,6 +7,8 @@ import { EmojiSelect } from "./EmojiSelect";
 import { combineEmojiAndName } from "../utils/emoji";
 import { Card } from "./ui/Card";
 import { Button } from "./ui/Button";
+import { Input } from "./ui/Input";
+import { Details } from "./ui/Details";
 
 export interface ShoppingListItem {
   id: string;
@@ -123,31 +125,30 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
 
       {/* Add new item form */}
       <div className="bg-bg border-border mb-8 rounded-xl border p-4">
-        <h3 className="text-text mb-3 font-medium">Legg til ny vare</h3>
-        <div className="grid grid-cols-1 items-end gap-3 md:grid-cols-4">
-          <div className="md:col-span-2">
-            <label className="text-text-muted mb-1 block text-sm">Navn</label>
-            <div className="flex gap-2">
-              <EmojiSelect
-                value={newItem.emoji}
-                onChange={(emoji) => setNewItem({ ...newItem, emoji })}
-              />
-              <input
-                type="text"
+        <h3 className="text-text mb-3 font-medium">Noe mer du mangler?</h3>
+        <div className="grid grid-cols-1 items-end gap-2 md:grid-cols-3">
+          <div className="flex flex-row items-end gap-2">
+            <EmojiSelect
+              value={newItem.emoji}
+              onChange={(emoji) => setNewItem({ ...newItem, emoji })}
+            />
+
+            <div className="flex w-full flex-col gap-1 md:col-span-2">
+              <label className="text-text-muted block text-sm">Navn</label>
+              <Input
                 list="shopping-suggestions"
                 value={newItem.name}
                 onChange={(e) =>
                   setNewItem({ ...newItem, name: e.target.value })
                 }
-                className="border-border bg-surface text-text focus:ring-primary w-full rounded-xl border px-3 py-2 transition-all outline-none focus:ring-2"
-                placeholder="f.eks., Epler"
+                placeholder="f.eks. Epler"
               />
             </div>
           </div>
           <div>
-            <label className="text-text-muted mb-1 block text-sm">Antall</label>
-            <input
+            <Input
               type="number"
+              label="Antall"
               value={newItem.amount}
               onChange={(e) =>
                 setNewItem({
@@ -155,18 +156,15 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
                   amount: parseFloat(e.target.value) || 1,
                 })
               }
-              className="border-border bg-surface text-text focus:ring-primary w-full rounded-xl border px-3 py-2 transition-all outline-none focus:ring-2"
               min="1"
             />
           </div>
-          <div>
-            <label className="text-text-muted mb-1 block text-sm">Enhet</label>
-            <UnitSelect
-              value={newItem.unit}
-              onChange={(value) => setNewItem({ ...newItem, unit: value })}
-              className="w-full"
-            />
-          </div>
+
+          <UnitSelect
+            label="Enhet"
+            value={newItem.unit}
+            onChange={(value) => setNewItem({ ...newItem, unit: value })}
+          />
         </div>
         <Button
           onClick={handleAddItem}
@@ -174,7 +172,7 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
           className="mt-4 gap-2"
         >
           <Icon icon="hugeicons:plus-sign" className="h-5 w-5" />
-          {loading ? "Legger til..." : "Legg til"}
+          {loading ? "Legger til..." : "Legg i listen"}
         </Button>
       </div>
 
@@ -204,16 +202,18 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
         ) : (
           !completedItems.length && (
             <p className="text-text-muted py-8 text-center">
-              Handlelista er tom
+              Handlelisten er tom. Kanskje dere har alt dere trenger?
             </p>
           )
         )}
 
         {completedItems.length > 0 && (
-          <details className="group border-border border-t pt-4" open>
-            <summary className="text-text-muted hover:text-text cursor-pointer text-sm font-medium focus:outline-none">
-              Fullførte varer ({completedItems.length})
-            </summary>
+          <Details
+            open
+            className="border-border border-t pt-4"
+            summaryClassName="text-sm font-medium"
+            title={`Dette har dere lagt i kurven (${completedItems.length})`}
+          >
             <ul className="mt-4 space-y-2">
               {completedItems.map((item) => (
                 <li key={item.id} className="group relative">
@@ -237,7 +237,7 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
                 </li>
               ))}
             </ul>
-          </details>
+          </Details>
         )}
       </div>
     </Card>

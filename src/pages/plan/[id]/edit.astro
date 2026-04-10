@@ -21,15 +21,17 @@ if (error || !plan) {
   return Astro.redirect("/404");
 }
 
-const title = "Rediger middagsplan";
+const title = "Gjør endringer i menyen";
 ---
 
 <BaseLayout title={title}>
   <div class="bg-bg flex min-h-screen flex-col">
     <main class="container mx-auto max-w-4xl flex-1 px-4 py-12">
       <div class="mb-10 text-center">
-        <h1 class="text-text mb-2 text-3xl font-bold">Rediger middagsplan</h1>
-        <p class="text-text-muted">Oppdater datoer og oppskrifter</p>
+        <h1 class="text-text mb-2 text-3xl font-bold">
+          Gjør endringer i menyen
+        </h1>
+        <p class="text-text-muted">Her kan du bytte ut datoer og oppskrifter</p>
       </div>
 
       <MealPlanningWizard
