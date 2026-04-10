@@ -7,6 +7,7 @@ interface RecipeCardProps {
     title: string;
     description: string | null;
     image_url?: string | null;
+    source_url?: string | null;
   };
   onClick?: () => void;
 }
@@ -24,6 +25,11 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onClick }) => {
             alt={recipe.title}
             className="h-full w-full object-cover transition-transform hover:scale-105"
           />
+          {recipe.source_url && (
+            <div className="absolute top-2 right-2 rounded-full bg-white/80 p-1.5 text-blue-600 shadow-sm backdrop-blur-sm transition-colors hover:bg-white">
+              <Icon icon="hugeicons:link-01" className="h-4 w-4" />
+            </div>
+          )}
         </div>
       ) : (
         <div className="flex h-48 w-full flex-col items-center justify-center bg-gray-50 text-gray-300">
@@ -34,6 +40,11 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onClick }) => {
           <span className="text-xs font-medium tracking-wider uppercase">
             No Image
           </span>
+          {recipe.source_url && (
+            <div className="absolute top-2 right-2 rounded-full bg-white/80 p-1.5 text-blue-600 shadow-sm backdrop-blur-sm transition-colors hover:bg-white">
+              <Icon icon="hugeicons:link-01" className="h-4 w-4" />
+            </div>
+          )}
         </div>
       )}
       <div className="flex flex-1 flex-col p-4">

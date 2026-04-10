@@ -26,7 +26,7 @@ const title = recipe.title;
 
 <BaseLayout title={title}>
   <div class="flex min-h-screen flex-col bg-gray-50">
-    <main class="container mx-auto max-w-3xl flex-1 px-4 py-12">
+    <main class="container mx-auto max-w-4xl flex-1 px-4 py-12">
       <div class="mb-8 flex items-center justify-between">
         <a
           href="/recipes"
@@ -61,28 +61,45 @@ const title = recipe.title;
 
         <div class="p-8">
           <h1 class="mb-4 text-4xl font-bold text-gray-900">{recipe.title}</h1>
-          <p class="mb-8 text-lg text-gray-600">{recipe.description}</p>
+          <p class="mb-4 text-lg text-gray-600">{recipe.description}</p>
+
+          {
+            recipe.source_url && (
+              <div class="mb-8">
+                <a
+                  href={recipe.source_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-2 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100"
+                >
+                  <Icon name="hugeicons:link-01" class="h-4 w-4" />
+                  Se originaloppskrift
+                </a>
+              </div>
+            )
+          }
 
           <div class="grid gap-8 md:grid-cols-3">
             <div class="md:col-span-1">
               <h2 class="mb-4 text-xl font-bold text-gray-900">Ingredienser</h2>
-              <ul class="space-y-3">
+              <ul class="list-disc space-y-3">
                 {
                   recipe.ingredients.map((ing: any) => (
-                    <li class="flex items-start gap-2">
-                      <span class="mt-1 font-bold text-blue-600">•</span>
+                    <li class="grid grid-cols-2 items-center gap-2">
+                      <span class="flex items-center gap-1">
+                        {ing.name}
+                        {ing.is_basic && (
+                          <span class="ml-1 rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-400">
+                            B
+                          </span>
+                        )}
+                      </span>
                       <span>
                         {ing.amount && (
                           <span class="font-medium">{ing.amount} </span>
                         )}
                         {ing.unit && (
                           <span class="text-gray-500">{ing.unit} </span>
-                        )}
-                        {ing.name}
-                        {ing.is_basic && (
-                          <span class="ml-1 rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-400">
-                            Basis
-                          </span>
                         )}
                       </span>
                     </li>
@@ -95,9 +112,7 @@ const title = recipe.title;
               <h2 class="mb-4 text-xl font-bold text-gray-900">
                 Fremgangsmåte
               </h2>
-              <div
-                class="prose prose-blue prose-lg max-w-none whitespace-pre-wrap text-gray-700"
-              >
+              <div class="prose prose-blue prose-lg max-w-none text-gray-700">
                 {recipe.instructions}
               </div>
             </div>
