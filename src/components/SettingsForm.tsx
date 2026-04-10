@@ -264,12 +264,14 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
     return <div className="text-text-muted">Laster innstillinger...</div>;
   }
 
-  return (
-    <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-6 text-red-500">
-      <h2 className="mb-2 text-lg font-bold">Ingen husstand funnet</h2>
-      <p>Vennligst logg ut og inn igjen for å initialisere din profil.</p>
-    </div>
-  );
+  if (!householdId) {
+    return (
+      <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-6 text-red-500">
+        <h2 className="mb-2 text-lg font-bold">Ingen husstand funnet</h2>
+        <p>Vennligst logg ut og inn igjen for å initialisere din profil.</p>
+      </div>
+    );
+  }
 
   const isOwner = members.find((m) => m.user_id === userId)?.role === "owner";
 
