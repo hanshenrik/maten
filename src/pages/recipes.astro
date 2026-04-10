@@ -28,7 +28,16 @@ if (error) {
           />
           Mine oppskrifter
         </h1>
-        <Button as="a" href="/recipes/new" className="gap-2">
+        <div class="hidden md:block">
+          <Button as="a" href="/recipes/new" className="gap-2">
+            <Icon name="hugeicons:plus-sign" class="h-5 w-5" />
+            Legg til ny oppskrift
+          </Button>
+        </div>
+      </div>
+
+      <div class="mb-8 md:hidden">
+        <Button as="a" href="/recipes/new" className="flex w-full gap-2">
           <Icon name="hugeicons:plus-sign" class="h-5 w-5" />
           Legg til ny oppskrift
         </Button>

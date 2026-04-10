@@ -29,11 +29,6 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onClick }) => {
             alt={recipe.title}
             className="h-full w-full object-cover transition-transform group-hover:scale-105"
           />
-          {recipe.source_url && (
-            <div className="bg-surface text-primary border-border absolute top-2 right-2 rounded-full border p-1.5 opacity-90 transition-opacity hover:opacity-100">
-              <Icon icon="hugeicons:link-01" className="h-4 w-4" />
-            </div>
-          )}
         </div>
       ) : (
         <div className="bg-bg text-text-muted flex h-48 w-full flex-col items-center justify-center">

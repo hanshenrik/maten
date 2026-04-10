@@ -20,7 +20,7 @@ export const Checkbox: React.FC<CheckboxProps> = ({
       className={`flex cursor-pointer items-center justify-between rounded-xl border p-4 transition-all ${
         checked
           ? "border-primary/20 bg-primary/10 opacity-60"
-          : "border-border bg-bg hover:border-text/20"
+          : "border-border hover:border-text/20 bg-white"
       }`}
     >
       <div className="flex items-center gap-3">

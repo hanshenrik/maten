@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Icon } from "@iconify/react";
+import { Hr } from "./ui/Hr";
 import { supabase } from "../lib/supabase";
 import { Checkbox } from "./Checkbox";
 import { UnitSelect } from "./UnitSelect";
@@ -32,11 +33,12 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
 }) => {
   const [items, setItems] = useState<ShoppingListItem[]>(initialItems);
   const [loading, setLoading] = useState(false);
+  const [addItemCardOpen, setAddItemCardOpen] = useState(false);
   const [newItem, setNewItem] = useState({
     emoji: "",
     name: "",
-    amount: 1,
-    unit: "stk",
+    amount: "",
+    unit: "",
   });
 
   // Get unique names of previously completed items for autosuggestion
@@ -65,7 +67,7 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
       if (error) throw error;
 
       setItems([...items, data]);
-      setNewItem({ emoji: "", name: "", amount: 1, unit: "stk" });
+      setNewItem({ emoji: "", name: "", amount: "", unit: "" });
     } catch (err: any) {
       alert("Error adding item: " + err.message);
     } finally {
@@ -114,73 +116,96 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
   const completedItems = items.filter((i) => i.completed);
 
   return (
-    <Card>
-      <h2 className="text-text mb-4 text-xl font-semibold">Handleliste</h2>
-
+    <div className="flex flex-col gap-4">
       <datalist id="shopping-suggestions">
         {suggestions.map((name) => (
           <option key={name} value={name} />
         ))}
       </datalist>
 
-      {/* Add new item form */}
-      <div className="bg-bg border-border mb-8 rounded-xl border p-4">
-        <h3 className="text-text mb-3 font-medium">Noe mer du mangler?</h3>
-        <div className="grid grid-cols-1 items-end gap-2 md:grid-cols-3">
-          <div className="flex flex-row items-end gap-2">
-            <EmojiSelect
-              value={newItem.emoji}
-              onChange={(emoji) => setNewItem({ ...newItem, emoji })}
-            />
+      {addItemCardOpen ? (
+        <Card className="overflow-visible">
+          <h3 className="text-text mb-3 font-medium">Noe mer du mangler?</h3>
+          <div className="grid grid-cols-1 items-end gap-2 md:grid-cols-3">
+            <div className="flex flex-row items-end gap-2">
+              <div className="flex flex-col gap-1">
+                <label className="text-text-muted block text-sm">Ikon</label>
+                <EmojiSelect
+                  value={newItem.emoji}
+                  onChange={(emoji) => setNewItem({ ...newItem, emoji })}
+                />
+              </div>
 
-            <div className="flex w-full flex-col gap-1 md:col-span-2">
-              <label className="text-text-muted block text-sm">Navn</label>
+              <div className="flex w-full flex-col gap-1 md:col-span-2">
+                <label className="text-text-muted block text-sm">Navn</label>
+                <Input
+                  list="shopping-suggestions"
+                  value={newItem.name}
+                  autoFocus
+                  onChange={(e) =>
+                    setNewItem({ ...newItem, name: e.target.value })
+                  }
+                  placeholder="f.eks. Epler"
+                />
+              </div>
+            </div>
+            <div>
               <Input
-                list="shopping-suggestions"
-                value={newItem.name}
+                type="number"
+                label="Antall"
+                value={newItem.amount}
                 onChange={(e) =>
-                  setNewItem({ ...newItem, name: e.target.value })
+                  setNewItem({
+                    ...newItem,
+                    amount: e.target.value,
+                  })
                 }
-                placeholder="f.eks. Epler"
+                min="1"
               />
             </div>
-          </div>
-          <div>
-            <Input
-              type="number"
-              label="Antall"
-              value={newItem.amount}
-              onChange={(e) =>
-                setNewItem({
-                  ...newItem,
-                  amount: parseFloat(e.target.value) || 1,
-                })
-              }
-              min="1"
+
+            <UnitSelect
+              label="Enhet"
+              value={newItem.unit}
+              onChange={(value) => setNewItem({ ...newItem, unit: value })}
             />
           </div>
-
-          <UnitSelect
-            label="Enhet"
-            value={newItem.unit}
-            onChange={(value) => setNewItem({ ...newItem, unit: value })}
-          />
+          <div className="mt-4 flex w-full gap-2">
+            <Button
+              onClick={handleAddItem}
+              disabled={loading}
+              className="w-full gap-2 md:w-fit"
+            >
+              <Icon icon="hugeicons:plus-sign" className="h-5 w-5" />
+              {loading ? "Legger til..." : "Legg i listen"}
+            </Button>
+            <Button
+              onClick={() => setAddItemCardOpen(false)}
+              variant="secondary"
+            >
+              Avbryt
+            </Button>
+          </div>
+        </Card>
+      ) : (
+        <div className="flex flex-col gap-1">
+          <label className="text-text-muted block text-sm">Legg til noe</label>
+          <button
+            className={`bg-surface text-text-muted border-border h-10 rounded-xl border px-3 py-2 text-left leading-1 transition-all outline-none`}
+            onClick={() => setAddItemCardOpen(true)}
+          >
+            f.eks. Epler
+          </button>
         </div>
-        <Button
-          onClick={handleAddItem}
-          disabled={loading}
-          className="mt-4 gap-2"
-        >
-          <Icon icon="hugeicons:plus-sign" className="h-5 w-5" />
-          {loading ? "Legger til..." : "Legg i listen"}
-        </Button>
-      </div>
+      )}
 
-      <div className="space-y-6">
+      <Hr />
+
+      <div className="space-y-4">
         {activeItems.length > 0 ? (
           <ul className="space-y-2">
             {activeItems.map((item) => (
-              <li key={item.id} className="group relative">
+              <li key={item.id} className="group relative bg-white">
                 <Checkbox
                   checked={item.completed}
                   onChange={() => handleToggleComplete(item.id, item.completed)}
@@ -208,38 +233,40 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
         )}
 
         {completedItems.length > 0 && (
-          <Details
-            open
-            className="border-border border-t pt-4"
-            summaryClassName="text-sm font-medium"
-            title={`Dette har dere lagt i kurven (${completedItems.length})`}
-          >
-            <ul className="mt-4 space-y-2">
-              {completedItems.map((item) => (
-                <li key={item.id} className="group relative">
-                  <Checkbox
-                    checked={item.completed}
-                    onChange={() =>
-                      handleToggleComplete(item.id, item.completed)
-                    }
-                    label={item.name}
-                    subLabel={`${item.amount} ${item.unit}${item.notes ? ` • ${item.notes}` : ""}`}
-                  />
-                  <Button
-                    onClick={() => handleDeleteItem(item.id)}
-                    variant="danger"
-                    size="sm"
-                    className="absolute top-1/2 right-4 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100"
-                    title="Fjern vare"
-                  >
-                    <Icon icon="hugeicons:delete-03" className="h-5 w-5" />
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          </Details>
+          <div className="flex flex-col gap-4">
+            <Hr />
+            <Details
+              open
+              summaryClassName="text-sm font-medium"
+              title={`Dette har dere lagt i kurven (${completedItems.length})`}
+            >
+              <ul className="mt-4 space-y-2">
+                {completedItems.map((item) => (
+                  <li key={item.id} className="group relative">
+                    <Checkbox
+                      checked={item.completed}
+                      onChange={() =>
+                        handleToggleComplete(item.id, item.completed)
+                      }
+                      label={item.name}
+                      subLabel={`${item.amount} ${item.unit}${item.notes ? ` • ${item.notes}` : ""}`}
+                    />
+                    <Button
+                      onClick={() => handleDeleteItem(item.id)}
+                      variant="danger"
+                      size="sm"
+                      className="absolute top-1/2 right-4 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100"
+                      title="Fjern vare"
+                    >
+                      <Icon icon="hugeicons:delete-03" className="h-5 w-5" />
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            </Details>
+          </div>
         )}
       </div>
-    </Card>
+    </div>
   );
 };

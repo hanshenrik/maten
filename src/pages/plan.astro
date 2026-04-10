@@ -37,7 +37,16 @@ const outdatedPlans = plans.filter((p) => p.end_date < today);
           <Icon name="streamline-ultimate-color:tea-pot" class="h-8 w-8" />
           Dine menyer
         </h1>
-        <Button as="a" href="/plan/new" className="gap-2">
+        <div class="hidden md:block">
+          <Button as="a" href="/plan/new" className="gap-2">
+            <Icon name="hugeicons:calendar-add-01" class="h-5 w-5" />
+            Lag ny meny
+          </Button>
+        </div>
+      </div>
+
+      <div class="mb-8 md:hidden">
+        <Button as="a" href="/plan/new" className="flex w-full gap-2">
           <Icon name="hugeicons:calendar-add-01" class="h-5 w-5" />
           Lag ny meny
         </Button>
