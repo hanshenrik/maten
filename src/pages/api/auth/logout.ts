@@ -30,10 +30,13 @@ export const POST: APIRoute = async ({ cookies, redirect, request }) => {
   );
 
   // Clear household caching cookies
-  const allCookies = cookies.getAll();
-  allCookies.forEach((c) => {
-    if (c.name.startsWith("maten_")) {
-      cookies.delete(c.name, { path: "/" });
+  const cookieHeader = request.headers.get("Cookie") ?? "";
+  const cookieNames = cookieHeader
+    .split(";")
+    .map((c) => c.trim().split("=")[0]);
+  cookieNames.forEach((name) => {
+    if (name.startsWith("maten_")) {
+      cookies.delete(name, { path: "/" });
     }
   });
 
@@ -70,10 +73,13 @@ export const GET: APIRoute = async ({ cookies, redirect, request }) => {
   );
 
   // Clear household caching cookies
-  const allCookies = cookies.getAll();
-  allCookies.forEach((c) => {
-    if (c.name.startsWith("maten_")) {
-      cookies.delete(c.name, { path: "/" });
+  const cookieHeader = request.headers.get("Cookie") ?? "";
+  const cookieNames = cookieHeader
+    .split(";")
+    .map((c) => c.trim().split("=")[0]);
+  cookieNames.forEach((name) => {
+    if (name.startsWith("maten_")) {
+      cookies.delete(name, { path: "/" });
     }
   });
 
