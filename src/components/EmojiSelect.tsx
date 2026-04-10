@@ -75,6 +75,7 @@ const COMMON_FOOD_EMOJIS: EmojiItem[] = [
   { emoji: "🦑", name: "Blekksprut" },
   { emoji: "🍣", name: "Sushi" },
   // Sweets & Drinks
+  { emoji: "💧", name: "Vann" },
   { emoji: "🍦", name: "Is" },
   { emoji: "🍩", name: "Donut" },
   { emoji: "🍪", name: "Kjeks" },
@@ -83,14 +84,19 @@ const COMMON_FOOD_EMOJIS: EmojiItem[] = [
   { emoji: "🥧", name: "Pai" },
   { emoji: "🍫", name: "Sjokolade" },
   { emoji: "🍯", name: "Honning" },
-  { emoji: "🍼", name: "Melk" },
+  { emoji: "🥛", name: "Melk" },
   { emoji: "☕", name: "Kaffe" },
   { emoji: "🍵", name: "Te" },
   { emoji: "🧃", name: "Juice" },
   { emoji: "🥤", name: "Brus" },
-  { emoji: "🧂", name: "Salt" },
   { emoji: "🥫", name: "Hermetikk" },
   { emoji: "🧈", name: "Smør" },
+  // Spices
+  { emoji: "🌶️", name: "Chili" },
+  { emoji: "🪴", name: "Urter" },
+  { emoji: "🫚", name: "Ingefær" },
+  { emoji: "🧂", name: "Salt" },
+  { emoji: "⚫️", name: "Pepper" },
 ];
 
 interface EmojiSelectProps {

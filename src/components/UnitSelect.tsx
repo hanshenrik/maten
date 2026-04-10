@@ -12,6 +12,7 @@ export const UnitSelect: React.FC<UnitSelectProps> = ({
   className = "",
 }) => {
   const units = [
+    { value: "", label: "" },
     { value: "stk", label: "stk" },
     { value: "kg", label: "kg" },
     { value: "g", label: "g" },
