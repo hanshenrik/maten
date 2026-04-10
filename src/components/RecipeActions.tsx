@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Icon } from "@iconify/react";
 import { Button } from "./ui/Button";
+import { ui } from "../utils/icons";
 
 interface RecipeActionsProps {
   recipeId: string;
@@ -100,7 +101,7 @@ export const RecipeActions: React.FC<RecipeActionsProps> = ({
               onClick={handleRemove}
               className="flex items-center gap-2"
             >
-              <Icon icon="hugeicons:delete-03" className="h-5 w-5" />
+              <Icon icon={ui.delete} className="h-5 w-5" />
               <span>
                 {removing ? "Fjerner..." : "Fjern fra mine oppskrifter"}
               </span>
@@ -112,7 +113,7 @@ export const RecipeActions: React.FC<RecipeActionsProps> = ({
               onClick={handleSave}
               className="flex items-center gap-2"
             >
-              <Icon icon="hugeicons:plus-sign" className="h-5 w-5" />
+              <Icon icon={ui.add} className="h-5 w-5" />
               <span>
                 {saving ? "Lagrer..." : "Legg til i mine oppskrifter"}
               </span>
@@ -127,7 +128,7 @@ export const RecipeActions: React.FC<RecipeActionsProps> = ({
         onClick={handleClone}
         className="flex items-center gap-2"
       >
-        <Icon icon="hugeicons:copy-01" className="h-5 w-5" />
+        <Icon icon={ui.copy} className="h-5 w-5" />
         <span>{cloning ? "Kopierer..." : "Lag en kopi"}</span>
       </Button>
     </div>

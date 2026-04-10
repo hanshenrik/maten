@@ -3,8 +3,9 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import MainNavigation from "../components/MainNavigation.astro";
 import { RecipeCard } from "../components/RecipeCard";
 import { Icon } from "astro-icon/components";
+import { ui, app } from "../utils/icons";
 
-const title = "Oppskriftsbiblioteket";
+const title = "Biblioteket";
 
 // Get public recipes and their save count
 const { data: recipesData, error } = await Astro.locals.supabase
@@ -42,11 +43,11 @@ const recipes = (recipesData || [])
           href="/recipes"
           class="text-text hover:text-primary transition-colors"
         >
-          <Icon name="hugeicons:arrow-left-01" class="h-6 w-6" />
+          <Icon name={ui.back} class="h-6 w-6" />
         </a>
         <h1 class="text-text flex items-center gap-3 text-3xl font-bold">
-          <Icon name="hugeicons:books-01" class="text-primary h-8 w-8" />
-          Oppskriftsbiblioteket
+          <Icon name={app.library} class="text-primary h-8 w-8" />
+          Biblioteket
         </h1>
       </div>
 
@@ -62,7 +63,7 @@ const recipes = (recipesData || [])
               <a href={`/recipes/${recipe.id}`} class="group relative block">
                 <RecipeCard recipe={recipe} />
                 <div class="bg-surface border-border text-primary absolute -top-3 -right-3 flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-semibold opacity-90 shadow-sm transition-opacity group-hover:opacity-100">
-                  <Icon name="hugeicons:favourite" class="h-4 w-4" />
+                  <Icon name={ui.favourite} class="h-4 w-4" />
                   {recipe.saveCount}
                 </div>
                 {recipe.author_name && (

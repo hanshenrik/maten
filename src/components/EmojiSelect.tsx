@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Icon } from "@iconify/react";
+import { ui } from "../utils/icons";
 
 interface EmojiItem {
   emoji: string;
@@ -143,7 +144,7 @@ export const EmojiSelect: React.FC<EmojiSelectProps> = ({
         {value ? (
           <span className="text-xl">{value}</span>
         ) : (
-          <Icon icon="hugeicons:smile" className="text-text-muted h-5 w-5" />
+          <Icon icon={ui.emojis} className="text-text-muted h-5 w-5" />
         )}
       </button>
 
@@ -167,7 +168,7 @@ export const EmojiSelect: React.FC<EmojiSelectProps> = ({
                 onClick={() => setSearchTerm("")}
                 className="text-text-muted hover:text-text"
               >
-                <Icon icon="hugeicons:cancel-circle" className="h-4 w-4" />
+                <Icon icon={ui.cancel} className="h-4 w-4" />
               </button>
             )}
           </div>

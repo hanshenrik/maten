@@ -2,6 +2,8 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import MainNavigation from "../components/MainNavigation.astro";
 import { Icon } from "astro-icon/components";
+import { IconBackground } from "../components/IconBackground";
+import { app } from "../utils/icons";
 
 const title = "Maten – få kontroll på middagen";
 ---
@@ -10,23 +12,18 @@ const title = "Maten – få kontroll på middagen";
   <div class="flex min-h-dvh flex-col">
     <main class="container mx-auto max-w-6xl flex-1 px-4 py-8">
       <h1 class="text-text mb-6 flex items-center gap-3 text-3xl font-bold">
-        <Icon name="streamline-ultimate-color:ice-cream-cone" class="h-8 w-8" />
+        <Icon name={app.home} class="h-8 w-8" />
         Maten
       </h1>
 
       <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
         <a
           href="/recipes"
-          class="border-border bg-surface hover:border-primary/50 block rounded-3xl border p-8 transition-all duration-200"
+          class="border-border bg-surface hover:border-primary block space-y-4 rounded-3xl border p-8 transition-all duration-200"
         >
-          <div
-            class="bg-primary/10 mb-4 flex h-16 w-16 items-center justify-center rounded-2xl"
-          >
-            <Icon
-              name="streamline-ultimate-color:archive-books"
-              class="h-10 w-10"
-            />
-          </div>
+          <IconBackground icon="recipes" active>
+            <Icon name={app.recipes} class="h-10 w-10" />
+          </IconBackground>
           <h2 class="text-text mb-2 text-2xl font-bold">Oppskrifter</h2>
           <p class="text-text-muted mb-6 leading-relaxed">
             Dine egne favoritter, lagret på ett sted.
@@ -34,15 +31,13 @@ const title = "Maten – få kontroll på middagen";
         </a>
 
         <a
-          href="/plan"
-          class="border-border bg-surface hover:border-primary/50 block rounded-3xl border p-8 transition-all duration-200"
+          href="/plans"
+          class="border-border bg-surface hover:border-primary block space-y-4 rounded-3xl border p-8 transition-all duration-200"
         >
-          <div
-            class="bg-primary/10 mb-4 flex h-16 w-16 items-center justify-center rounded-2xl"
-          >
-            <Icon name="streamline-ultimate-color:tea-pot" class="h-10 w-10" />
-          </div>
-          <h2 class="text-text mb-2 text-2xl font-bold">Meny</h2>
+          <IconBackground icon="plans" active>
+            <Icon name={app.plans} class="h-10 w-10" />
+          </IconBackground>
+          <h2 class="text-text mb-2 text-2xl font-bold">Menyer</h2>
           <p class="text-text-muted mb-6 leading-relaxed">
             Lag din egen meny uten stress.
           </p>
@@ -50,16 +45,14 @@ const title = "Maten – få kontroll på middagen";
 
         <a
           href="/shopping"
-          class="border-border bg-surface hover:border-primary/50 block rounded-3xl border p-8 transition-all duration-200"
+          class="border-border bg-surface hover:border-primary block space-y-4 rounded-3xl border p-8 transition-all duration-200"
         >
-          <div
-            class="bg-primary/10 mb-4 flex h-16 w-16 items-center justify-center rounded-2xl"
-          >
+          <IconBackground icon="shopping" active>
             <Icon
               name="streamline-ultimate-color:paper-write"
               class="h-10 w-10"
             />
-          </div>
+          </IconBackground>
           <h2 class="text-text mb-2 text-2xl font-bold">Handleliste</h2>
           <p class="text-text-muted mb-6 leading-relaxed">
             Vi fikser listen for deg basert på menyen din.

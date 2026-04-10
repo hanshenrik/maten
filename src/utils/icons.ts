@@ -1,0 +1,30 @@
+export const ui = {
+  add: "hugeicons:plus-sign",
+  checked: "hugeicons:tick-01",
+  emojis: "hugeicons:smile",
+  cancel: "hugeicons:cancel-circle",
+  next: "hugeicons:arrow-right-01",
+  back: "hugeicons:arrow-left-01",
+  delete: "hugeicons:delete-03",
+  clock: "hugeicons:clock-01",
+  copy: "hugeicons:copy-01",
+  link: "hugeicons:link-01",
+  sun: "hugeicons:sun-03",
+  moon: "hugeicons:moon-02",
+  computer: "hugeicons:computer-01",
+  user: "hugeicons:user",
+  favourite: "hugeicons:bookmark-02",
+  logout: "hugeicons:logout-01",
+  login: "hugeicons:login-01",
+  edit: "hugeicons:pencil-edit-02",
+  globe: "hugeicons:globe-02",
+};
+
+export const app = {
+  home: "streamline-ultimate-color:ice-cream-cone",
+  recipes: "streamline-ultimate-color:book-close-bookmark-1",
+  plans: "streamline-ultimate-color:shapes",
+  shopping: "streamline-ultimate-color:paper-write",
+  settings: "streamline-ultimate-color:cog",
+  library: "streamline-ultimate-color:archive-books",
+};

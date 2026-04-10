@@ -1,5 +1,6 @@
 import React from "react";
 import { Icon } from "@iconify/react";
+import { ui } from "../utils/icons";
 
 interface CheckboxProps {
   checked: boolean;
@@ -31,7 +32,7 @@ export const Checkbox: React.FC<CheckboxProps> = ({
               : "border-border bg-surface"
           }`}
         >
-          {checked && <Icon icon="hugeicons:tick-01" className="h-4 w-4" />}
+          {checked && <Icon icon={ui.checked} className="h-4 w-4" />}
         </div>
         <div className="flex items-center">
           {label && (

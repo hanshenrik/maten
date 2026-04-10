@@ -5,6 +5,7 @@ import { PlannedMealComponent as PlannedMeal } from "../../components/PlannedMea
 import { Icon } from "astro-icon/components";
 import { formatDateRange } from "../../utils/date";
 import { Button } from "../../components/ui/Button";
+import { ui } from "../../utils/icons";
 
 const { id } = Astro.params;
 
@@ -50,20 +51,20 @@ const title =
         <div class="flex gap-3">
           <Button
             as="a"
-            href={`/plan/${id}/edit`}
+            href={`/plans/${id}/edit`}
             variant="secondary"
             className="gap-2"
           >
-            <Icon name="hugeicons:pencil-edit-02" class="h-5 w-5" />
+            <Icon name={ui.edit} class="h-5 w-5" />
             Gjør endringer
           </Button>
           <Button
             as="a"
-            href={`/plan/new?copyFrom=${id}`}
+            href={`/plans/new?copyFrom=${id}`}
             variant="secondary"
             className="gap-2"
           >
-            <Icon name="hugeicons:copy-01" class="h-5 w-5" />
+            <Icon name={ui.copy} class="h-5 w-5" />
             Lag kopi
           </Button>
         </div>

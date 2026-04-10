@@ -4,6 +4,7 @@ import { Icon } from "@iconify/react";
 import { Card } from "./ui/Card";
 import { Button } from "./ui/Button";
 import { Input } from "./ui/Input";
+import { ui } from "../utils/icons";
 
 interface Member {
   id: string;
@@ -452,9 +453,9 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
         </h2>
         <div className="bg-bg border-border flex gap-2 rounded-2xl border p-1">
           {[
-            { id: "light", label: "Lys", icon: "hugeicons:sun-03" },
-            { id: "dark", label: "Mørk", icon: "hugeicons:moon-02" },
-            { id: "auto", label: "System", icon: "hugeicons:computer-01" },
+            { id: "light", label: "Lys", icon: ui.sun },
+            { id: "dark", label: "Mørk", icon: ui.moon },
+            { id: "auto", label: "System", icon: ui.computer },
           ].map((option) => (
             <button
               key={option.id}
@@ -561,7 +562,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
             >
               <div className="flex items-center gap-3">
                 <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-full">
-                  <Icon icon="hugeicons:user" className="h-5 w-5" />
+                  <Icon icon={ui.user} className="h-5 w-5" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
@@ -585,7 +586,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
                   size="sm"
                   title="Fjern fra husstand"
                 >
-                  <Icon icon="hugeicons:delete-03" className="h-5 w-5" />
+                  <Icon icon={ui.delete} className="h-5 w-5" />
                 </Button>
               )}
             </li>

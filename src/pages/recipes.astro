@@ -4,6 +4,8 @@ import MainNavigation from "../components/MainNavigation.astro";
 import { RecipeCard } from "../components/RecipeCard";
 import { Icon } from "astro-icon/components";
 import { Button } from "../components/ui/Button";
+import { app, ui } from "../utils/icons";
+
 const title = "Alle de gode oppskriftene";
 
 // Fetch owned recipes
@@ -39,19 +41,16 @@ const recipes = [
     <main class="container mx-auto max-w-6xl flex-1 px-4 py-8">
       <div class="mb-8 flex items-center justify-between">
         <h1 class="text-text flex items-center gap-3 text-3xl font-bold">
-          <Icon
-            name="streamline-ultimate-color:archive-books"
-            class="h-8 w-8"
-          />
+          <Icon name={app.recipes} class="h-8 w-8" />
           Mine oppskrifter
         </h1>
         <div class="hidden gap-3 md:flex">
           <Button as="a" href="/library" variant="secondary" className="gap-2">
-            <Icon name="hugeicons:books-01" class="h-5 w-5" />
+            <Icon name={app.library} class="h-5 w-5" />
             Biblioteket
           </Button>
           <Button as="a" href="/recipes/new" className="gap-2">
-            <Icon name="hugeicons:plus-sign" class="h-5 w-5" />
+            <Icon name={ui.add} class="h-5 w-5" />
             Legg til ny
           </Button>
         </div>
@@ -64,11 +63,11 @@ const recipes = [
           variant="secondary"
           className="flex w-full gap-2"
         >
-          <Icon name="hugeicons:books-01" class="h-5 w-5" />
+          <Icon name={app.library} class="h-5 w-5" />
           Utforsk biblioteket
         </Button>
         <Button as="a" href="/recipes/new" className="flex w-full gap-2">
-          <Icon name="hugeicons:plus-sign" class="h-5 w-5" />
+          <Icon name={ui.add} class="h-5 w-5" />
           Legg til ny oppskrift
         </Button>
       </div>

@@ -1,6 +1,8 @@
 ---
 import { Icon } from "astro-icon/components";
-const { user, pendingInvitesCount } = Astro.locals;
+import { app } from "../utils/icons";
+import { IconBackground } from "./IconBackground";
+const { pendingInvitesCount } = Astro.locals;
 ---
 
 <nav
@@ -8,32 +10,42 @@ const { user, pendingInvitesCount } = Astro.locals;
 >
   <div class="container mx-auto flex justify-around">
     <a href="/" class="text-secondary group flex flex-col items-center">
-      <Icon
-        name="streamline-ultimate-color:ice-cream-cone"
-        class="mb-1 h-6 w-6"
-      />
+      <IconBackground icon="home" active={Astro.url.pathname === "/"}>
+        <Icon name={app.home} class="h-6 w-6" />
+      </IconBackground>
       <span class="mt-1 text-xs">Hjem</span>
     </a>
     <a href="/recipes" class="text-secondary group flex flex-col items-center">
-      <Icon
-        name="streamline-ultimate-color:archive-books"
-        class="mb-1 h-6 w-6"
-      />
+      <IconBackground icon="recipes" active={Astro.url.pathname === "/recipes"}>
+        <Icon name={app.recipes} class="h-6 w-6" />
+      </IconBackground>
       <span class="mt-1 text-xs">Oppskrifter</span>
     </a>
-    <a href="/plan" class="text-secondary group flex flex-col items-center">
-      <Icon name="streamline-ultimate-color:tea-pot" class="mb-1 h-6 w-6" />
+    <a href="/plans" class="text-secondary group flex flex-col items-center">
+      <IconBackground icon="plans" active={Astro.url.pathname === "/plans"}>
+        <Icon name={app.plans} class="h-6 w-6" />
+      </IconBackground>
       <span class="mt-1 text-xs">Menyer</span>
     </a>
     <a href="/shopping" class="text-secondary group flex flex-col items-center">
-      <Icon name="streamline-ultimate-color:paper-write" class="mb-1 h-6 w-6" />
+      <IconBackground
+        icon="shopping"
+        active={Astro.url.pathname === "/shopping"}
+      >
+        <Icon name={app.shopping} class="h-6 w-6" />
+      </IconBackground>
       <span class="mt-1 text-xs">Handleliste</span>
     </a>
     <a
       href="/settings"
       class="text-secondary group relative flex flex-col items-center"
     >
-      <Icon name="streamline-ultimate-color:cog" class="mb-1 h-6 w-6" />
+      <IconBackground
+        icon="settings"
+        active={Astro.url.pathname === "/settings"}
+      >
+        <Icon name={app.settings} class="h-6 w-6" />
+      </IconBackground>
       {
         pendingInvitesCount > 0 && (
           <span class="ring-surface absolute top-0 right-1 h-2.5 w-2.5 rounded-full bg-red-500 shadow-sm ring-2" />

@@ -3,6 +3,7 @@ import { Icon } from "astro-icon/components";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import MainNavigation from "../components/MainNavigation.astro";
 import { SettingsForm } from "../components/SettingsForm";
+import { app, ui } from "../utils/icons";
 
 const title = "Innstillinger";
 const { user, householdId } = Astro.locals;
@@ -13,7 +14,7 @@ const { user, householdId } = Astro.locals;
     <main class="container mx-auto max-w-2xl flex-1 px-4 py-12">
       <div class="mb-10">
         <h1 class="text-text flex items-center gap-3 text-3xl font-bold">
-          <Icon name="streamline-ultimate-color:cog" class="h-8 w-8" />
+          <Icon name={app.settings} class="h-8 w-8" />
           Innstillinger
         </h1>
         <p class="text-text-muted">
@@ -37,7 +38,7 @@ const { user, householdId } = Astro.locals;
               type="submit"
               class="text-secondary flex cursor-pointer flex-col items-center border-none bg-transparent p-0 transition-colors hover:text-red-600"
             >
-              <Icon name="hugeicons:logout-01" class="mb-1 h-6 w-6" />
+              <Icon name={ui.logout} class="mb-1 h-6 w-6" />
               <span class="mt-1 text-xs">Logg ut</span>
             </button>
           </form>

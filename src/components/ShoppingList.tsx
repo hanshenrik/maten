@@ -10,6 +10,7 @@ import { Card } from "./ui/Card";
 import { Button } from "./ui/Button";
 import { Input } from "./ui/Input";
 import { Details } from "./ui/Details";
+import { ui } from "../utils/icons";
 
 export interface ShoppingListItem {
   id: string;
@@ -176,7 +177,7 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
               disabled={loading}
               className="w-full gap-2 md:w-fit"
             >
-              <Icon icon="hugeicons:plus-sign" className="h-5 w-5" />
+              <Icon icon={ui.add} className="h-5 w-5" />
               {loading ? "Legger til..." : "Legg i listen"}
             </Button>
             <Button
@@ -219,7 +220,7 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
                   className="absolute top-1/2 right-4 -translate-y-1/2 opacity-0 transition-all group-hover:opacity-100"
                   title="Fjern vare"
                 >
-                  <Icon icon="hugeicons:delete-03" className="h-5 w-5" />
+                  <Icon icon={ui.delete} className="h-5 w-5" />
                 </Button>
               </li>
             ))}
@@ -258,7 +259,7 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
                       className="absolute top-1/2 right-4 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100"
                       title="Fjern vare"
                     >
-                      <Icon icon="hugeicons:delete-03" className="h-5 w-5" />
+                      <Icon icon={ui.delete} className="h-5 w-5" />
                     </Button>
                   </li>
                 ))}

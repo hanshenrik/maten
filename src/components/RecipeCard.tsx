@@ -1,6 +1,7 @@
 import React from "react";
 import { Icon } from "@iconify/react";
 import { Card } from "./ui/Card";
+import { ui } from "../utils/icons";
 
 interface RecipeCardProps {
   recipe: {
@@ -11,15 +12,13 @@ interface RecipeCardProps {
     source_url?: string | null;
     cook_time?: number | null;
   };
-  onClick?: () => void;
 }
 
-export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onClick }) => {
+export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe }) => {
   return (
     <Card
       className="group flex h-full cursor-pointer flex-col"
       noPadding
-      onClick={onClick}
       isClickable
     >
       {recipe.image_url ? (
@@ -41,7 +40,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onClick }) => {
           </span>
           {recipe.source_url && (
             <div className="bg-surface text-primary border-border absolute top-2 right-2 rounded-full border p-1.5 opacity-90 transition-opacity hover:opacity-100">
-              <Icon icon="hugeicons:link-01" className="h-4 w-4" />
+              <Icon icon={ui.link} className="h-4 w-4" />
             </div>
           )}
         </div>
@@ -57,7 +56,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onClick }) => {
         )}
         {recipe.cook_time && (
           <div className="text-text-muted mt-auto flex items-center gap-1.5 pt-3 text-xs font-medium">
-            <Icon icon="hugeicons:clock-01" className="h-3.5 w-3.5" />
+            <Icon icon={ui.clock} className="h-3.5 w-3.5" />
             <span>{recipe.cook_time} min</span>
           </div>
         )}

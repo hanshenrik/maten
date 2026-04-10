@@ -6,6 +6,7 @@ import { Icon } from "astro-icon/components";
 import { formatISODate, formatDateRange } from "../utils/date";
 import { Button } from "../components/ui/Button";
 import { Details } from "../components/ui/Details";
+import { app, ui } from "../utils/icons";
 
 const title = "Hva skal vi ha til middag?";
 
@@ -34,20 +35,20 @@ const outdatedPlans = plans.filter((p) => p.end_date < today);
     <main class="container mx-auto max-w-6xl flex-1 px-4 py-8">
       <div class="mb-8 flex items-center justify-between">
         <h1 class="text-text flex items-center gap-3 text-3xl font-bold">
-          <Icon name="streamline-ultimate-color:tea-pot" class="h-8 w-8" />
-          Dine menyer
+          <Icon name={app.plans} class="h-8 w-8" />
+          Mine menyer
         </h1>
         <div class="hidden md:block">
-          <Button as="a" href="/plan/new" className="gap-2">
-            <Icon name="hugeicons:calendar-add-01" class="h-5 w-5" />
+          <Button as="a" href="/plans/new" className="gap-2">
+            <Icon name={ui.add} class="h-5 w-5" />
             Lag ny meny
           </Button>
         </div>
       </div>
 
       <div class="mb-8 md:hidden">
-        <Button as="a" href="/plan/new" className="flex w-full gap-2">
-          <Icon name="hugeicons:calendar-add-01" class="h-5 w-5" />
+        <Button as="a" href="/plans/new" className="flex w-full gap-2">
+          <Icon name={ui.add} class="h-5 w-5" />
           Lag ny meny
         </Button>
       </div>
@@ -58,7 +59,7 @@ const outdatedPlans = plans.filter((p) => p.end_date < today);
             {activePlans.map((plan) => (
               <section class="space-y-4">
                 <div class="flex items-center justify-between">
-                  <a href={`/plan/${plan.id}`} class="group">
+                  <a href={`/plans/${plan.id}`} class="group">
                     <h2 class="text-text hover:text-primary text-2xl font-bold transition-colors">
                       {plan.title || "Meny"}
                     </h2>
@@ -113,7 +114,7 @@ const outdatedPlans = plans.filter((p) => p.end_date < today);
               {outdatedPlans.map((plan) => (
                 <section class="space-y-4">
                   <div class="flex items-center justify-between">
-                    <a href={`/plan/${plan.id}`} class="group">
+                    <a href={`/plans/${plan.id}`} class="group">
                       <h2 class="text-text hover:text-primary text-xl font-bold transition-colors">
                         {plan.title || "Meny"}
                       </h2>

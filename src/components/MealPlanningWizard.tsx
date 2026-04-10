@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
+import { ui } from "../utils/icons";
 import { Icon } from "@iconify/react";
 import { Checkbox } from "./Checkbox";
 import {
@@ -251,7 +252,7 @@ export const MealPlanningWizard: React.FC<{
         setShoppingItems(items);
         setStep(3);
       } else {
-        window.location.href = `/plan/${planId}`;
+        window.location.href = `/plans/${planId}`;
       }
     } catch (err: any) {
       alert("Feil ved lagring av plan: " + err.message);
@@ -285,7 +286,7 @@ export const MealPlanningWizard: React.FC<{
           if (shoppingError) throw shoppingError;
         }
       }
-      window.location.href = `/plan`;
+      window.location.href = `/plans`;
     } catch (err: any) {
       console.error("Feil ved ferdigstilling av handleliste:", err);
       alert("Feil ved ferdigstilling: " + err.message);
@@ -307,7 +308,7 @@ export const MealPlanningWizard: React.FC<{
 
       if (error) throw error;
 
-      window.location.href = "/plan";
+      window.location.href = "/plans";
     } catch (err: any) {
       console.error("Feil ved sletting av plan:", err);
       alert("Feil ved sletting: " + err.message);
@@ -349,7 +350,7 @@ export const MealPlanningWizard: React.FC<{
             className="w-full gap-2"
           >
             Velg oppskrifter
-            <Icon icon="hugeicons:arrow-right-01" className="h-5 w-5" />
+            <Icon icon={ui.next} className="h-5 w-5" />
           </Button>
           {initialData && (
             <Button
@@ -361,7 +362,7 @@ export const MealPlanningWizard: React.FC<{
               className="w-full"
               title="Slett meny"
             >
-              <Icon icon="hugeicons:delete-03" className="h-6 w-6" /> Slett meny
+              <Icon icon={ui.delete} className="h-6 w-6" /> Slett meny
             </Button>
           )}
         </div>
@@ -381,7 +382,7 @@ export const MealPlanningWizard: React.FC<{
             onClick={() => setStep(1)}
             className="gap-1 text-sm"
           >
-            <Icon icon="hugeicons:arrow-left-01" className="h-4 w-4" />
+            <Icon icon={ui.back} className="h-4 w-4" />
             Endre datoer
           </Button>
         </Card>
@@ -435,7 +436,7 @@ export const MealPlanningWizard: React.FC<{
             className="flex-1 gap-2"
           >
             {loading ? "Lagrer..." : "Lag handleliste"}
-            <Icon icon="hugeicons:arrow-right-01" className="h-5 w-5" />
+            <Icon icon={ui.next} className="h-5 w-5" />
           </Button>
           <Button
             variant="secondary"
@@ -446,7 +447,7 @@ export const MealPlanningWizard: React.FC<{
           >
             {loading ? "Lagrer..." : "Bare lagre menyen"}
           </Button>
-          <Button as="a" href="/plan" variant="secondary" size="lg">
+          <Button as="a" href="/plans" variant="secondary" size="lg">
             Avbryt
           </Button>
           {initialData && (
@@ -458,7 +459,7 @@ export const MealPlanningWizard: React.FC<{
               size="lg"
               title="Slett plan"
             >
-              <Icon icon="hugeicons:delete-03" className="h-6 w-6" />
+              <Icon icon={ui.delete} className="h-6 w-6" />
             </Button>
           )}
         </div>
@@ -478,7 +479,7 @@ export const MealPlanningWizard: React.FC<{
             onClick={() => setStep(2)}
             className="gap-1 text-sm"
           >
-            <Icon icon="hugeicons:arrow-left-01" className="h-4 w-4" />
+            <Icon icon={ui.back} className="h-4 w-4" />
             Tilbake til meny
           </Button>
         </Card>
@@ -530,7 +531,7 @@ export const MealPlanningWizard: React.FC<{
               disabled={loading}
               title="Slett plan"
             >
-              <Icon icon="hugeicons:delete-03" className="h-6 w-6" />
+              <Icon icon={ui.delete} className="h-6 w-6" />
             </Button>
           )}
         </div>

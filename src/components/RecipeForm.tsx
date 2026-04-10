@@ -8,6 +8,7 @@ import { BasicTag } from "./BasicTag";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
 import { Input } from "./ui/Input";
+import { ui } from "../utils/icons";
 
 interface Ingredient {
   name: string;
@@ -252,7 +253,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
               disabled={saveCount > 0}
               onChange={(e) => setIsPublic(e.target.checked)}
             />
-            <div className="peer bg-border peer-checked:bg-primary peer-focus:ring-primary/20 h-6 w-11 rounded-full peer-focus:ring-2 peer-focus:outline-none after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white disabled:opacity-50 rtl:peer-checked:after:-translate-x-full dark:border-gray-600 dark:bg-gray-700"></div>
+            <div className="peer bg-border peer-checked:bg-primary peer-focus:ring-primary/20 h-6 w-11 rounded-full peer-focus:ring-2 peer-focus:outline-none after:absolute after:start-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white disabled:opacity-50 rtl:peer-checked:after:-translate-x-full dark:border-gray-600 dark:bg-gray-700"></div>
           </label>
         </div>
 
@@ -406,7 +407,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
                 onClick={() => removeIngredient(index)}
                 className="text-text-muted opacity-0 transition-all group-hover:opacity-100 hover:text-red-500"
               >
-                <Icon icon="hugeicons:delete-03" className="h-5 w-5" />
+                <Icon icon={ui.delete} className="h-5 w-5" />
               </Button>
             </div>
           ))}
@@ -435,7 +436,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
             disabled={loading}
             title="Slett oppskrift"
           >
-            <Icon icon="hugeicons:delete-03" className="h-6 w-6" />
+            <Icon icon={ui.delete} className="h-6 w-6" />
           </Button>
         )}
       </div>
