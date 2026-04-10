@@ -30,7 +30,7 @@ export const PlannedMealComponent: React.FC<PlannedMealComponentProps> = ({
           {formatMonthDay(day.day_of_week)}
         </p>
 
-        {day.recipeId && recipes[day.recipeId]?.image_url && (
+        {day.recipeId && recipes[day.recipeId]?.image_url ? (
           <div className="mb-4 h-32 w-full overflow-hidden rounded-xl">
             <img
               src={recipes[day.recipeId].image_url}
@@ -38,6 +38,8 @@ export const PlannedMealComponent: React.FC<PlannedMealComponentProps> = ({
               className="h-full w-full object-cover"
             />
           </div>
+        ) : (
+          <div className="mb-4 h-32 w-full overflow-hidden rounded-xl bg-linear-to-r from-gray-200 to-gray-100" />
         )}
 
         <div className="space-y-3">

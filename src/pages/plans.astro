@@ -2,8 +2,9 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import MainNavigation from "../components/MainNavigation.astro";
 import { PlannedMealComponent as PlannedMeal } from "../components/PlannedMeal";
+import { Card } from "../components/ui/Card";
 import { Icon } from "astro-icon/components";
-import { formatISODate, formatDateRange } from "../utils/date";
+import { formatISODate, formatDateRange, formatLongDay } from "../utils/date";
 import { Button } from "../components/ui/Button";
 import { Details } from "../components/ui/Details";
 import { app, ui } from "../utils/icons";
@@ -71,7 +72,7 @@ const outdatedPlans = plans.filter((p) => p.end_date < today);
                     </p>
                   </a>
                 </div>
-                <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4 xl:grid-cols-7">
                   {plan.planned_meals?.map((day: any) => (
                     <PlannedMeal
                       day={{
@@ -110,12 +111,12 @@ const outdatedPlans = plans.filter((p) => p.end_date < today);
             title={`Tidligere menyer (${outdatedPlans.length})`}
             client:load
           >
-            <div class="space-y-12">
+            <div class="space-y-4">
               {outdatedPlans.map((plan) => (
-                <section class="space-y-4">
-                  <div class="flex items-center justify-between">
-                    <a href={`/plans/${plan.id}`} class="group">
-                      <h2 class="text-text hover:text-primary text-xl font-bold transition-colors">
+                <a href={`/plans/${plan.id}`} class="block">
+                  <Card isClickable>
+                    <div class="flex items-center justify-between">
+                      <h2 class="text-text text-xl font-bold transition-colors">
                         {plan.title || "Meny"}
                       </h2>
                       <p class="text-text-muted text-sm">
@@ -124,27 +125,34 @@ const outdatedPlans = plans.filter((p) => p.end_date < today);
                           end: plan.end_date,
                         })}
                       </p>
-                    </a>
-                  </div>
-                  <div class="grid grid-cols-1 gap-6 opacity-60 grayscale-[0.5] md:grid-cols-2 lg:grid-cols-3">
-                    {plan.planned_meals?.map((day: any) => (
-                      <PlannedMeal
-                        day={{
-                          day_of_week: day.date,
-                          recipeId: day.recipe_id,
-                          notes: day.notes,
-                        }}
-                        recipes={{
-                          [day.recipe_id]: {
-                            title: day.recipes?.title,
-                            image_url: day.recipes?.image_url,
-                            cook_time: day.recipes?.cook_time,
-                          },
-                        }}
-                      />
-                    ))}
-                  </div>
-                </section>
+                    </div>
+                    <table class="table-auto">
+                      <tbody>
+                        {plan.planned_meals?.map((day: any) => {
+                          return (
+                            <tr>
+                              <td class="capitalize">
+                                {formatLongDay(day.date)}
+                              </td>
+                              <td class="overflow-hidden rounded-xl p-1">
+                                {day.recipes?.image_url ? (
+                                  <img
+                                    src={day.recipes.image_url}
+                                    alt={day.recipes.title}
+                                    class="h-6 w-6 object-cover"
+                                  />
+                                ) : (
+                                  <div class="h-6 w-6 bg-linear-to-r from-gray-200 to-gray-100" />
+                                )}
+                              </td>
+                              <td class="p-1">{day.recipes?.title}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </Card>
+                </a>
               ))}
             </div>
           </Details>
