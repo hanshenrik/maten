@@ -1,4 +1,4 @@
-const CACHE_NAME = "maten-v3"; // Increment version
+const CACHE_NAME = "maten-v4"; // Increment version
 const ASSETS_TO_CACHE = ["/", "/manifest.json"];
 
 // Install: Cache essential assets
