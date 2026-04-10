@@ -106,19 +106,26 @@ const title = recipe.title;
           <div class="grid gap-8 md:grid-cols-3">
             <div class="md:col-span-1">
               <h2 class="text-text mb-4 text-xl font-bold">Dette trenger du</h2>
-              <ul class="list-disc space-y-3">
+              <ul class="w-max list-disc space-y-3 pl-5">
                 {
                   recipe.ingredients.map((ing: any) => (
-                    <li class="text-text grid grid-cols-2 items-center gap-2">
-                      <span class="flex items-center gap-1">
-                        {ing.name}
-                        {ing.is_basic && <BasicTag />}
-                      </span>
-                      {ing.amount && (
-                        <span class="text-text text-sm">
-                          {ing.amount} {ing.unit}
-                        </span>
-                      )}
+                    <li class="text-text marker:text-text-muted">
+                      <div class="grid grid-cols-2 items-end gap-2">
+                        <div class="flex items-center gap-1">
+                          <span class="shrink-0">{ing.name}</span>
+                          {ing.is_basic && <BasicTag />}
+                          {ing.amount && (
+                            <div class="border-border text-text-muted mb-1.5 w-full self-end border-b-2 border-dotted" />
+                          )}
+                        </div>
+                        {ing.amount && (
+                          <div class="flex items-end gap-2">
+                            <span class="text-text shrink-0 text-sm whitespace-nowrap">
+                              {ing.amount} {ing.unit}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </li>
                   ))
                 }
