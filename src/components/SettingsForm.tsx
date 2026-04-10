@@ -40,6 +40,24 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [nameSubmitting, setNameSubmitting] = useState(false);
+  const [theme, setTheme] = useState<"light" | "dark" | "auto">("auto");
+
+  useEffect(() => {
+    const savedTheme =
+      (localStorage.getItem("theme") as "light" | "dark" | "auto") || "auto";
+    setTheme(savedTheme);
+  }, []);
+
+  const handleThemeChange = (newTheme: "light" | "dark" | "auto") => {
+    setTheme(newTheme);
+    localStorage.setItem("theme", newTheme);
+
+    if (newTheme === "auto") {
+      delete document.documentElement.dataset.theme;
+    } else {
+      document.documentElement.dataset.theme = newTheme;
+    }
+  };
 
   const fetchInvites = async () => {
     if (!userEmail) return;
@@ -246,6 +264,32 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
 
   return (
     <div className="space-y-8">
+      <Card>
+        <h2 className="text-text mb-4 text-xl font-semibold">Utseende</h2>
+        <div className="bg-bg border-border flex gap-2 rounded-2xl border p-1">
+          {[
+            { id: "light", label: "Lys", icon: "hugeicons:sun-03" },
+            { id: "dark", label: "Mørk", icon: "hugeicons:moon-02" },
+            { id: "auto", label: "System", icon: "hugeicons:computer-01" },
+          ].map((option) => (
+            <button
+              key={option.id}
+              onClick={() =>
+                handleThemeChange(option.id as "light" | "dark" | "auto")
+              }
+              className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-medium transition-all ${
+                theme === option.id
+                  ? "bg-surface text-primary ring-border shadow-sm ring-1"
+                  : "text-text-muted hover:text-text hover:bg-surface/50"
+              }`}
+            >
+              <Icon icon={option.icon} className="h-4 w-4" />
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </Card>
+
       {isOwner && (
         <Card>
           <h2 className="text-text mb-4 text-xl font-semibold">

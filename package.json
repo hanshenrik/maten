@@ -9,7 +9,8 @@
     "start": "astro dev",
     "build": "astro build",
     "check": "astro check",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "lint": "prettier --check ."
   },
   "dependencies": {
     "@astrojs/db": "^0.20.1",

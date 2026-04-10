@@ -1,54 +1,52 @@
 @import "tailwindcss";
 
+/* 
+  Ensures 1. one-off `dark:` utilities and 2. `light-dark()` variables both work 
+  with the manual toggle.
+*/
+@variant dark {
+  @media (prefers-color-scheme: dark) {
+    &:not([data-theme="light"] *) {
+      @slot;
+    }
+  }
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+}
+
 @theme {
-  --color-primary: var(--theme-primary);
-  --color-primary-hover: var(--theme-primary-hover);
-  --color-bg: var(--theme-bg);
-  --color-surface: var(--theme-surface);
-  --color-border: var(--theme-border);
-  --color-text: var(--theme-text);
-  --color-text-muted: var(--theme-text-muted);
+  --color-primary: light-dark(#059669, #10b981);
+  --color-primary-hover: light-dark(#047857, #34d399);
+  --color-bg: light-dark(#f9fafb, #121212);
+  --color-surface: light-dark(#ffffff, #1e1e1e);
+  --color-border: light-dark(#e5e7eb, #333333);
+  --color-text: light-dark(#111827, #f9fafb);
+  --color-text-muted: light-dark(#6b7280, #9ca3af);
   --color-danger: #f56565;
+  --font-sans:
+    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 :root {
-  color-scheme: light;
-  /* Light mode default */
-  --theme-bg: #f9fafb;
-  --theme-surface: #ffffff;
-  --theme-border: #e5e7eb;
-  --theme-text: #111827;
-  --theme-text-muted: #6b7280;
-  --theme-primary: #059669;
-  --theme-primary-hover: #047857;
+  color-scheme: light dark;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --theme-bg: #121212;
-    --theme-surface: #1e1e1e;
-    --theme-border: #333333;
-    --theme-text: #f9fafb;
-    --theme-text-muted: #9ca3af;
-    --theme-primary: #10b981;
-    --theme-primary-hover: #34d399;
-  }
+[data-theme="light"] {
+  color-scheme: light;
+}
 
-  input[type="date"] {
-    color-scheme: dark;
-  }
+[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 body {
-  font-family:
-    "Inter",
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    sans-serif;
-  background-color: var(--theme-bg);
-  color: var(--theme-text);
+  background-color: var(--color-bg);
+  color: var(--color-text);
   line-height: 1.6;
+}
+
+/* Ensure native components follow the theme */
+input {
+  color-scheme: inherit;
 }
