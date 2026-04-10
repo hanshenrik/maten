@@ -206,7 +206,7 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
         {activeItems.length > 0 ? (
           <ul className="space-y-2">
             {activeItems.map((item) => (
-              <li key={item.id} className="group relative bg-white">
+              <li key={item.id} className="group relative">
                 <CheckboxButton
                   checked={item.completed}
                   onChange={() => handleToggleComplete(item.id, item.completed)}
