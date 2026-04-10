@@ -39,7 +39,11 @@ export const PlannedMealComponent: React.FC<PlannedMealComponentProps> = ({
             />
           </div>
         ) : (
-          <div className="mb-4 h-32 w-full overflow-hidden rounded-xl bg-linear-to-r from-gray-200 to-gray-100" />
+          <div className="bg-bg text-text-muted mb-4 flex h-32 w-full flex-col items-center justify-center overflow-hidden rounded-xl">
+            <span className="text-xs font-medium tracking-wider uppercase">
+              Uten bilde
+            </span>
+          </div>
         )}
 
         <div className="space-y-3">

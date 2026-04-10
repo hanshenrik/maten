@@ -6,6 +6,7 @@ import { Icon } from "astro-icon/components";
 import { Button } from "../../components/ui/Button";
 import { RecipeActions } from "../../components/RecipeActions";
 import { ui, app } from "../../utils/icons";
+import { duration } from "../../utils/time";
 
 const { id } = Astro.params;
 
@@ -125,7 +126,7 @@ if (recipe.is_public) {
                     name="hugeicons:clock-01"
                     class="text-primary h-5 w-5"
                   />
-                  <span>{recipe.cook_time} minutter</span>
+                  <span>{duration(recipe.cook_time)}</span>
                 </div>
               )
             }

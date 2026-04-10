@@ -28,5 +28,5 @@ export const app = {
   shopping: "streamline-ultimate-color:paper-write",
   settings: "streamline-ultimate-color:cog",
   library: "streamline-ultimate-color:archive-books",
-  imagePlaceholder: "streamline-ultimate-color:picture-sun",
+  image: "streamline-ultimate-color:stamps-image",
 };

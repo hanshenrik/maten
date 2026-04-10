@@ -2,6 +2,7 @@ import React from "react";
 import { Icon } from "@iconify/react";
 import { Card } from "./ui/Card";
 import { ui } from "../utils/icons";
+import { duration } from "../utils/time";
 
 interface RecipeCardProps {
   recipe: {
@@ -31,18 +32,9 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe }) => {
         </div>
       ) : (
         <div className="bg-bg text-text-muted flex h-48 w-full flex-col items-center justify-center">
-          <Icon
-            icon="streamline-ultimate-color:stamps-image"
-            className="mb-2 h-10 w-10 opacity-30"
-          />
           <span className="text-xs font-medium tracking-wider uppercase">
             Uten bilde
           </span>
-          {recipe.source_url && (
-            <div className="bg-surface text-primary border-border absolute top-2 right-2 rounded-full border p-1.5 opacity-90 transition-opacity hover:opacity-100">
-              <Icon icon={ui.link} className="h-4 w-4" />
-            </div>
-          )}
         </div>
       )}
       <div className="flex flex-1 flex-col p-4">
@@ -57,7 +49,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe }) => {
         {recipe.cook_time && (
           <div className="text-text-muted mt-auto flex items-center gap-1.5 pt-3 text-xs font-medium">
             <Icon icon={ui.clock} className="h-3.5 w-3.5" />
-            <span>{recipe.cook_time} min</span>
+            <span>{duration(recipe.cook_time)}</span>
           </div>
         )}
       </div>
