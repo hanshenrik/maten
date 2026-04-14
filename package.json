@@ -31,7 +31,7 @@
     "date-fns": "^4.1.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
-    "tailwindcss": "^4.1.18"
+    "tailwindcss": "^4.2.2"
   },
   "devDependencies": {
     "prettier": "3.8.1",
