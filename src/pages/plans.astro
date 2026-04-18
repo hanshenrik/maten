@@ -29,6 +29,35 @@ const today = formatISODate(new Date());
 
 const activePlans = plans.filter((p) => p.end_date >= today);
 const outdatedPlans = plans.filter((p) => p.end_date < today);
+
+/** Group a plan's planned_meals by date */
+function groupByDate(meals: any[]): {
+  date: string;
+  meals: { recipeId: string; notes?: string; recipe?: any }[];
+}[] {
+  const map = new Map<
+    string,
+    { recipeId: string; notes?: string; recipe?: any }[]
+  >();
+  for (const m of meals || []) {
+    const entries = map.get(m.date) || [];
+    entries.push({
+      recipeId: m.recipe_id,
+      notes: m.notes,
+      recipe: m.recipes
+        ? {
+            title: m.recipes.title,
+            image_url: m.recipes.image_url,
+            cook_time: m.recipes.cook_time,
+          }
+        : undefined,
+    });
+    map.set(m.date, entries);
+  }
+  return Array.from(map.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, meals]) => ({ date, meals }));
+}
 ---
 
 <BaseLayout title={title}>
@@ -57,41 +86,31 @@ const outdatedPlans = plans.filter((p) => p.end_date < today);
       {
         activePlans.length > 0 ? (
           <div class="space-y-12">
-            {activePlans.map((plan) => (
-              <section class="space-y-4">
-                <div class="flex items-center justify-between">
-                  <a href={`/plans/${plan.id}`} class="group">
-                    <h2 class="text-text hover:text-primary text-2xl font-bold transition-colors">
-                      {plan.title || "Meny"}
-                    </h2>
-                    <p class="text-secondary text-sm font-medium">
-                      {formatDateRange({
-                        start: plan.start_date,
-                        end: plan.end_date,
-                      })}
-                    </p>
-                  </a>
-                </div>
-                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4 xl:grid-cols-7">
-                  {plan.planned_meals?.map((day: any) => (
-                    <PlannedMeal
-                      day={{
-                        day_of_week: day.date,
-                        recipeId: day.recipe_id,
-                        notes: day.notes,
-                      }}
-                      recipes={{
-                        [day.recipe_id]: {
-                          title: day.recipes?.title,
-                          image_url: day.recipes?.image_url,
-                          cook_time: day.recipes?.cook_time,
-                        },
-                      }}
-                    />
-                  ))}
-                </div>
-              </section>
-            ))}
+            {activePlans.map((plan) => {
+              const grouped = groupByDate(plan.planned_meals);
+              return (
+                <section class="space-y-4">
+                  <div class="flex items-center justify-between">
+                    <a href={`/plans/${plan.id}`} class="group">
+                      <h2 class="text-text hover:text-primary text-2xl font-bold transition-colors">
+                        {plan.title || "Meny"}
+                      </h2>
+                      <p class="text-secondary text-sm font-medium">
+                        {formatDateRange({
+                          start: plan.start_date,
+                          end: plan.end_date,
+                        })}
+                      </p>
+                    </a>
+                  </div>
+                  <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4 xl:grid-cols-7">
+                    {grouped.map((day) => (
+                      <PlannedMeal date={day.date} meals={day.meals} />
+                    ))}
+                  </div>
+                </section>
+              );
+            })}
           </div>
         ) : outdatedPlans.length === 0 ? (
           <div class="border-border bg-surface rounded-xl border p-6">
@@ -112,48 +131,51 @@ const outdatedPlans = plans.filter((p) => p.end_date < today);
             client:load
           >
             <div class="space-y-4">
-              {outdatedPlans.map((plan) => (
-                <a href={`/plans/${plan.id}`} class="block">
-                  <Card isClickable>
-                    <div class="flex items-center justify-between">
-                      <h2 class="text-text text-xl font-bold transition-colors">
-                        {plan.title || "Meny"}
-                      </h2>
-                      <p class="text-text-muted text-sm">
-                        {formatDateRange({
-                          start: plan.start_date,
-                          end: plan.end_date,
-                        })}
-                      </p>
-                    </div>
-                    <table class="table-auto">
-                      <tbody>
-                        {plan.planned_meals?.map((day: any) => {
-                          return (
-                            <tr>
-                              <td class="capitalize">
-                                {formatLongDay(day.date)}
-                              </td>
-                              <td class="overflow-hidden rounded-xl p-1">
-                                {day.recipes?.image_url ? (
-                                  <img
-                                    src={day.recipes.image_url}
-                                    alt={day.recipes.title}
-                                    class="h-6 w-6 object-cover"
-                                  />
-                                ) : (
-                                  <div class="bg-bg text-text-muted flex h-6 w-6 flex-col items-center justify-center" />
-                                )}
-                              </td>
-                              <td class="p-1">{day.recipes?.title}</td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </Card>
-                </a>
-              ))}
+              {outdatedPlans.map((plan) => {
+                const grouped = groupByDate(plan.planned_meals);
+                return (
+                  <a href={`/plans/${plan.id}`} class="block">
+                    <Card isClickable>
+                      <div class="flex items-center justify-between">
+                        <h2 class="text-text text-xl font-bold transition-colors">
+                          {plan.title || "Meny"}
+                        </h2>
+                        <p class="text-text-muted text-sm">
+                          {formatDateRange({
+                            start: plan.start_date,
+                            end: plan.end_date,
+                          })}
+                        </p>
+                      </div>
+                      <table class="table-auto">
+                        <tbody>
+                          {grouped.map((day) =>
+                            day.meals.map((meal, i) => (
+                              <tr>
+                                <td class="capitalize">
+                                  {i === 0 ? formatLongDay(day.date) : ""}
+                                </td>
+                                <td class="overflow-hidden rounded-xl p-1">
+                                  {meal.recipe?.image_url ? (
+                                    <img
+                                      src={meal.recipe.image_url}
+                                      alt={meal.recipe.title}
+                                      class="h-6 w-6 object-cover"
+                                    />
+                                  ) : (
+                                    <div class="bg-bg text-text-muted flex h-6 w-6 flex-col items-center justify-center" />
+                                  )}
+                                </td>
+                                <td class="p-1">{meal.recipe?.title}</td>
+                              </tr>
+                            )),
+                          )}
+                        </tbody>
+                      </table>
+                    </Card>
+                  </a>
+                );
+              })}
             </div>
           </Details>
         )
