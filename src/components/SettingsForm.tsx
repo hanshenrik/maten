@@ -5,6 +5,7 @@ import { Card } from "./ui/Card";
 import { Button } from "./ui/Button";
 import { Input } from "./ui/Input";
 import { ui } from "../utils/icons";
+import { formatDistanceToNow } from "../utils/date";
 
 interface Member {
   id: string;
@@ -12,6 +13,8 @@ interface Member {
   email: string;
   role: string;
   created_at: string;
+  avatar_url: string | null;
+  display_name: string | null;
 }
 
 interface SettingsFormProps {
@@ -106,7 +109,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
     try {
       const [membersRes, householdRes] = await Promise.all([
         supabase
-          .from("household_members")
+          .from("household_member_profiles")
           .select("*")
           .eq("household_id", householdId)
           .order("created_at", { ascending: true }),
@@ -561,21 +564,31 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
               className="flex items-center justify-between py-4"
             >
               <div className="flex items-center gap-3">
-                <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-full">
-                  <Icon icon={ui.user} className="h-5 w-5" />
-                </div>
+                {member.avatar_url ? (
+                  <img
+                    src={member.avatar_url}
+                    alt={member.display_name || member.email}
+                    className="bg-primary/10 text-primary h-10 w-10 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-full">
+                    <Icon icon={ui.user} className="h-5 w-5" />
+                  </div>
+                )}
                 <div>
                   <div className="flex items-center gap-2">
-                    <p className="text-text font-medium">{member.email}</p>
+                    <p className="text-text font-medium">
+                      {member.display_name}
+                    </p>
                     {member.role === "owner" && (
                       <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-[10px] font-bold uppercase">
                         Eier
                       </span>
                     )}
                   </div>
+                  <p className="text-text-muted text-xs">{member.email}</p>
                   <p className="text-text-muted text-xs">
-                    Medlem siden{" "}
-                    {new Date(member.created_at).toLocaleDateString()}
+                    Ble med for {formatDistanceToNow(member.created_at)} siden
                   </p>
                 </div>
               </div>

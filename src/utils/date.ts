@@ -1,4 +1,8 @@
-import { format, parseISO } from "date-fns";
+import {
+  format,
+  formatDistanceToNow as formatDistanceToNowFns,
+  parseISO,
+} from "date-fns";
 import { nb } from "date-fns/locale";
 
 /**
@@ -55,4 +59,22 @@ export const formatDateRange = ({
   end: string;
 }) => {
   return `${formatDate({ date: start })} – ${formatDate({ date: end })}`;
+};
+
+/**
+ * Returns "28. mars 2026"
+ */
+export const formatLongDate = (date: Date | string) => {
+  return formatDate({ date, formatStr: "d. MMM yyyy" });
+};
+
+/**
+ * Returns "28.03.2026"
+ */
+export const formatShortDate = (date: Date | string) => {
+  return formatDate({ date, formatStr: "dd.MM.yyyy" });
+};
+
+export const formatDistanceToNow = (date: Date | string) => {
+  return formatDistanceToNowFns(date, { locale: nb });
 };
