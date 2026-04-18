@@ -33,9 +33,7 @@ const title =
   `Meny: ${formatDateRange({ start: plan.start_date, end: plan.end_date })}`;
 
 /** Group planned_meals by date */
-function groupByDate(
-  meals: any[],
-): {
+function groupByDate(meals: any[]): {
   date: string;
   meals: { recipeId: string; notes?: string; recipe?: any }[];
 }[] {

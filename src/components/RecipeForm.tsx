@@ -265,7 +265,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             className="border-border bg-surface text-text focus:ring-primary w-full rounded-xl border px-4 py-3 transition-all outline-none focus:border-transparent focus:ring-2"
-            rows={3}
+            rows={5}
             placeholder="En kort og fristende forklaring..."
           />
         </div>
@@ -279,7 +279,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
             value={instructions}
             onChange={(e) => setInstructions(e.target.value)}
             className="border-border bg-surface text-text focus:ring-primary w-full rounded-xl border px-4 py-3 transition-all outline-none focus:border-transparent focus:ring-2"
-            rows={6}
+            rows={5}
             placeholder="Steg for steg fremgangsmåte..."
           />
         </div>
