@@ -27,10 +27,14 @@ interface Recipe {
   ingredients?: Ingredient[];
 }
 
-interface DayPlan {
-  date: string;
+interface RecipeSlot {
   recipe_id: string;
   notes: string;
+}
+
+interface DayPlan {
+  date: string;
+  slots: RecipeSlot[];
 }
 
 interface ShoppingItem {
@@ -38,6 +42,25 @@ interface ShoppingItem {
   amount: number;
   unit: string;
   checked: boolean;
+}
+
+/**
+ * Groups a flat array of planned_meals (from DB or initialData) into DayPlan[]
+ * where each date has multiple slots.
+ */
+function groupMealsByDate(
+  meals: { date: string; recipe_id?: string; notes?: string }[],
+): DayPlan[] {
+  const map = new Map<string, RecipeSlot[]>();
+  for (const m of meals) {
+    const slots = map.get(m.date) || [];
+    slots.push({ recipe_id: m.recipe_id || "", notes: m.notes || "" });
+    map.set(m.date, slots);
+  }
+  // Sort dates and return
+  return Array.from(map.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, slots]) => ({ date, slots }));
 }
 
 export const MealPlanningWizard: React.FC<{
@@ -50,11 +73,9 @@ export const MealPlanningWizard: React.FC<{
   const [endDate, setEndDate] = useState(initialData?.end_date || "");
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [dayPlans, setDayPlans] = useState<DayPlan[]>(
-    initialData?.planned_meals?.map((dp: any) => ({
-      date: dp.date,
-      recipe_id: dp.recipe_id || "",
-      notes: dp.notes || "",
-    })) || [],
+    initialData?.planned_meals
+      ? groupMealsByDate(initialData.planned_meals)
+      : [],
   );
   const [loading, setLoading] = useState(false);
   const [planTitle, setPlanTitle] = useState(initialData?.title || "");
@@ -114,17 +135,32 @@ export const MealPlanningWizard: React.FC<{
   const handleDateSelection = () => {
     const start = new Date(startDate);
     const end = new Date(endDate);
-    const days: DayPlan[] = [];
 
-    const sourceMeals = sourcePlan?.planned_meals || [];
+    // If we have a source plan, group its meals by date
+    const sourceByDate = new Map<string, RecipeSlot[]>();
+    if (sourcePlan?.planned_meals) {
+      for (const m of sourcePlan.planned_meals) {
+        const slots = sourceByDate.get(m.date) || [];
+        slots.push({ recipe_id: m.recipe_id || "", notes: m.notes || "" });
+        sourceByDate.set(m.date, slots);
+      }
+    }
+
+    const days: DayPlan[] = [];
+    const sourceDates = Array.from(sourceByDate.keys()).sort();
 
     let i = 0;
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-      const sourceMeal = sourceMeals[i];
+      const dateStr = formatISODate(d);
+      // Try to match source meals by position (day index)
+      const sourceDate = sourceDates[i];
+      const sourceSlots = sourceDate ? sourceByDate.get(sourceDate) : undefined;
+
       days.push({
-        date: formatISODate(d),
-        recipe_id: sourceMeal?.recipe_id || "",
-        notes: sourceMeal?.notes || "",
+        date: dateStr,
+        slots: sourceSlots
+          ? sourceSlots.map((s) => ({ ...s }))
+          : [{ recipe_id: "", notes: "" }],
       });
       i++;
     }
@@ -132,37 +168,59 @@ export const MealPlanningWizard: React.FC<{
     setStep(2);
   };
 
-  const handleRecipeChange = (index: number, recipeId: string) => {
+  const handleSlotChange = (
+    dayIndex: number,
+    slotIndex: number,
+    field: "recipe_id" | "notes",
+    value: string,
+  ) => {
     const newPlans = [...dayPlans];
-    newPlans[index].recipe_id = recipeId;
+    const newSlots = [...newPlans[dayIndex].slots];
+    newSlots[slotIndex] = { ...newSlots[slotIndex], [field]: value };
+    newPlans[dayIndex] = { ...newPlans[dayIndex], slots: newSlots };
     setDayPlans(newPlans);
   };
 
-  const handleNotesChange = (index: number, notes: string) => {
+  const addSlot = (dayIndex: number) => {
     const newPlans = [...dayPlans];
-    newPlans[index].notes = notes;
+    newPlans[dayIndex] = {
+      ...newPlans[dayIndex],
+      slots: [...newPlans[dayIndex].slots, { recipe_id: "", notes: "" }],
+    };
+    setDayPlans(newPlans);
+  };
+
+  const removeSlot = (dayIndex: number, slotIndex: number) => {
+    const newPlans = [...dayPlans];
+    const newSlots = newPlans[dayIndex].slots.filter((_, i) => i !== slotIndex);
+    newPlans[dayIndex] = {
+      ...newPlans[dayIndex],
+      slots: newSlots.length > 0 ? newSlots : [{ recipe_id: "", notes: "" }],
+    };
     setDayPlans(newPlans);
   };
 
   const calculateShoppingItems = () => {
     const itemMap: Record<string, ShoppingItem> = {};
 
-    dayPlans.forEach((plan) => {
-      const recipe = recipes.find((r) => r.id === plan.recipe_id);
-      recipe?.ingredients?.forEach((ing) => {
-        if (ing.is_basic) return;
+    dayPlans.forEach((day) => {
+      day.slots.forEach((slot) => {
+        const recipe = recipes.find((r) => r.id === slot.recipe_id);
+        recipe?.ingredients?.forEach((ing) => {
+          if (ing.is_basic) return;
 
-        const key = `${ing.name.toLowerCase()}-${ing.unit?.toLowerCase() || "none"}`;
-        if (itemMap[key]) {
-          itemMap[key].amount += Number(ing.amount) || 0;
-        } else {
-          itemMap[key] = {
-            name: ing.name,
-            amount: Number(ing.amount) || 0,
-            unit: ing.unit,
-            checked: false,
-          };
-        }
+          const key = `${ing.name.toLowerCase()}-${ing.unit?.toLowerCase() || "none"}`;
+          if (itemMap[key]) {
+            itemMap[key].amount += Number(ing.amount) || 0;
+          } else {
+            itemMap[key] = {
+              name: ing.name,
+              amount: Number(ing.amount) || 0,
+              unit: ing.unit,
+              checked: false,
+            };
+          }
+        });
       });
     });
 
@@ -179,6 +237,27 @@ export const MealPlanningWizard: React.FC<{
     const newItems = [...shoppingItems];
     newItems[index].checked = !newItems[index].checked;
     setShoppingItems(newItems);
+  };
+
+  /** Flatten dayPlans into individual planned_meals rows for DB insert */
+  const flattenPlannedMeals = (planId: string) => {
+    const rows: {
+      meal_plan_id: string;
+      date: string;
+      recipe_id: string | null;
+      notes: string;
+    }[] = [];
+    dayPlans.forEach((day) => {
+      day.slots.forEach((slot) => {
+        rows.push({
+          meal_plan_id: planId,
+          date: day.date,
+          recipe_id: slot.recipe_id || null,
+          notes: slot.notes,
+        });
+      });
+    });
+    return rows;
   };
 
   const savePlan = async (showShopping = false) => {
@@ -232,13 +311,8 @@ export const MealPlanningWizard: React.FC<{
         planId = plan.id;
       }
 
-      // 3. Create Planned Meals
-      const planDaysToInsert = dayPlans.map((dp) => ({
-        meal_plan_id: planId,
-        date: dp.date,
-        recipe_id: dp.recipe_id || null, // Allow no recipe (notes only)
-        notes: dp.notes,
-      }));
+      // 3. Create Planned Meals (flattened — one row per slot)
+      const planDaysToInsert = flattenPlannedMeals(planId);
 
       const { error: daysError } = await supabase
         .from("planned_meals")
@@ -388,44 +462,83 @@ export const MealPlanningWizard: React.FC<{
         </Card>
 
         <div className="space-y-4">
-          {dayPlans.map((day, index) => {
-            const date = new Date(day.date);
-            return (
-              <Card
-                key={day.date}
-                className="flex flex-col items-start gap-4 md:flex-row md:items-center"
-              >
-                <div className="min-w-30">
-                  <div className="text-xs font-bold tracking-wider uppercase opacity-60">
-                    {formatShortDay(day.date)}
-                  </div>
-                  <div className="text-text text-lg font-bold">
-                    {formatMonthDay(day.date)}
-                  </div>
+          {dayPlans.map((day, dayIndex) => (
+            <Card
+              key={day.date}
+              className="flex flex-col items-start gap-4 md:flex-row"
+            >
+              <div className="min-w-30">
+                <div className="text-xs font-bold tracking-wider uppercase opacity-60">
+                  {formatShortDay(day.date)}
                 </div>
+                <div className="text-text text-lg font-bold">
+                  {formatMonthDay(day.date)}
+                </div>
+              </div>
 
-                <div className="w-full flex-1 space-y-2">
-                  <select
-                    value={day.recipe_id}
-                    onChange={(e) => handleRecipeChange(index, e.target.value)}
-                    className="focus:ring-primary border-border bg-bg text-text w-full rounded-xl border px-4 py-3 outline-none focus:ring-2"
-                  >
-                    <option value="">(Ingenting valgt ennå)</option>
-                    {recipes.map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {r.title} {r.cook_time ? `(${r.cook_time} min)` : ""}
-                      </option>
-                    ))}
-                  </select>
-                  <Input
-                    placeholder="Legg til et notat (f.eks. rester, spise ute...)"
-                    value={day.notes}
-                    onChange={(e) => handleNotesChange(index, e.target.value)}
-                  />
-                </div>
-              </Card>
-            );
-          })}
+              <div className="w-full flex-1 space-y-3">
+                {day.slots.map((slot, slotIndex) => (
+                  <div key={slotIndex} className="space-y-2">
+                    {slotIndex > 0 && (
+                      <div className="border-border border-t pt-3" />
+                    )}
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={slot.recipe_id}
+                        onChange={(e) =>
+                          handleSlotChange(
+                            dayIndex,
+                            slotIndex,
+                            "recipe_id",
+                            e.target.value,
+                          )
+                        }
+                        className="focus:ring-primary border-border bg-bg text-text w-full rounded-xl border px-4 py-3 outline-none focus:ring-2"
+                      >
+                        <option value="">(Ingenting valgt ennå)</option>
+                        {recipes.map((r) => (
+                          <option key={r.id} value={r.id}>
+                            {r.title}{" "}
+                            {r.cook_time ? `(${r.cook_time} min)` : ""}
+                          </option>
+                        ))}
+                      </select>
+                      {day.slots.length > 1 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeSlot(dayIndex, slotIndex)}
+                          title="Fjern oppskrift"
+                          className="text-text-muted hover:text-danger shrink-0"
+                        >
+                          <Icon icon={ui.x} className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                    <Input
+                      placeholder="Legg til et notat (f.eks. rester, spise ute...)"
+                      value={slot.notes}
+                      onChange={(e) =>
+                        handleSlotChange(
+                          dayIndex,
+                          slotIndex,
+                          "notes",
+                          e.target.value,
+                        )
+                      }
+                    />
+                  </div>
+                ))}
+                <button
+                  onClick={() => addSlot(dayIndex)}
+                  className="text-primary hover:text-primary/80 flex items-center gap-1 text-sm font-medium transition-colors"
+                >
+                  <Icon icon={ui.add} className="h-4 w-4" />
+                  Legg til oppskrift
+                </button>
+              </div>
+            </Card>
+          ))}
         </div>
 
         <div className="flex gap-4">

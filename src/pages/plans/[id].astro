@@ -31,6 +31,39 @@ if (error || !plan) {
 const title =
   plan.title ||
   `Meny: ${formatDateRange({ start: plan.start_date, end: plan.end_date })}`;
+
+/** Group planned_meals by date */
+function groupByDate(
+  meals: any[],
+): {
+  date: string;
+  meals: { recipeId: string; notes?: string; recipe?: any }[];
+}[] {
+  const map = new Map<
+    string,
+    { recipeId: string; notes?: string; recipe?: any }[]
+  >();
+  for (const m of meals || []) {
+    const entries = map.get(m.date) || [];
+    entries.push({
+      recipeId: m.recipe_id,
+      notes: m.notes,
+      recipe: m.recipes
+        ? {
+            title: m.recipes.title,
+            image_url: m.recipes.image_url,
+            cook_time: m.recipes.cook_time,
+          }
+        : undefined,
+    });
+    map.set(m.date, entries);
+  }
+  return Array.from(map.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, meals]) => ({ date, meals }));
+}
+
+const grouped = groupByDate(plan.planned_meals);
 ---
 
 <BaseLayout title={title}>
@@ -72,20 +105,8 @@ const title =
 
       <div class="mt-8 space-y-6">
         {
-          plan.planned_meals?.map((day: any) => (
-            <PlannedMeal
-              day={{
-                day_of_week: day.date,
-                recipeId: day.recipe_id,
-                notes: day.notes,
-              }}
-              recipes={{
-                [day.recipe_id]: {
-                  title: day.recipes?.title,
-                  image_url: day.recipes?.image_url,
-                },
-              }}
-            />
+          grouped.map((day) => (
+            <PlannedMeal date={day.date} meals={day.meals} />
           ))
         }
       </div>
