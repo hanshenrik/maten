@@ -10,8 +10,11 @@ import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
 import { Input } from "./ui/Input";
 import { ui } from "../utils/icons";
+import { Reorder, useDragControls } from "motion/react";
 
 interface Ingredient {
+  id: string;
+
   name: string;
   emoji?: string;
   amount: string;
@@ -19,6 +22,104 @@ interface Ingredient {
   is_basic: boolean;
   optional: boolean;
 }
+
+const IngredientRow = ({
+  ing,
+  handleIngredientChange,
+  removeIngredient,
+}: {
+  ing: Ingredient;
+  handleIngredientChange: (
+    id: string,
+    field: keyof Ingredient,
+    value: any,
+  ) => void;
+  removeIngredient: (id: string) => void;
+}) => {
+  const dragControls = useDragControls();
+
+  return (
+    <Reorder.Item
+      value={ing}
+      dragListener={false}
+      dragControls={dragControls}
+      className="group bg-bg border-border relative flex items-start gap-3 rounded-xl border p-4"
+    >
+      <div
+        onPointerDown={(e) => dragControls.start(e)}
+        className="text-text-muted/30 hover:text-text flex cursor-grab touch-none items-center pt-2.5 transition-colors active:cursor-grabbing"
+      >
+        <Icon icon="hugeicons:drag-drop" className="h-6 w-6" />
+      </div>
+      <div className="flex-1 space-y-2">
+        <div className="flex gap-2">
+          <EmojiSelect
+            value={ing.emoji || ""}
+            onChange={(emoji) => handleIngredientChange(ing.id, "emoji", emoji)}
+          />
+          <input
+            type="text"
+            required
+            placeholder="Hva trenger vi?"
+            value={ing.name}
+            onChange={(e) =>
+              handleIngredientChange(ing.id, "name", e.target.value)
+            }
+            className="bg-bg border-border focus:ring-primary w-full rounded-xl border px-3 py-2 focus:ring-2"
+          />
+        </div>
+        <div className="flex gap-2">
+          <input
+            type="number"
+            step="any"
+            placeholder="Hvor mye?"
+            value={ing.amount}
+            onChange={(e) =>
+              handleIngredientChange(ing.id, "amount", e.target.value)
+            }
+            className="bg-bg border-border focus:ring-primary w-20 rounded-xl border px-3 py-2 focus:ring-2"
+          />
+          <UnitSelect
+            value={ing.unit}
+            onChange={(value) => handleIngredientChange(ing.id, "unit", value)}
+            className="w-24"
+          />
+          <label className="text-text-muted ml-auto flex cursor-pointer items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={ing.optional}
+              onChange={(e) =>
+                handleIngredientChange(ing.id, "optional", e.target.checked)
+              }
+              className="text-primary rounded"
+            />
+            Valgfri <OptionalTag />
+          </label>
+          <label className="text-text-muted flex cursor-pointer items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={ing.is_basic}
+              onChange={(e) =>
+                handleIngredientChange(ing.id, "is_basic", e.target.checked)
+              }
+              className="text-primary rounded"
+            />
+            Basis <BasicTag />
+          </label>
+        </div>
+      </div>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={() => removeIngredient(ing.id)}
+        className="text-text-muted pt-2"
+      >
+        <Icon icon={ui.delete} className="h-5 w-5" />
+      </Button>
+    </Reorder.Item>
+  );
+};
 
 interface RecipeFormProps {
   initialData?: any;
@@ -54,6 +155,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
       const { emoji, name } = splitEmojiFromName(ing.name);
       return {
         ...ing,
+        id: ing.id || crypto.randomUUID(),
         emoji,
         name,
         amount: ing.amount?.toString() || "",
@@ -61,6 +163,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
       };
     }) || [
       {
+        id: crypto.randomUUID(),
         emoji: "",
         name: "",
         amount: "",
@@ -92,6 +195,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
     setIngredients([
       ...ingredients,
       {
+        id: crypto.randomUUID(),
         emoji: "",
         name: "",
         amount: "",
@@ -102,18 +206,20 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
     ]);
   };
 
-  const removeIngredient = (index: number) => {
-    setIngredients(ingredients.filter((_, i) => i !== index));
+  const removeIngredient = (id: string) => {
+    setIngredients(ingredients.filter((ing) => ing.id !== id));
   };
 
   const handleIngredientChange = (
-    index: number,
+    id: string,
     field: keyof Ingredient,
     value: any,
   ) => {
-    const newIngredients = [...ingredients];
-    newIngredients[index] = { ...newIngredients[index], [field]: value };
-    setIngredients(newIngredients);
+    setIngredients(
+      ingredients.map((ing) =>
+        ing.id === id ? { ...ing, [field]: value } : ing,
+      ),
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -273,7 +379,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
               disabled={saveCount > 0}
               onChange={(e) => setIsPublic(e.target.checked)}
             />
-            <div className="peer bg-border peer-checked:bg-primary peer-focus:ring-primary/20 h-6 w-11 rounded-full peer-focus:ring-2 peer-focus:outline-none after:absolute after:start-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white disabled:opacity-50 rtl:peer-checked:after:-translate-x-full dark:border-gray-600 dark:bg-gray-700"></div>
+            <div className="peer bg-border peer-checked:bg-primary peer-focus:ring-primary/20 h-6 w-11 rounded-full peer-focus:ring-2 peer-focus:outline-none after:absolute after:inset-s-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white disabled:opacity-50 rtl:peer-checked:after:-translate-x-full dark:border-gray-600 dark:bg-gray-700"></div>
           </label>
         </div>
 
@@ -360,93 +466,21 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
           </Button>
         </div>
 
-        <div className="space-y-4">
-          {ingredients.map((ing, index) => (
-            <div
-              key={index}
-              className="group bg-bg relative flex items-start gap-3 rounded-xl p-4"
-            >
-              <div className="flex-1">
-                <div className="mb-2 flex gap-2">
-                  <EmojiSelect
-                    value={ing.emoji || ""}
-                    onChange={(emoji) =>
-                      handleIngredientChange(index, "emoji", emoji)
-                    }
-                  />
-                  <input
-                    type="text"
-                    required
-                    placeholder="Hva trenger vi?"
-                    value={ing.name}
-                    onChange={(e) =>
-                      handleIngredientChange(index, "name", e.target.value)
-                    }
-                    className="bg-bg border-border focus:ring-primary w-full rounded-xl border px-3 py-2 focus:ring-2"
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    step="any"
-                    placeholder="Hvor mye?"
-                    value={ing.amount}
-                    onChange={(e) =>
-                      handleIngredientChange(index, "amount", e.target.value)
-                    }
-                    className="bg-bg border-border focus:ring-primary w-20 rounded-xl border px-3 py-2 focus:ring-2"
-                  />
-                  <UnitSelect
-                    value={ing.unit}
-                    onChange={(value) =>
-                      handleIngredientChange(index, "unit", value)
-                    }
-                    className="w-24"
-                  />
-                  <label className="text-text-muted ml-auto flex cursor-pointer items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={ing.optional}
-                      onChange={(e) =>
-                        handleIngredientChange(
-                          index,
-                          "optional",
-                          e.target.checked,
-                        )
-                      }
-                      className="text-primary rounded"
-                    />
-                    Valgfri <OptionalTag />
-                  </label>
-                  <label className="text-text-muted flex cursor-pointer items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={ing.is_basic}
-                      onChange={(e) =>
-                        handleIngredientChange(
-                          index,
-                          "is_basic",
-                          e.target.checked,
-                        )
-                      }
-                      className="text-primary rounded"
-                    />
-                    Basis <BasicTag />
-                  </label>
-                </div>
-              </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => removeIngredient(index)}
-                className="text-text-muted opacity-0 transition-all group-hover:opacity-100 hover:text-red-500"
-              >
-                <Icon icon={ui.delete} className="h-5 w-5" />
-              </Button>
-            </div>
+        <Reorder.Group
+          axis="y"
+          values={ingredients}
+          onReorder={setIngredients}
+          className="space-y-4"
+        >
+          {ingredients.map((ing) => (
+            <IngredientRow
+              key={ing.id}
+              ing={ing}
+              handleIngredientChange={handleIngredientChange}
+              removeIngredient={removeIngredient}
+            />
           ))}
-        </div>
+        </Reorder.Group>
       </Card>
 
       <div className="flex gap-4">

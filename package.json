@@ -29,6 +29,7 @@
     "astro": "^6.1.7",
     "astro-icon": "^1.1.5",
     "date-fns": "^4.1.0",
+    "motion": "^12.38.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "tailwindcss": "^4.1.18"

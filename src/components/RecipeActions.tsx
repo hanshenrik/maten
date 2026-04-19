@@ -42,7 +42,7 @@ export const RecipeActions: React.FC<RecipeActionsProps> = ({
   const handleRemove = async () => {
     if (
       !confirm(
-        "Er du sikker på at du vil fjerne denne oppskriften fra «Mine oppskrifter»?",
+        "Er du sikker på at du vil fjerne denne oppskriften fra «Min oppskriftsbok»?",
       )
     )
       return;
@@ -67,7 +67,7 @@ export const RecipeActions: React.FC<RecipeActionsProps> = ({
   const handleClone = async () => {
     if (
       !confirm(
-        "Vil du lage en kopi av denne oppskriften? Den havner i «Mine oppskrifter» som en ny, uavhengig oppskrift.",
+        "Vil du lage en kopi av denne oppskriften? Den havner i «Min oppskriftsbok» som en ny, uavhengig oppskrift.",
       )
     )
       return;
@@ -103,7 +103,7 @@ export const RecipeActions: React.FC<RecipeActionsProps> = ({
             >
               <Icon icon={ui.delete} className="h-5 w-5" />
               <span>
-                {removing ? "Fjerner..." : "Fjern fra mine oppskrifter"}
+                {removing ? "Fjerner..." : "Fjern fra Min oppskriftsbok"}
               </span>
             </Button>
           ) : (
@@ -115,7 +115,7 @@ export const RecipeActions: React.FC<RecipeActionsProps> = ({
             >
               <Icon icon={ui.add} className="h-5 w-5" />
               <span>
-                {saving ? "Lagrer..." : "Legg til i mine oppskrifter"}
+                {saving ? "Lagrer..." : "Legg til i Min oppskriftsbok"}
               </span>
             </Button>
           )}
