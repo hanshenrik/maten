@@ -5,6 +5,7 @@ import { UnitSelect } from "./UnitSelect";
 import { EmojiSelect } from "./EmojiSelect";
 import { splitEmojiFromName, combineEmojiAndName } from "../utils/emoji";
 import { BasicTag } from "./BasicTag";
+import { OptionalTag } from "./OptionalTag";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
 import { Input } from "./ui/Input";
@@ -16,6 +17,7 @@ interface Ingredient {
   amount: string;
   unit: string;
   is_basic: boolean;
+  optional: boolean;
 }
 
 interface RecipeFormProps {
@@ -55,8 +57,18 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
         emoji,
         name,
         amount: ing.amount?.toString() || "",
+        optional: !!ing.optional,
       };
-    }) || [{ emoji: "", name: "", amount: "", unit: "", is_basic: false }],
+    }) || [
+      {
+        emoji: "",
+        name: "",
+        amount: "",
+        unit: "",
+        is_basic: false,
+        optional: false,
+      },
+    ],
   );
   const [loading, setLoading] = useState(false);
   const [isPublic, setIsPublic] = useState(initialData?.is_public || false);
@@ -79,7 +91,14 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
   const addIngredient = () => {
     setIngredients([
       ...ingredients,
-      { emoji: "", name: "", amount: "", unit: "", is_basic: false },
+      {
+        emoji: "",
+        name: "",
+        amount: "",
+        unit: "",
+        is_basic: false,
+        optional: false,
+      },
     ]);
   };
 
@@ -166,6 +185,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
             amount: ing.amount ? parseFloat(String(ing.amount)) : null,
             unit: ing.unit,
             is_basic: !!ing.is_basic,
+            optional: !!ing.optional,
             recipe_id: recipeId,
           }));
 
@@ -384,6 +404,21 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
                     className="w-24"
                   />
                   <label className="text-text-muted ml-auto flex cursor-pointer items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={ing.optional}
+                      onChange={(e) =>
+                        handleIngredientChange(
+                          index,
+                          "optional",
+                          e.target.checked,
+                        )
+                      }
+                      className="text-primary rounded"
+                    />
+                    Valgfri <OptionalTag />
+                  </label>
+                  <label className="text-text-muted flex cursor-pointer items-center gap-2 text-sm">
                     <input
                       type="checkbox"
                       checked={ing.is_basic}

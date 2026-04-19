@@ -2,6 +2,7 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import MainNavigation from "../../components/MainNavigation.astro";
 import { BasicTag } from "../../components/BasicTag";
+import { OptionalTag } from "../../components/OptionalTag";
 import { Icon } from "astro-icon/components";
 import { Button } from "../../components/ui/Button";
 import { RecipeActions } from "../../components/RecipeActions";
@@ -20,6 +21,8 @@ const { data: recipe, error: recipeError } = await Astro.locals.supabase
   `,
   )
   .eq("id", id)
+  .order("optional", { referencedTable: "ingredients", ascending: true })
+  .order("is_basic", { referencedTable: "ingredients", ascending: true })
   .single();
 
 if (recipeError || !recipe) {
@@ -160,25 +163,30 @@ if (recipe.is_public) {
           <div class="grid gap-8 md:grid-cols-3">
             <div class="md:col-span-1">
               <h2 class="text-text mb-4 text-xl font-bold">Dette trenger du</h2>
-              <ul class="w-max list-disc space-y-3 pl-5">
+              <ul class="w-max space-y-3 pl-5">
                 {
                   recipe.ingredients.map((ing: any) => (
                     <li class="text-text marker:text-text-muted">
                       <div class="grid grid-cols-2 items-end gap-2">
                         <div class="flex items-center gap-1">
-                          <span class="shrink-0">{ing.name}</span>
-                          {ing.is_basic && <BasicTag />}
-                          {ing.amount && (
+                          {ing.amount ? (
+                            <>
+                              <div class="flex items-end gap-2">
+                                <span class="text-text shrink-0 text-sm whitespace-nowrap">
+                                  {ing.amount} {ing.unit}
+                                </span>
+                              </div>
+                              <div class="border-border text-text-muted mb-1.5 w-full self-end border-b-2 border-dotted" />
+                            </>
+                          ) : (
                             <div class="border-border text-text-muted mb-1.5 w-full self-end border-b-2 border-dotted" />
                           )}
+                          <span class="shrink-0">
+                            {ing.name}
+                            {ing.optional && <OptionalTag />}
+                          </span>
+                          {ing.is_basic && <BasicTag />}
                         </div>
-                        {ing.amount && (
-                          <div class="flex items-end gap-2">
-                            <span class="text-text shrink-0 text-sm whitespace-nowrap">
-                              {ing.amount} {ing.unit}
-                            </span>
-                          </div>
-                        )}
                       </div>
                     </li>
                   ))
