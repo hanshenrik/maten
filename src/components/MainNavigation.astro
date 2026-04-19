@@ -10,19 +10,22 @@ const { pendingInvitesCount } = Astro.locals;
 >
   <div class="container mx-auto flex justify-around">
     <a href="/" class="text-secondary group flex flex-col items-center">
-      <IconBackground icon="home" active={Astro.url.pathname === "/"}>
+      <IconBackground icon="home" isSelected={Astro.url.pathname === "/"}>
         <Icon name={app.home} class="h-6 w-6" />
       </IconBackground>
       <span class="mt-1 text-xs">Hjem</span>
     </a>
     <a href="/recipes" class="text-secondary group flex flex-col items-center">
-      <IconBackground icon="recipes" active={Astro.url.pathname === "/recipes"}>
+      <IconBackground
+        icon="recipes"
+        isSelected={Astro.url.pathname === "/recipes"}
+      >
         <Icon name={app.recipes} class="h-6 w-6" />
       </IconBackground>
       <span class="mt-1 text-xs">Oppskrifter</span>
     </a>
     <a href="/plans" class="text-secondary group flex flex-col items-center">
-      <IconBackground icon="plans" active={Astro.url.pathname === "/plans"}>
+      <IconBackground icon="plans" isSelected={Astro.url.pathname === "/plans"}>
         <Icon name={app.plans} class="h-6 w-6" />
       </IconBackground>
       <span class="mt-1 text-xs">Menyer</span>
@@ -30,7 +33,7 @@ const { pendingInvitesCount } = Astro.locals;
     <a href="/shopping" class="text-secondary group flex flex-col items-center">
       <IconBackground
         icon="shopping"
-        active={Astro.url.pathname === "/shopping"}
+        isSelected={Astro.url.pathname === "/shopping"}
       >
         <Icon name={app.shopping} class="h-6 w-6" />
       </IconBackground>
@@ -42,7 +45,7 @@ const { pendingInvitesCount } = Astro.locals;
     >
       <IconBackground
         icon="settings"
-        active={Astro.url.pathname === "/settings"}
+        isSelected={Astro.url.pathname === "/settings"}
       >
         <Icon name={app.settings} class="h-6 w-6" />
       </IconBackground>

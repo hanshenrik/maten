@@ -1,20 +1,27 @@
 export const IconBackground = ({
   icon,
-  active,
+  isSelected,
   children,
   className,
 }: {
   icon: "home" | "recipes" | "plans" | "shopping" | "settings";
-  active?: boolean;
+  isSelected?: boolean;
   children?: React.ReactNode;
   className?: string;
 }) => {
-  const colors = {
+  const selectedColors = {
     home: "bg-yellow-100",
     recipes: "bg-blue-100",
     plans: "bg-green-100",
     shopping: "bg-red-100",
     settings: "bg-gray-100",
+  };
+  const hoverColors = {
+    home: "group-hover:bg-yellow-100 group-active:bg-yellow-200",
+    recipes: "group-hover:bg-blue-100 group-active:bg-blue-200",
+    plans: "group-hover:bg-green-100 group-active:bg-green-200",
+    shopping: "group-hover:bg-red-100 group-active:bg-red-200",
+    settings: "group-hover:bg-gray-100 group-active:bg-gray-200",
   };
   const padding = {
     home: "p-2",
@@ -25,7 +32,7 @@ export const IconBackground = ({
   };
   return (
     <div
-      className={`block w-fit rounded-tl-2xl rounded-tr-md rounded-br-xl rounded-bl-lg ${active ? colors[icon] : ""} ${padding[icon]} ${className}`}
+      className={`block w-fit rounded-tl-2xl rounded-tr-md rounded-br-xl rounded-bl-lg transition-colors ${isSelected ? selectedColors[icon] : ""} ${padding[icon]} ${hoverColors[icon]} ${className}`}
     >
       {children}
     </div>
