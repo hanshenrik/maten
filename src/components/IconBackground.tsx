@@ -10,11 +10,11 @@ export const IconBackground = ({
   className?: string;
 }) => {
   const selectedColors = {
-    home: "bg-yellow-100",
-    recipes: "bg-blue-100",
-    plans: "bg-green-100",
-    shopping: "bg-red-100",
-    settings: "bg-gray-100",
+    home: "bg-yellow-300",
+    recipes: "bg-blue-300",
+    plans: "bg-green-300",
+    shopping: "bg-red-300",
+    settings: "bg-gray-300",
   };
   const hoverColors = {
     home: "group-hover:bg-yellow-100 group-active:bg-yellow-200",
