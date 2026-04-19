@@ -18,14 +18,17 @@ const { pendingInvitesCount } = Astro.locals;
     <a href="/recipes" class="text-secondary group flex flex-col items-center">
       <IconBackground
         icon="recipes"
-        isSelected={Astro.url.pathname === "/recipes"}
+        isSelected={Astro.url.pathname.startsWith("/recipes")}
       >
         <Icon name={app.recipes} class="h-6 w-6" />
       </IconBackground>
       <span class="mt-1 text-xs">Oppskrifter</span>
     </a>
     <a href="/plans" class="text-secondary group flex flex-col items-center">
-      <IconBackground icon="plans" isSelected={Astro.url.pathname === "/plans"}>
+      <IconBackground
+        icon="plans"
+        isSelected={Astro.url.pathname.startsWith("/plans")}
+      >
         <Icon name={app.plans} class="h-6 w-6" />
       </IconBackground>
       <span class="mt-1 text-xs">Menyer</span>
