@@ -49,9 +49,9 @@ export const Button = React.forwardRef<
     };
 
     const sizes = {
-      sm: "px-3 py-1.5 text-sm",
-      md: "px-4 py-2 text-base",
-      lg: "px-6 py-3 text-lg",
+      sm: "h-9 px-3 text-sm",
+      md: "h-11 px-4 text-base",
+      lg: "h-14 px-6 text-lg",
     };
 
     const combinedClassName = `${baseStyles} ${variants[variant]} ${sizes[size]} ${fullWidth ? "w-full" : ""} ${className}`;

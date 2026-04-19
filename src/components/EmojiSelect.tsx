@@ -138,7 +138,7 @@ export const EmojiSelect: React.FC<EmojiSelectProps> = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="border-border bg-surface text-text hover:border-primary focus:ring-primary flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border transition-all outline-none focus:border-transparent focus:ring-2"
+        className="border-border bg-surface text-text hover:border-primary focus:ring-primary flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl border transition-all outline-none focus:border-transparent focus:ring-2"
         title="Velg emoji"
       >
         {value ? (

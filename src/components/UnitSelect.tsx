@@ -32,7 +32,7 @@ export const UnitSelect: React.FC<UnitSelectProps> = ({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={`border-border bg-surface text-text focus:ring-primary h-10 rounded-xl border px-3 py-2 transition-all outline-none focus:border-transparent focus:ring-2 ${className}`}
+        className={`border-border bg-surface text-text focus:ring-primary h-11 rounded-xl border px-3 transition-all outline-none focus:border-transparent focus:ring-2 ${className}`}
       >
         {units.map((unit) => (
           <option key={unit.value} value={unit.value}>

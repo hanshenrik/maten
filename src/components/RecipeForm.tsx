@@ -113,7 +113,7 @@ const IngredientRow = ({
         variant="ghost"
         size="sm"
         onClick={() => removeIngredient(ing.id)}
-        className="text-text-muted pt-2"
+        className="text-text-muted"
       >
         <Icon icon={ui.delete} className="h-5 w-5" />
       </Button>
