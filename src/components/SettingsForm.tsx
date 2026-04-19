@@ -554,7 +554,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
 
       <Card>
         <h2 className="text-text mb-4 text-xl font-semibold">
-          De som er med i husstanden din
+          De som er med i {householdName}
         </h2>
 
         <ul className="divide-border divide-y">
