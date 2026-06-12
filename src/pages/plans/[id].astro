@@ -68,7 +68,9 @@ const todayStr = new Date().toISOString().slice(0, 10);
 <BaseLayout title={title}>
   <div class="flex min-h-dvh flex-col">
     <main class="container mx-auto max-w-4xl flex-1 px-4 py-12">
-      <div class="mb-10 flex items-center justify-between">
+      <div
+        class="mb-10 flex flex-col justify-between gap-2 lg:flex-row lg:items-center"
+      >
         <div>
           <h1 class="text-text text-3xl font-bold">{title}</h1>
           <p class="text-text-muted">
@@ -104,7 +106,7 @@ const todayStr = new Date().toISOString().slice(0, 10);
 
       <div
         id="meal-scroll"
-        class="-mx-4 mt-8 flex gap-4 overflow-x-auto px-4 pt-8 pb-4"
+        class="meal-scroll -mx-4 mt-4 flex gap-4 overflow-x-auto px-4 pt-8 pb-4"
       >
         {
           grouped.map((day) => {
@@ -123,46 +125,8 @@ const todayStr = new Date().toISOString().slice(0, 10);
       </div>
 
       <script>
-        setTimeout(() => {
-          const container = document.getElementById("meal-scroll");
-          const today = container?.querySelector(
-            "[data-today]",
-          ) as HTMLElement | null;
-          if (!container || !today) return;
-
-          const centered =
-            today.offsetLeft -
-            container.offsetLeft -
-            container.clientWidth / 2 +
-            today.offsetWidth / 2;
-          const target = Math.max(
-            0,
-            Math.min(centered, container.scrollWidth - container.clientWidth),
-          );
-          const start = container.scrollLeft;
-          const distance = target - start;
-          const duration = 900;
-          let startTime: number | null = null;
-
-          // Gentle overshoot: goes ~10% past target, settles back
-          function easeOutBack(t: number) {
-            const overshoot = 1.1;
-            return (
-              1 +
-              (overshoot + 1) * Math.pow(t - 1, 3) +
-              overshoot * Math.pow(t - 1, 2)
-            );
-          }
-
-          function step(now: number) {
-            if (!startTime) startTime = now;
-            const progress = Math.min((now - startTime) / duration, 1);
-            container!.scrollLeft = start + distance * easeOutBack(progress);
-            if (progress < 1) requestAnimationFrame(step);
-          }
-
-          requestAnimationFrame(step);
-        }, 200);
+        import { initScrollToToday } from "../../utils/scrollToToday";
+        initScrollToToday();
       </script>
     </main>
   </div>

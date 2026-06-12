@@ -103,10 +103,22 @@ function groupByDate(meals: any[]): {
                       </p>
                     </a>
                   </div>
-                  <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4 xl:grid-cols-7">
-                    {grouped.map((day) => (
-                      <PlannedMeal date={day.date} meals={day.meals} />
-                    ))}
+                  <div class="meal-scroll -mx-4 flex gap-4 overflow-x-auto px-4 pt-4 pb-4">
+                    {grouped.map((day) => {
+                      const isToday = day.date === today;
+                      return (
+                        <div
+                          class="w-72 shrink-0"
+                          data-today={isToday ? "" : undefined}
+                        >
+                          <PlannedMeal
+                            date={day.date}
+                            meals={day.meals}
+                            isToday={isToday}
+                          />
+                        </div>
+                      );
+                    })}
                   </div>
                 </section>
               );
@@ -182,4 +194,9 @@ function groupByDate(meals: any[]): {
       }
     </main>
   </div>
+
+  <script>
+    import { initScrollToToday } from "../utils/scrollToToday";
+    initScrollToToday();
+  </script>
 </BaseLayout>
