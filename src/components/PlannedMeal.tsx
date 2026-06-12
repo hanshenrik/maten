@@ -1,7 +1,8 @@
 import React from "react";
 import { formatLongDay, formatMonthDay } from "../utils/date";
+import { duration } from "../utils/time";
 import { Card } from "./ui/Card";
-import { ui } from "../utils/icons";
+import { ui, app } from "../utils/icons";
 import { Icon } from "@iconify/react";
 
 interface MealEntry {
@@ -21,52 +22,46 @@ export const PlannedMealComponent: React.FC<PlannedMealComponentProps> = ({
 }) => {
   const hasAnyRecipe = meals.some((m) => m.recipeId && m.recipe);
 
-  // Pick the first recipe image as the card hero image
-  const heroImage = meals.find((m) => m.recipe?.image_url)?.recipe?.image_url;
-  const heroAlt = meals.find((m) => m.recipe?.image_url)?.recipe?.title || "";
-
   return (
     <Card className="group flex h-full flex-col">
-      <h3 className="mb-3 text-lg font-semibold capitalize">
+      <h3 className="mb-1 text-lg font-semibold capitalize">
         {formatLongDay(date)}
       </h3>
       <p className="text-text-muted mb-4 text-sm">{formatMonthDay(date)}</p>
-
-      {heroImage ? (
-        <div className="mb-4 h-32 w-full overflow-hidden rounded-xl">
-          <img
-            src={heroImage}
-            alt={heroAlt}
-            className="h-full w-full object-cover"
-          />
-        </div>
-      ) : (
-        <div className="bg-bg text-text-muted mb-4 flex h-32 w-full flex-col items-center justify-center overflow-hidden rounded-xl">
-          <span className="text-xs font-medium tracking-wider uppercase">
-            Uten bilde
-          </span>
-        </div>
-      )}
 
       <div className="space-y-2">
         {hasAnyRecipe ? (
           meals.map((meal, i) =>
             meal.recipeId && meal.recipe ? (
               <a key={i} href={`/recipes/${meal.recipeId}`} className="block">
-                <div className="bg-bg hover:bg-bg/80 flex flex-col gap-1 rounded p-2 transition-colors">
-                  {meal.recipe.title}
-
-                  {meal.notes && (
-                    <span className="text-text-muted text-xs">
-                      {meal.notes}
-                    </span>
-                  )}
-                  {meal.recipe.cook_time && (
-                    <div className="text-text-muted flex items-center gap-1 text-[10px] tracking-wider uppercase opacity-70">
-                      <Icon icon={ui.clock} className="h-3 w-3" />
-                      <span>{meal.recipe.cook_time} min</span>
+                <div className="bg-bg hover:bg-bg/80 flex items-center gap-3 rounded-lg p-2 transition-colors">
+                  {meal.recipe.image_url ? (
+                    <img
+                      src={meal.recipe.image_url}
+                      alt={meal.recipe.title}
+                      className="h-12 w-12 shrink-0 rounded-lg object-cover"
+                    />
+                  ) : (
+                    <div className="bg-surface-elevated border-border flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border">
+                      <Icon icon={app.recipes} className="h-6 w-6 opacity-60" />
                     </div>
                   )}
+                  <div className="min-w-0 flex-1">
+                    <div className="text-text truncate text-sm font-medium">
+                      {meal.recipe.title}
+                    </div>
+                    {meal.notes && (
+                      <span className="text-text-muted text-xs">
+                        {meal.notes}
+                      </span>
+                    )}
+                    {meal.recipe.cook_time && (
+                      <div className="text-text-muted flex items-center gap-1 text-[10px] tracking-wider opacity-70">
+                        <Icon icon={ui.clock} className="h-3 w-3" />
+                        <span>{duration(meal.recipe.cook_time)}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </a>
             ) : meal.notes ? (
