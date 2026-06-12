@@ -21,10 +21,15 @@ export const onRequest = defineMiddleware(
           },
           setAll(cookiesToSet) {
             cookiesToSet.forEach(({ name, value, options }) => {
-              cookies.set(name, value, {
-                ...options,
-                maxAge: 60 * 60 * 24 * 30, // 30 days
-              });
+              try {
+                cookies.set(name, value, {
+                  ...options,
+                  maxAge: 60 * 60 * 24 * 30, // 30 days
+                });
+              } catch {
+                // Token refresh callback fired after response was already sent.
+                // The existing refresh_token in the browser will retry on the next request.
+              }
             });
           },
         },
