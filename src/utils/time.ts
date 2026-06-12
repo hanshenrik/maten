@@ -1,5 +1,3 @@
-import { nb } from "date-fns/locale";
-
 export const duration = (minutes: number) => {
   if (minutes < 60) {
     return `${minutes} min`;
@@ -8,7 +6,7 @@ export const duration = (minutes: number) => {
   const remainingMinutes = minutes % 60;
   const roundedMinutes = Math.round(remainingMinutes / 15) * 15;
   if (roundedMinutes === 0) {
-    return `${hours} t`;
+    return hours === 1 ? `${hours} time` : `${hours} timer`;
   }
   return `${hours} t ${roundedMinutes} min`;
 };
