@@ -140,7 +140,8 @@ export const onRequest = defineMiddleware(
     }
 
     const url = new URL(request.url);
-    if (!user && url.pathname !== "/login" && url.pathname !== "/signup") {
+    const publicPaths = ["/login", "/signup", "/auth/callback"];
+    if (!user && !publicPaths.includes(url.pathname)) {
       return redirect("/login");
     }
 

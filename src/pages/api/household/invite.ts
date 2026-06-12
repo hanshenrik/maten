@@ -80,7 +80,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   // 3. Send invite email to new user
   const { error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(
     normalizedEmail,
-    { redirectTo: "https://maten.hanshenrik.com" },
+    { redirectTo: "https://maten.hanshenrik.com/auth/callback" },
   );
 
   if (inviteError) {
