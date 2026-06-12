@@ -35,8 +35,9 @@ export const onRequest = defineMiddleware(
     const PENDING_INVITES_COOKIE = `maten_p_inv_${CACHE_VERSION}`;
 
     const {
-      data: { user },
-    } = await supabase.auth.getUser();
+      data: { session },
+    } = await supabase.auth.getSession();
+    const user = session?.user ?? null;
 
     locals.user = user;
     locals.supabase = supabase;
