@@ -8,21 +8,21 @@ import { app, ui } from "../utils/icons";
 
 const title = "Alle de gode oppskriftene";
 
-// Fetch owned recipes
-const { data: myRecipes, error: myError } = await Astro.locals.supabase
-  .from("recipes")
-  .select("*")
-  .eq("household_id", Astro.locals.householdId);
-
-if (myError) console.error("Error fetching recipes:", myError);
-
-// Fetch saved public recipes
-const { data: savedRecipesData, error: savedError } =
-  await Astro.locals.supabase
+const [
+  { data: myRecipes, error: myError },
+  { data: savedRecipesData, error: savedError },
+] = await Promise.all([
+  Astro.locals.supabase
+    .from("recipes")
+    .select("*")
+    .eq("household_id", Astro.locals.householdId),
+  Astro.locals.supabase
     .from("saved_recipes")
     .select("recipes(*)")
-    .eq("household_id", Astro.locals.householdId);
+    .eq("household_id", Astro.locals.householdId),
+]);
 
+if (myError) console.error("Error fetching recipes:", myError);
 if (savedError) console.error("Error fetching saved recipes:", savedError);
 
 // Combine and sort
