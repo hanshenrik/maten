@@ -33,26 +33,26 @@ const title = recipe.title;
 const householdId = Astro.locals.householdId;
 const isOwner = recipe.household_id === householdId;
 
-// Check if this recipe is saved by the current household
 let isSaved = false;
-if (!isOwner && recipe.is_public) {
-  const { data: savedData } = await Astro.locals.supabase
-    .from("saved_recipes")
-    .select("id")
-    .eq("household_id", householdId)
-    .eq("recipe_id", id)
-    .maybeSingle();
-  isSaved = !!savedData;
-}
-
-// For public recipes, get the save count (statistics)
 let saveCount = 0;
+
 if (recipe.is_public) {
-  const { count } = await Astro.locals.supabase
-    .from("saved_recipes")
-    .select("*", { count: "exact", head: true })
-    .eq("recipe_id", id);
-  saveCount = count || 0;
+  const [savedResult, countResult] = await Promise.all([
+    !isOwner
+      ? Astro.locals.supabase
+          .from("saved_recipes")
+          .select("id")
+          .eq("household_id", householdId)
+          .eq("recipe_id", id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    Astro.locals.supabase
+      .from("saved_recipes")
+      .select("*", { count: "exact", head: true })
+      .eq("recipe_id", id),
+  ]);
+  isSaved = !!savedResult.data;
+  saveCount = countResult.count || 0;
 }
 ---
 
@@ -205,7 +205,5 @@ if (recipe.is_public) {
         </div>
       </article>
     </main>
-
-    <MainNavigation />
   </div>
 </BaseLayout>
