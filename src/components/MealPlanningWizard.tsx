@@ -12,6 +12,7 @@ import {
 import { Card } from "./ui/Card";
 import { Button } from "./ui/Button";
 import { Input } from "./ui/Input";
+import { RecipeSelect } from "./RecipeSelect";
 
 interface Ingredient {
   name: string;
@@ -24,6 +25,7 @@ interface Recipe {
   id: string;
   title: string;
   cook_time?: number | null;
+  image_url?: string | null;
   ingredients?: Ingredient[];
 }
 
@@ -99,7 +101,7 @@ export const MealPlanningWizard: React.FC<{
       const { data } = await supabase
         .from("recipes")
         .select(
-          "id, title, cook_time, ingredients(name, amount, unit, is_basic)",
+          "id, title, cook_time, image_url, ingredients(name, amount, unit, is_basic)",
         )
         .order("title");
       if (data) setRecipes(data as any);
@@ -483,26 +485,18 @@ export const MealPlanningWizard: React.FC<{
                       <div className="border-border border-t pt-3" />
                     )}
                     <div className="flex items-center gap-2">
-                      <select
+                      <RecipeSelect
+                        recipes={recipes}
                         value={slot.recipe_id}
-                        onChange={(e) =>
+                        onChange={(value) =>
                           handleSlotChange(
                             dayIndex,
                             slotIndex,
                             "recipe_id",
-                            e.target.value,
+                            value,
                           )
                         }
-                        className="focus:ring-primary border-border bg-bg text-text w-full rounded-xl border px-4 py-3 outline-none focus:ring-2"
-                      >
-                        <option value="">(Ingenting valgt ennå)</option>
-                        {recipes.map((r) => (
-                          <option key={r.id} value={r.id}>
-                            {r.title}{" "}
-                            {r.cook_time ? `(${r.cook_time} min)` : ""}
-                          </option>
-                        ))}
-                      </select>
+                      />
                       {day.slots.length > 1 && (
                         <Button
                           variant="ghost"
