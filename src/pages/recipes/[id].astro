@@ -60,9 +60,9 @@ if (recipe.is_public) {
   <div class="flex min-h-dvh flex-col">
     <main class="container mx-auto max-w-4xl flex-1 px-4 py-12">
       <div class="mb-8 flex items-center justify-between">
-        <Button variant="ghost" as="a" href="/recipes" className="gap-2">
+        <Button variant="secondary" as="a" href="/recipes" className="gap-2">
           <Icon name={ui.back} class="h-4 w-4" />
-          Tilbake til alle oppskriftene
+          Tilbake
         </Button>
         <div class="flex gap-2">
           {
@@ -108,7 +108,7 @@ if (recipe.is_public) {
               recipe.source_url && (
                 <div class="mb-4">
                   <Button
-                    variant="ghost"
+                    variant="secondary"
                     href={recipe.source_url}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -124,7 +124,7 @@ if (recipe.is_public) {
           <div class="mb-8 flex flex-wrap gap-4">
             {
               recipe.cook_time && (
-                <div class="bg-surface-elevated text-text-muted border-border flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium">
+                <div class="bg-surface-elevated text-text-muted flex items-center gap-2 text-sm font-medium">
                   <Icon
                     name="hugeicons:clock-01"
                     class="text-primary h-5 w-5"

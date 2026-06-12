@@ -110,7 +110,7 @@ const IngredientRow = ({
       </div>
       <Button
         type="button"
-        variant="ghost"
+        variant="secondary"
         size="sm"
         onClick={() => removeIngredient(ing.id)}
         className="text-text-muted"

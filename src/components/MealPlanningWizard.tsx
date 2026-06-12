@@ -454,7 +454,7 @@ export const MealPlanningWizard: React.FC<{
             Steg 2: Hva har dere lyst på?
           </h2>
           <Button
-            variant="ghost"
+            variant="secondary"
             onClick={() => setStep(1)}
             className="gap-1 text-sm"
           >
@@ -499,7 +499,7 @@ export const MealPlanningWizard: React.FC<{
                       />
                       {day.slots.length > 1 && (
                         <Button
-                          variant="ghost"
+                          variant="secondary"
                           size="sm"
                           onClick={() => removeSlot(dayIndex, slotIndex)}
                           title="Fjern oppskrift"
@@ -582,7 +582,7 @@ export const MealPlanningWizard: React.FC<{
             Steg 3: Sjekk hva som mangler
           </h2>
           <Button
-            variant="ghost"
+            variant="secondary"
             onClick={() => setStep(2)}
             className="gap-1 text-sm"
           >

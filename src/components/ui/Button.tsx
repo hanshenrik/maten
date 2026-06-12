@@ -1,7 +1,7 @@
 import React from "react";
 
 type ButtonBaseProps = {
-  variant?: "primary" | "secondary" | "danger" | "ghost";
+  variant?: "primary" | "secondary" | "danger";
   size?: "sm" | "md" | "lg";
   fullWidth?: boolean;
 };
@@ -44,8 +44,6 @@ export const Button = React.forwardRef<
         "bg-surface text-text hover:text-primary hover:border-current hover:bg-primary/5 focus:ring-border border border-border transition-all",
       danger:
         "bg-surface text-text hover:text-red-500 hover:bg-red-500/10 focus:ring-red-500 border border-border hover:border-current transition-all",
-      ghost:
-        "bg-transparent text-text-muted hover:bg-surface hover:text-current hover:border-current border border-transparent focus:ring-border transition-all",
     };
 
     const sizes = {
