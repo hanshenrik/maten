@@ -66,7 +66,7 @@ export async function getUserFromCookies(
       app_metadata: (payload.app_metadata as Record<string, unknown>) ?? {},
       user_metadata: (payload.user_metadata as Record<string, unknown>) ?? {},
       created_at: new Date(((payload.iat ?? 0) as number) * 1000).toISOString(),
-      is_anonymous: ((payload.is_anonymous as boolean) ?? false),
+      is_anonymous: (payload.is_anonymous as boolean) ?? false,
     } as unknown as User;
   } catch {
     // Token expired or invalid signature
