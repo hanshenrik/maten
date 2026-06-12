@@ -2,11 +2,28 @@
 const code = Astro.url.searchParams.get("code");
 
 if (code) {
-  const { error } = await Astro.locals.supabase.auth.exchangeCodeForSession(code);
-  if (!error) {
-    return Astro.redirect("/");
-  }
+  const { error } =
+    await Astro.locals.supabase.auth.exchangeCodeForSession(code);
+  return Astro.redirect(error ? "/login" : "/");
 }
-
-return Astro.redirect("/login");
+// No code param — may be an implicit flow (e.g. invite) with tokens in the URL hash.
+// The hash is invisible to the server; fall through to client-side handling.
 ---
+
+<script>
+  import { supabase } from "../../lib/supabase";
+
+  const hash = new URLSearchParams(window.location.hash.slice(1));
+  const accessToken = hash.get("access_token");
+  const refreshToken = hash.get("refresh_token");
+
+  if (accessToken && refreshToken) {
+    const { error } = await supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    });
+    window.location.replace(error ? "/login" : "/");
+  } else {
+    window.location.replace("/login");
+  }
+</script>
