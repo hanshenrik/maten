@@ -1,9 +1,7 @@
 function easeOutBack(t: number) {
   const overshoot = 1.1;
   return (
-    1 +
-    (overshoot + 1) * Math.pow(t - 1, 3) +
-    overshoot * Math.pow(t - 1, 2)
+    1 + (overshoot + 1) * Math.pow(t - 1, 3) + overshoot * Math.pow(t - 1, 2)
   );
 }
 
@@ -22,7 +20,7 @@ function scrollToToday(container: HTMLElement) {
   );
   const start = container.scrollLeft;
   const distance = target - start;
-  const duration = 900;
+  const duration = 1100;
   let startTime: number | null = null;
 
   function step(now: number) {
@@ -37,8 +35,6 @@ function scrollToToday(container: HTMLElement) {
 
 export function initScrollToToday(selector = ".meal-scroll", delay = 200) {
   setTimeout(() => {
-    document
-      .querySelectorAll<HTMLElement>(selector)
-      .forEach(scrollToToday);
+    document.querySelectorAll<HTMLElement>(selector).forEach(scrollToToday);
   }, delay);
 }
