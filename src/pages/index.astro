@@ -5,7 +5,7 @@ import { Icon } from "astro-icon/components";
 import { IconBackground } from "../components/IconBackground";
 import { app } from "../utils/icons";
 
-const title = "Maten – få kontroll på middagen";
+const title = "Få kontroll på middagen";
 ---
 
 <BaseLayout title={title}>
@@ -21,7 +21,7 @@ const title = "Maten – få kontroll på middagen";
           href="/recipes"
           class="border-border bg-surface hover:border-primary block space-y-4 rounded-3xl border p-8 transition-all duration-200"
         >
-          <IconBackground icon="recipes" active>
+          <IconBackground icon="recipes" isSelected>
             <Icon name={app.recipes} class="h-10 w-10" />
           </IconBackground>
           <h2 class="text-text mb-2 text-2xl font-bold">Oppskrifter</h2>
@@ -34,7 +34,7 @@ const title = "Maten – få kontroll på middagen";
           href="/plans"
           class="border-border bg-surface hover:border-primary block space-y-4 rounded-3xl border p-8 transition-all duration-200"
         >
-          <IconBackground icon="plans" active>
+          <IconBackground icon="plans" isSelected>
             <Icon name={app.plans} class="h-10 w-10" />
           </IconBackground>
           <h2 class="text-text mb-2 text-2xl font-bold">Menyer</h2>
@@ -47,7 +47,7 @@ const title = "Maten – få kontroll på middagen";
           href="/shopping"
           class="border-border bg-surface hover:border-primary block space-y-4 rounded-3xl border p-8 transition-all duration-200"
         >
-          <IconBackground icon="shopping" active>
+          <IconBackground icon="shopping" isSelected>
             <Icon
               name="streamline-ultimate-color:paper-write"
               class="h-10 w-10"
@@ -62,5 +62,3 @@ const title = "Maten – få kontroll på middagen";
     </main>
   </div>
 </BaseLayout>
-
-<MainNavigation />
