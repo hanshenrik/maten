@@ -1,5 +1,6 @@
 import { defineMiddleware } from "astro:middleware";
 import { createServerClient } from "@supabase/ssr";
+import { getUserFromCookies } from "./lib/auth";
 
 export const onRequest = defineMiddleware(
   async ({ locals, request, cookies, redirect }, next) => {
@@ -34,9 +35,10 @@ export const onRequest = defineMiddleware(
     const HOUSEHOLD_ID_COOKIE = `maten_h_id_${CACHE_VERSION}`;
     const PENDING_INVITES_COOKIE = `maten_p_inv_${CACHE_VERSION}`;
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const user = await getUserFromCookies(
+      request.headers.get("Cookie") ?? "",
+      import.meta.env.PUBLIC_SUPABASE_URL,
+    );
 
     locals.user = user;
     locals.supabase = supabase;
