@@ -1,13 +1,12 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { BasicTag } from "../../components/BasicTag";
-import { OptionalTag } from "../../components/OptionalTag";
 import { Icon } from "astro-icon/components";
 import { Button } from "../../components/ui/Button";
 import { RecipeActions } from "../../components/RecipeActions";
 import { RecipeScaler } from "../../components/RecipeScaler";
 import { ui, app } from "../../utils/icons";
 import { duration } from "../../utils/time";
+import { marked } from "marked";
 
 const { id } = Astro.params;
 
@@ -54,6 +53,9 @@ if (recipe.is_public) {
   isSaved = !!savedResult.data;
   saveCount = countResult.count || 0;
 }
+
+const descriptionHtml = recipe.description ? marked.parse(recipe.description) : "";
+const instructionsHtml = recipe.instructions ? marked.parse(recipe.instructions) : "";
 ---
 
 <BaseLayout title={title}>
@@ -150,7 +152,7 @@ if (recipe.is_public) {
               )
             }
           </div>
-          <p class="text-text-muted mb-4 text-lg">{recipe.description}</p>
+          <div class="prose prose-emerald prose-lg text-text-muted mb-4 max-w-none" set:html={descriptionHtml} />
 
           <RecipeActions
             client:load
@@ -172,11 +174,7 @@ if (recipe.is_public) {
 
             <div class="md:col-span-2">
               <h2 class="text-text mb-4 text-xl font-bold">Slik gjør du det</h2>
-              <div
-                class="prose prose-emerald prose-lg text-text-muted max-w-none"
-              >
-                {recipe.instructions}
-              </div>
+              <div class="prose prose-emerald prose-lg text-text-muted max-w-none" set:html={instructionsHtml} />
             </div>
           </div>
         </div>

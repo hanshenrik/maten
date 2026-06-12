@@ -10,7 +10,7 @@ import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
 import { Toggle } from "./forms/Toggle";
 import { Input } from "./forms/Input";
-import { Textarea } from "./forms/Textarea";
+import { RichTextEditor } from "./forms/RichTextEditor";
 import { FileInput } from "./forms/FileInput";
 import { ui } from "../utils/icons";
 import { Reorder, useDragControls } from "motion/react";
@@ -386,22 +386,19 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
           />
         </div>
 
-        <Textarea
+        <RichTextEditor
           id="description"
           label="Hva gjør denne retten god?"
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          rows={5}
+          onChange={setDescription}
           placeholder="En kort og fristende forklaring..."
         />
 
-        <Textarea
+        <RichTextEditor
           id="instructions"
           label="Hvordan lager vi den?"
-          required
           value={instructions}
-          onChange={(e) => setInstructions(e.target.value)}
-          rows={5}
+          onChange={setInstructions}
           placeholder="Steg for steg fremgangsmåte..."
         />
 

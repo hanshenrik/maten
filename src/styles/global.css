@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 /* 
   Ensures 1. one-off `dark:` utilities and 2. `light-dark()` variables both work 
