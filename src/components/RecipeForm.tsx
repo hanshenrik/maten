@@ -152,6 +152,9 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
   const [cookTime, setCookTime] = useState<string>(
     initialData?.cook_time?.toString() || "",
   );
+  const [servings, setServings] = useState<string>(
+    initialData?.servings?.toString() || "",
+  );
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [ingredients, setIngredients] = useState<Ingredient[]>(
     initialData?.ingredients?.map((ing: any) => {
@@ -253,6 +256,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
         image_url: uploadedImageUrl,
         source_url: sourceUrl,
         cook_time: cookTime ? parseInt(cookTime) : null,
+        servings: servings ? parseInt(servings) : null,
         is_public: isPublic,
         author_name: isPublic
           ? initialData?.author_name || authorName || "En matglad kokk"
@@ -423,6 +427,14 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
             value={cookTime}
             onChange={(e) => setCookTime(e.target.value)}
             placeholder="f.eks. 30"
+          />
+          <Input
+            label="Antall porsjoner"
+            type="number"
+            min="1"
+            value={servings}
+            onChange={(e) => setServings(e.target.value)}
+            placeholder="f.eks. 4"
           />
         </div>
       </Card>

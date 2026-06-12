@@ -5,6 +5,7 @@ import { OptionalTag } from "../../components/OptionalTag";
 import { Icon } from "astro-icon/components";
 import { Button } from "../../components/ui/Button";
 import { RecipeActions } from "../../components/RecipeActions";
+import { RecipeScaler } from "../../components/RecipeScaler";
 import { ui, app } from "../../utils/icons";
 import { duration } from "../../utils/time";
 
@@ -162,34 +163,11 @@ if (recipe.is_public) {
           <div class="grid gap-8 md:grid-cols-3">
             <div class="md:col-span-1">
               <h2 class="text-text mb-4 text-xl font-bold">Dette trenger du</h2>
-              <ul
-                class="grid w-full grid-cols-[max-content_1fr] gap-x-4 gap-y-3"
-              >
-                {
-                  recipe.ingredients.map((ing: any) => (
-                    <li class="group contents">
-                      <div class="flex w-full items-center gap-3">
-                        <span class="text-text flex-1 font-medium whitespace-nowrap">
-                          {ing.amount ? `${ing.amount} ${ing.unit}` : ""}
-                        </span>
-                      </div>
-                      <div class="flex w-full items-center">
-                        <span class="text-text">{ing.name}</span>
-                        {ing.optional && (
-                          <span class="ml-2 inline-flex">
-                            <OptionalTag />
-                          </span>
-                        )}
-                        {ing.is_basic && (
-                          <span class="ml-2 inline-flex">
-                            <BasicTag />
-                          </span>
-                        )}
-                      </div>
-                    </li>
-                  ))
-                }
-              </ul>
+              <RecipeScaler
+                client:load
+                ingredients={recipe.ingredients}
+                baseServings={recipe.servings ?? null}
+              />
             </div>
 
             <div class="md:col-span-2">
