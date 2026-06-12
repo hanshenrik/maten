@@ -244,22 +244,14 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
     setError(null);
 
     try {
-      // First, check if user exists to get their ID (optional for invitation model, but helpful)
-      // Actually, we just insert into household_members with the email.
-      // A trigger or background job could link the user_id if they already exist.
-
-      const { error } = await supabase.from("household_members").insert({
-        household_id: householdId,
-        email: email.trim().toLowerCase(),
-        role: "member",
+      const res = await fetch("/api/household/invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), householdId }),
       });
 
-      if (error) {
-        if (error.code === "23505") {
-          throw new Error("Denne personen er allerede med i gjengen!");
-        }
-        throw error;
-      }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Ukjent feil");
 
       setEmail("");
       fetchMembers();

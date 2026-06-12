@@ -5,3 +5,4 @@ dist
 src/migrations
 .vercel
 .env*.local
+.env*
