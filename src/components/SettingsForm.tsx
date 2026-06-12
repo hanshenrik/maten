@@ -3,7 +3,7 @@ import { supabase } from "../lib/supabase";
 import { Icon } from "@iconify/react";
 import { Card } from "./ui/Card";
 import { Button } from "./ui/Button";
-import { Input } from "./ui/Input";
+import { Input } from "./forms/Input";
 import { ui } from "../utils/icons";
 import { formatDistanceToNow } from "../utils/date";
 

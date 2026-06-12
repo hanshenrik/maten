@@ -2,13 +2,13 @@ import React, { useState } from "react";
 import { Icon } from "@iconify/react";
 import { Hr } from "./ui/Hr";
 import { supabase } from "../lib/supabase";
-import { CheckboxButton } from "./ui/CheckboxButton";
-import { UnitSelect } from "./UnitSelect";
-import { EmojiSelect } from "./EmojiSelect";
+import { CheckboxButton } from "./forms/CheckboxButton";
+import { UnitSelect } from "./forms/UnitSelect";
+import { EmojiSelect } from "./forms/EmojiSelect";
 import { combineEmojiAndName } from "../utils/emoji";
 import { Card } from "./ui/Card";
 import { Button } from "./ui/Button";
-import { Input } from "./ui/Input";
+import { Input } from "./forms/Input";
 import { Details } from "./ui/Details";
 import { ui } from "../utils/icons";
 

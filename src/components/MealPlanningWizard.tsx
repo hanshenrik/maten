@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import { ui } from "../utils/icons";
 import { Icon } from "@iconify/react";
-import { CheckboxButton } from "./ui/CheckboxButton";
+import { CheckboxButton } from "./forms/CheckboxButton";
 import {
   formatISODate,
   formatShortDay,
@@ -11,7 +11,7 @@ import {
 } from "../utils/date";
 import { Card } from "./ui/Card";
 import { Button } from "./ui/Button";
-import { Input } from "./ui/Input";
+import { Input } from "./forms/Input";
 import { RecipeSelect } from "./RecipeSelect";
 
 interface Ingredient {

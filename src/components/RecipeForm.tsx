@@ -1,14 +1,17 @@
 import React, { useState } from "react";
 import { supabase } from "../lib/supabase";
 import { Icon } from "@iconify/react";
-import { UnitSelect } from "./UnitSelect";
-import { EmojiSelect } from "./EmojiSelect";
+import { UnitSelect } from "./forms/UnitSelect";
+import { EmojiSelect } from "./forms/EmojiSelect";
 import { splitEmojiFromName, combineEmojiAndName } from "../utils/emoji";
 import { BasicTag } from "./BasicTag";
 import { OptionalTag } from "./OptionalTag";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
-import { Input } from "./ui/Input";
+import { Toggle } from "./forms/Toggle";
+import { Input } from "./forms/Input";
+import { Textarea } from "./forms/Textarea";
+import { FileInput } from "./forms/FileInput";
 import { ui } from "../utils/icons";
 import { Reorder, useDragControls } from "motion/react";
 
@@ -355,7 +358,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
           placeholder="f.eks. Klassisk Margherita Pizza"
         />
 
-        <div className="border-border bg-surface/50 flex items-center justify-between rounded-xl border p-4">
+        <div className="border-border bg-surface/50 items-top flex justify-between rounded-xl border p-4">
           <div>
             <h3 className="text-text font-medium">
               Del oppskriften i biblioteket
@@ -371,70 +374,41 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
               </p>
             )}
           </div>
-          <label className="relative inline-flex cursor-pointer items-center">
-            <input
-              type="checkbox"
-              className="peer sr-only"
-              checked={isPublic}
-              disabled={saveCount > 0}
-              onChange={(e) => setIsPublic(e.target.checked)}
-            />
-            <div className="peer bg-border peer-checked:bg-primary peer-focus:ring-primary/20 h-6 w-11 rounded-full peer-focus:ring-2 peer-focus:outline-none after:absolute after:inset-s-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white disabled:opacity-50 rtl:peer-checked:after:-translate-x-full dark:border-gray-600 dark:bg-gray-700"></div>
-          </label>
-        </div>
-
-        <div>
-          <label className="text-text mb-1 block text-sm font-medium">
-            Hva gjør denne retten god?
-          </label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="border-border bg-surface text-text focus:ring-primary w-full rounded-xl border px-4 py-3 transition-all outline-none focus:border-transparent focus:ring-2"
-            rows={5}
-            placeholder="En kort og fristende forklaring..."
+          <Toggle
+            id="publicly-shared-recipe"
+            checked={isPublic}
+            disabled={saveCount > 0}
+            onChange={setIsPublic}
           />
         </div>
 
-        <div>
-          <label className="text-text mb-1 block text-sm font-medium">
-            Hvordan lager vi den?
-          </label>
-          <textarea
-            required
-            value={instructions}
-            onChange={(e) => setInstructions(e.target.value)}
-            className="border-border bg-surface text-text focus:ring-primary w-full rounded-xl border px-4 py-3 transition-all outline-none focus:border-transparent focus:ring-2"
-            rows={5}
-            placeholder="Steg for steg fremgangsmåte..."
-          />
-        </div>
+        <Textarea
+          id="description"
+          label="Hva gjør denne retten god?"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={5}
+          placeholder="En kort og fristende forklaring..."
+        />
 
-        <div>
-          <label className="text-text mb-1 block text-sm font-medium">
-            Et fristende bilde
-          </label>
-          {imageUrl && !imageFile && (
-            <div className="border-border relative mb-3 h-48 w-full max-w-md overflow-hidden rounded-xl border">
-              <img
-                src={imageUrl}
-                alt="Recipe cover"
-                className="h-full w-full object-cover"
-              />
-            </div>
-          )}
-          {imageFile && (
-            <div className="text-primary mb-3 text-sm font-medium">
-              Valgt: {imageFile.name}
-            </div>
-          )}
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-            className="border-border bg-surface text-text focus:ring-primary file:bg-primary/10 file:text-primary hover:file:bg-primary/20 w-full rounded-xl border px-3 py-2 transition-all outline-none file:mr-4 file:rounded-full file:border-0 file:px-4 file:py-2 file:text-sm file:font-semibold focus:border-transparent focus:ring-2"
-          />
-        </div>
+        <Textarea
+          id="instructions"
+          label="Hvordan lager vi den?"
+          required
+          value={instructions}
+          onChange={(e) => setInstructions(e.target.value)}
+          rows={5}
+          placeholder="Steg for steg fremgangsmåte..."
+        />
+
+        <FileInput
+          id="image"
+          label="Et fristende bilde"
+          accept="image/*"
+          previewUrl={imageUrl}
+          selectedFile={imageFile}
+          onChange={setImageFile}
+        />
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Input
