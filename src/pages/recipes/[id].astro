@@ -59,7 +59,7 @@ if (recipe.is_public) {
   <div class="flex min-h-dvh flex-col">
     <main class="container mx-auto max-w-4xl flex-1 px-4 py-12">
       <div class="mb-8 flex items-center justify-between">
-        <Button variant="secondary" as="a" href="/recipes" className="gap-2">
+        <Button id="back-btn" variant="secondary" className="gap-2">
           <Icon name={ui.back} class="h-4 w-4" />
           Tilbake
         </Button>
@@ -206,3 +206,9 @@ if (recipe.is_public) {
     </main>
   </div>
 </BaseLayout>
+
+<script>
+  document
+    .getElementById("back-btn")!
+    .addEventListener("click", () => history.back());
+</script>
