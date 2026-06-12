@@ -14,20 +14,33 @@ interface MealEntry {
 interface PlannedMealComponentProps {
   date: string;
   meals: MealEntry[];
+  isToday?: boolean;
 }
 
 export const PlannedMealComponent: React.FC<PlannedMealComponentProps> = ({
   date,
   meals,
+  isToday,
 }) => {
   const hasAnyRecipe = meals.some((m) => m.recipeId && m.recipe);
 
   return (
-    <Card className="group flex h-full flex-col">
-      <h3 className="mb-1 text-lg font-semibold capitalize">
-        {formatLongDay(date)}
-      </h3>
-      <p className="text-text-muted mb-4 text-sm">{formatMonthDay(date)}</p>
+    <Card
+      className={`group flex h-full flex-col ${isToday ? "ring-primary ring-2" : ""}`}
+    >
+      <div className="mb-4 flex items-center justify-between gap-2">
+        <div>
+          <h3 className="text-lg font-semibold capitalize">
+            {formatLongDay(date)}
+          </h3>
+          <p className="text-text-muted text-sm">{formatMonthDay(date)}</p>
+        </div>
+        {isToday && (
+          <span className="bg-primary/10 text-primary shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold">
+            I dag
+          </span>
+        )}
+      </div>
 
       <div className="space-y-2">
         {hasAnyRecipe ? (
