@@ -7,22 +7,28 @@ import { formatISODate, formatDateRange, formatLongDay } from "../utils/date";
 import { Button } from "../components/ui/Button";
 import { Details } from "../components/ui/Details";
 import { app, ui } from "../utils/icons";
+import { generateCacheKey } from "../lib/supabase-cache";
 
 const title = "Hva skal vi ha til middag?";
 
+const { queryCache, supabase, user } = Astro.locals;
+
 // Fetch meal plans from Supabase using the authenticated client from locals
-const { data: plans = [] } = await Astro.locals.supabase
-  .from("meal_plans")
-  .select(
-    `
+const { data: plans = [] } = await queryCache.getOrSet(
+  generateCacheKey("meal_plans", "all", { user_id: user?.id }),
+  () => supabase
+    .from("meal_plans")
+    .select(
+      `
     *,
     planned_meals (
       *,
       recipes (id, title, image_url, cook_time)
     )
   `,
-  )
-  .order("start_date", { ascending: false });
+    )
+    .order("start_date", { ascending: false })
+);
 
 const today = formatISODate(new Date());
 

@@ -5,5 +5,13 @@ declare namespace App {
     supabase: import("@supabase/supabase-js").SupabaseClient;
     householdId: string | undefined;
     pendingInvitesCount?: number;
+    queryCache: {
+      getOrSet: <T>(key: string, fetchFn: () => Promise<T>) => Promise<T>;
+      get: <T>(key: string) => T | undefined;
+      set: <T>(key: string, data: T) => void;
+      has: (key: string) => boolean;
+      clear: () => void;
+      delete: (key: string) => void;
+    };
   }
 }
