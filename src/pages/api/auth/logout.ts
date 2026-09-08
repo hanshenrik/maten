@@ -22,6 +22,10 @@ export const POST: APIRoute = async ({ cookies, redirect, request }) => {
             cookies.set(name, value, {
               ...options,
               maxAge: 60 * 60 * 24 * 30, // 30 days
+              secure: true,
+              sameSite: "none",
+              httpOnly: false,
+              path: "/",
             });
           });
         },
@@ -65,6 +69,10 @@ export const GET: APIRoute = async ({ cookies, redirect, request }) => {
             cookies.set(name, value, {
               ...options,
               maxAge: 60 * 60 * 24 * 30, // 30 days
+              secure: true,
+              sameSite: "none",
+              httpOnly: false,
+              path: "/",
             });
           });
         },

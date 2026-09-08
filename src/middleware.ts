@@ -25,6 +25,10 @@ export const onRequest = defineMiddleware(
                 cookies.set(name, value, {
                   ...options,
                   maxAge: 60 * 60 * 24 * 30, // 30 days
+                  secure: true,
+                  sameSite: "none",
+                  httpOnly: false,
+                  path: "/",
                 });
               } catch {
                 // Token refresh callback fired after response was already sent.
@@ -128,7 +132,7 @@ export const onRequest = defineMiddleware(
             maxAge: 60 * 60 * 24 * 30, // 30 days
             httpOnly: false, // Accessible to client-side JS for easier clearing
             secure: true,
-            sameSite: "lax",
+            sameSite: "none",
           });
         }
         if (pendingCount !== undefined) {
@@ -137,7 +141,7 @@ export const onRequest = defineMiddleware(
             maxAge: 60 * 60 * 24 * 30,
             httpOnly: false,
             secure: true,
-            sameSite: "lax",
+            sameSite: "none",
           });
         }
       }
