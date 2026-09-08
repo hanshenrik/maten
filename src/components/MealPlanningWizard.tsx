@@ -96,42 +96,51 @@ export const MealPlanningWizard: React.FC<{
     setStartDate(formatISODate(nextMonday));
     setEndDate(formatISODate(nextSunday));
 
-    // Fetch recipes for the picker
-    const fetchRecipes = async () => {
-      const { data } = await supabase
-        .from("recipes")
-        .select(
-          "id, title, cook_time, image_url, ingredients(name, amount, unit, is_basic)",
-        )
-        .order("title");
-      if (data) setRecipes(data as any);
-    };
-    fetchRecipes();
-
-    // Check for copyFrom parameter
+    // Batch fetch recipes and source plan in parallel
     const urlParams = new URLSearchParams(window.location.search);
     const copyFrom = urlParams.get("copyFrom");
-    if (copyFrom && !initialData) {
-      const fetchSourcePlan = async () => {
-        const { data } = await supabase
-          .from("meal_plans")
-          .select("*, planned_meals(*)")
-          .eq("id", copyFrom)
-          .single();
 
-        if (data) {
-          // Sort planned_meals by date to ensure correct mapping
-          if (data.planned_meals) {
-            data.planned_meals.sort((a: any, b: any) =>
-              a.date.localeCompare(b.date),
-            );
-          }
-          setSourcePlan(data);
-          setPlanTitle(`${data.title || "Plan"} (Kopi)`);
+    const fetchData = async () => {
+      const [recipesPromise, sourcePlanPromise] = [
+        supabase
+          .from("recipes")
+          .select(
+            "id, title, cook_time, image_url, ingredients(name, amount, unit, is_basic)",
+          )
+          .order("title"),
+        copyFrom && !initialData
+          ? supabase
+              .from("meal_plans")
+              .select("*, planned_meals(*)")
+              .eq("id", copyFrom)
+              .single()
+          : Promise.resolve({ data: null, error: null }),
+      ];
+
+      const [recipesResult, sourcePlanResult] = await Promise.all([
+        recipesPromise,
+        sourcePlanPromise,
+      ]);
+
+      if (recipesResult.data) {
+        setRecipes(recipesResult.data as any);
+      }
+
+      if (sourcePlanResult.data) {
+        // Sort planned_meals by date to ensure correct mapping
+        if (sourcePlanResult.data.planned_meals) {
+          sourcePlanResult.data.planned_meals.sort((a: any, b: any) =>
+            a.date.localeCompare(b.date),
+          );
         }
-      };
-      fetchSourcePlan();
-    }
+        setSourcePlan(sourcePlanResult.data);
+        setPlanTitle(
+          `${sourcePlanResult.data.title || "Plan"} (Kopi)`,
+        );
+      }
+    };
+
+    fetchData();
   }, []);
 
   const handleDateSelection = () => {
