@@ -3,16 +3,21 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import { ShoppingListComponent } from "../components/ShoppingList";
 import { Icon } from "astro-icon/components";
 import { app } from "../utils/icons";
+import { generateCacheKey } from "../lib/supabase-cache";
 
 const title = "Handleliste";
 
-const { data: shoppingItems } = await Astro.locals.supabase
-  .from("shopping_items")
-  .select("*")
-  .order("created_at", { ascending: true });
+const { queryCache, supabase, householdId, user } = Astro.locals;
+
+const { data: shoppingItems } = await queryCache.getOrSet(
+  generateCacheKey("shopping_items", "household", { household_id: householdId }),
+  () => supabase
+    .from("shopping_items")
+    .select("*")
+    .order("created_at", { ascending: true })
+);
 
 const initialItems = shoppingItems || [];
-const { user, householdId } = Astro.locals;
 ---
 
 <BaseLayout title={title}>

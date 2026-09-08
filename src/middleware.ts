@@ -1,5 +1,6 @@
 import { defineMiddleware } from "astro:middleware";
 import { createServerClient } from "@supabase/ssr";
+import { createQueryCache, generateCacheKey } from "./lib/supabase-cache";
 import { getUserFromCookies } from "./lib/auth";
 
 export const onRequest = defineMiddleware(
@@ -40,6 +41,9 @@ export const onRequest = defineMiddleware(
       },
     );
 
+    // Create request-scoped query cache
+    const queryCache = createQueryCache();
+
     const CACHE_VERSION = "v1";
     const HOUSEHOLD_ID_COOKIE = `maten_h_id_${CACHE_VERSION}`;
     const PENDING_INVITES_COOKIE = `maten_p_inv_${CACHE_VERSION}`;
@@ -51,6 +55,7 @@ export const onRequest = defineMiddleware(
 
     locals.user = user;
     locals.supabase = supabase;
+    locals.queryCache = queryCache;
 
     if (user) {
       const cachedHId = cookies.get(HOUSEHOLD_ID_COOKIE)?.value;
@@ -62,17 +67,23 @@ export const onRequest = defineMiddleware(
       // If any of the essential info is missing from cache, fetch it
       if (householdId === undefined || pendingCount === undefined) {
         const [inviteRes, memberRes] = await Promise.all([
-          supabase
-            .from("household_members")
-            .select("*", { count: "exact", head: true })
-            .eq("email", user.email)
-            .is("user_id", null),
-          supabase
-            .from("household_members")
-            .select("household_id")
-            .eq("user_id", user.id)
-            .order("created_at", { ascending: false })
-            .limit(1),
+          queryCache.getOrSet(
+            generateCacheKey("household_members", "invites", { email: user.email }),
+            () => supabase
+              .from("household_members")
+              .select("*", { count: "exact", head: true })
+              .eq("email", user.email)
+              .is("user_id", null)
+          ),
+          queryCache.getOrSet(
+            generateCacheKey("household_members", "by_user", { user_id: user.id }),
+            () => supabase
+              .from("household_members")
+              .select("household_id")
+              .eq("user_id", user.id)
+              .order("created_at", { ascending: false })
+              .limit(1)
+          ),
         ]);
 
         if (inviteRes.error) {

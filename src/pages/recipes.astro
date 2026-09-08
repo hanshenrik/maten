@@ -4,21 +4,30 @@ import { RecipeCard } from "../components/RecipeCard";
 import { Icon } from "astro-icon/components";
 import { Button } from "../components/ui/Button";
 import { app, ui } from "../utils/icons";
+import { generateCacheKey } from "../lib/supabase-cache";
 
 const title = "Alle de gode oppskriftene";
+
+const { queryCache, supabase, householdId } = Astro.locals;
 
 const [
   { data: myRecipes, error: myError },
   { data: savedRecipesData, error: savedError },
 ] = await Promise.all([
-  Astro.locals.supabase
-    .from("recipes")
-    .select("*")
-    .eq("household_id", Astro.locals.householdId),
-  Astro.locals.supabase
-    .from("saved_recipes")
-    .select("recipes(*)")
-    .eq("household_id", Astro.locals.householdId),
+  queryCache.getOrSet(
+    generateCacheKey("recipes", "household", { household_id: householdId }),
+    () => supabase
+      .from("recipes")
+      .select("*")
+      .eq("household_id", householdId)
+  ),
+  queryCache.getOrSet(
+    generateCacheKey("saved_recipes", "household", { household_id: householdId }),
+    () => supabase
+      .from("saved_recipes")
+      .select("recipes(*)")
+      .eq("household_id", householdId)
+  ),
 ]);
 
 if (myError) console.error("Error fetching recipes:", myError);
