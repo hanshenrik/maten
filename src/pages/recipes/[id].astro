@@ -110,6 +110,7 @@ const instructionsHtml = recipe.instructions ? marked.parse(recipe.instructions)
               recipe.source_url && (
                 <div class="mb-4">
                   <Button
+                    as="a"
                     variant="secondary"
                     href={recipe.source_url}
                     target="_blank"
