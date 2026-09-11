@@ -6,6 +6,21 @@ import { Button } from "./ui/Button";
 import { Input } from "./forms/Input";
 import { ui } from "../utils/icons";
 import { formatDistanceToNow } from "../utils/date";
+import {
+  DEFAULT_START_PAGE,
+  START_PAGE_COOKIE,
+  resolveStartPage,
+  startPages,
+  type StartPagePath,
+} from "../utils/startPage";
+
+const readCookie = (name: string): string | undefined =>
+  document.cookie
+    .split("; ")
+    .find((c) => c.startsWith(`${name}=`))
+    ?.split("=")
+    .slice(1)
+    .join("=");
 
 interface Member {
   id: string;
@@ -49,6 +64,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [nameSubmitting, setNameSubmitting] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark" | "auto">("auto");
+  const [startPage, setStartPage] = useState<StartPagePath>(DEFAULT_START_PAGE);
   const [displayName, setDisplayName] = useState(initialFullName || "");
   const [displayNameSubmitting, setDisplayNameSubmitting] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(initialAvatarUrl || "");
@@ -59,7 +75,17 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
     const savedTheme =
       (localStorage.getItem("theme") as "light" | "dark" | "auto") || "auto";
     setTheme(savedTheme);
+    setStartPage(resolveStartPage(readCookie(START_PAGE_COOKIE)));
   }, []);
+
+  const handleStartPageChange = (newStartPage: StartPagePath) => {
+    setStartPage(newStartPage);
+    // Stored in a cookie rather than localStorage because "/" redirects
+    // server-side and has to know the choice before any JS runs.
+    document.cookie = `${START_PAGE_COOKIE}=${newStartPage}; path=/; max-age=${
+      60 * 60 * 24 * 365
+    }; SameSite=Lax`;
+  };
 
   const handleThemeChange = async (newTheme: "light" | "dark" | "auto") => {
     setTheme(newTheme);
@@ -151,7 +177,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
       const eqPos = cookie.indexOf("=");
       const name =
         eqPos > -1 ? cookie.substring(0, eqPos).trim() : cookie.trim();
-      if (name.startsWith("maten_")) {
+      if (name.startsWith("maten_") && !name.startsWith("maten_pref_")) {
         document.cookie =
           name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       }
@@ -464,6 +490,31 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
               }`}
             >
               <Icon icon={option.icon} className="h-4 w-4" />
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </Card>
+
+      <Card>
+        <h2 className="text-text mb-4 text-xl font-semibold">
+          Hvor vil du starte?
+        </h2>
+        <p className="text-text-muted mb-6 text-sm">
+          Siden du kommer til når du åpner appen.
+        </p>
+        <div className="bg-bg border-border flex rounded-2xl border p-1">
+          {startPages.map((option) => (
+            <button
+              key={option.path}
+              onClick={() => handleStartPageChange(option.path)}
+              className={`flex flex-1 items-center justify-center gap-0.5 md:gap-2 rounded-xl py-2.5 px-2 text-xs md:text-base font-medium transition-all ${
+                startPage === option.path
+                  ? "bg-surface text-primary ring-border shadow-sm ring-1"
+                  : "text-text-muted hover:text-text hover:bg-surface/50"
+              }`}
+            >
+              <Icon icon={option.icon} className="h-5 w-5" />
               {option.label}
             </button>
           ))}

@@ -166,6 +166,7 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
             </div>
 
             <UnitSelect
+              id="unit"
               label="Enhet"
               value={newItem.unit}
               onChange={(value) => setNewItem({ ...newItem, unit: value })}

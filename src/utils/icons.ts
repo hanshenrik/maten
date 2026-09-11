@@ -22,7 +22,6 @@ export const ui = {
 };
 
 export const app = {
-  home: "streamline-ultimate-color:ice-cream-cone",
   recipes: "streamline-ultimate-color:book-close-bookmark-1",
   plans: "streamline-ultimate-color:shapes",
   shopping: "streamline-ultimate-color:paper-write",

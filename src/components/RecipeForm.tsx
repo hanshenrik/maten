@@ -71,50 +71,57 @@ const IngredientRow = ({
             className="bg-bg border-border focus:ring-primary w-full rounded-xl border px-3 py-2 focus:ring-2"
           />
         </div>
-        <div className="flex gap-2">
-          <input
-            type="number"
-            step="any"
-            placeholder="Hvor mye?"
-            value={ing.amount}
-            onChange={(e) =>
-              handleIngredientChange(ing.id, "amount", e.target.value)
-            }
-            className="bg-bg border-border focus:ring-primary w-20 rounded-xl border px-3 py-2 focus:ring-2"
-          />
-          <UnitSelect
-            value={ing.unit}
-            onChange={(value) => handleIngredientChange(ing.id, "unit", value)}
-            className="w-24"
-          />
-          <label className="text-text-muted ml-auto flex cursor-pointer items-center gap-2 text-sm">
+        <div className="flex flex-col gap-2 md:flex-row">
+          <div className="flex gap-2">
             <input
-              type="checkbox"
-              checked={ing.optional}
+              type="number"
+              step="any"
+              placeholder="Hvor mye?"
+              value={ing.amount}
               onChange={(e) =>
-                handleIngredientChange(ing.id, "optional", e.target.checked)
+                handleIngredientChange(ing.id, "amount", e.target.value)
               }
-              className="text-primary rounded"
+              className="bg-bg border-border focus:ring-primary w-20 rounded-xl border px-3 py-2 focus:ring-2"
             />
-            Valgfri <OptionalTag />
-          </label>
-          <label className="text-text-muted flex cursor-pointer items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={ing.is_basic}
-              onChange={(e) =>
-                handleIngredientChange(ing.id, "is_basic", e.target.checked)
+            <UnitSelect
+              id={`unit-${ing.id}`}
+              value={ing.unit}
+              onChange={(value) =>
+                handleIngredientChange(ing.id, "unit", value)
               }
-              className="text-primary rounded"
+              className="w-24"
             />
-            Basis <BasicTag />
-          </label>
+          </div>
+          <div className="flex w-full justify-between md:justify-end md:gap-5">
+            <label className="text-text-muted flex cursor-pointer items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={ing.optional}
+                onChange={(e) =>
+                  handleIngredientChange(ing.id, "optional", e.target.checked)
+                }
+                className="text-primary rounded"
+              />
+              Valgfri <OptionalTag />
+            </label>
+            <label className="text-text-muted flex cursor-pointer items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={ing.is_basic}
+                onChange={(e) =>
+                  handleIngredientChange(ing.id, "is_basic", e.target.checked)
+                }
+                className="text-primary rounded"
+              />
+              Basis <BasicTag />
+            </label>
+          </div>
         </div>
       </div>
       <Button
         type="button"
-        variant="secondary"
-        size="sm"
+        variant="danger"
+        size="md"
         onClick={() => removeIngredient(ing.id)}
         className="text-text-muted"
       >
@@ -445,7 +452,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
             size="sm"
             onClick={addIngredient}
           >
-            + Legg til noe mer
+            + Legg til ingrediens
           </Button>
         </div>
 

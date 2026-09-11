@@ -9,12 +9,6 @@ const { pendingInvitesCount } = Astro.locals;
   class="border-border bg-surface fixed bottom-0 left-0 z-50 w-full border-t px-4 pt-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))]"
 >
   <div class="container mx-auto flex justify-around">
-    <a href="/" class="text-secondary group flex flex-col items-center">
-      <IconBackground icon="home" isSelected={Astro.url.pathname === "/"}>
-        <Icon name={app.home} class="h-6 w-6" />
-      </IconBackground>
-      <span class="mt-1 text-xs">Hjem</span>
-    </a>
     <a href="/recipes" class="text-secondary group flex flex-col items-center">
       <IconBackground
         icon="recipes"

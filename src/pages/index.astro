@@ -1,63 +1,9 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
-import { Icon } from "astro-icon/components";
-import { IconBackground } from "../components/IconBackground";
-import { app } from "../utils/icons";
+import { START_PAGE_COOKIE, resolveStartPage } from "../utils/startPage";
 
-const title = "Få kontroll på middagen";
+// There is no landing page anymore — send people straight to their chosen
+// start page (configurable under Innstillinger).
+return Astro.redirect(
+  resolveStartPage(Astro.cookies.get(START_PAGE_COOKIE)?.value),
+);
 ---
-
-<BaseLayout title={title}>
-  <div class="flex min-h-dvh flex-col">
-    <main class="container mx-auto max-w-6xl flex-1 px-4 py-8">
-      <h1 class="text-text mb-6 flex items-center gap-3 text-3xl font-bold">
-        <Icon name={app.home} class="h-8 w-8" />
-        Maten
-      </h1>
-
-      <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
-        <a
-          href="/recipes"
-          class="border-border bg-surface hover:border-primary block space-y-4 rounded-3xl border p-8 transition-all duration-200"
-        >
-          <IconBackground icon="recipes" isSelected>
-            <Icon name={app.recipes} class="h-10 w-10" />
-          </IconBackground>
-          <h2 class="text-text mb-2 text-2xl font-bold">Oppskrifter</h2>
-          <p class="text-text-muted mb-6 leading-relaxed">
-            Dine egne favoritter, lagret på ett sted.
-          </p>
-        </a>
-
-        <a
-          href="/plans"
-          class="border-border bg-surface hover:border-primary block space-y-4 rounded-3xl border p-8 transition-all duration-200"
-        >
-          <IconBackground icon="plans" isSelected>
-            <Icon name={app.plans} class="h-10 w-10" />
-          </IconBackground>
-          <h2 class="text-text mb-2 text-2xl font-bold">Menyer</h2>
-          <p class="text-text-muted mb-6 leading-relaxed">
-            Lag din egen meny uten stress.
-          </p>
-        </a>
-
-        <a
-          href="/shopping"
-          class="border-border bg-surface hover:border-primary block space-y-4 rounded-3xl border p-8 transition-all duration-200"
-        >
-          <IconBackground icon="shopping" isSelected>
-            <Icon
-              name="streamline-ultimate-color:paper-write"
-              class="h-10 w-10"
-            />
-          </IconBackground>
-          <h2 class="text-text mb-2 text-2xl font-bold">Handleliste</h2>
-          <p class="text-text-muted mb-6 leading-relaxed">
-            Vi fikser listen for deg basert på menyen din.
-          </p>
-        </a>
-      </div>
-    </main>
-  </div>
-</BaseLayout>

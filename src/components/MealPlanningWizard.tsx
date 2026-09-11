@@ -544,11 +544,11 @@ export const MealPlanningWizard: React.FC<{
           ))}
         </div>
 
-        <div className="flex gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <Button
             onClick={() => savePlan(true)}
             disabled={loading}
-            size="lg"
+            size="sm"
             className="flex-1 gap-2"
           >
             {loading ? "Lagrer..." : "Lag handleliste"}
@@ -558,12 +558,12 @@ export const MealPlanningWizard: React.FC<{
             variant="secondary"
             onClick={() => savePlan(false)}
             disabled={loading}
-            size="lg"
+            size="sm"
             className="flex-1"
           >
             {loading ? "Lagrer..." : "Bare lagre menyen"}
           </Button>
-          <Button as="a" href="/plans" variant="secondary" size="lg">
+          <Button as="a" href="/plans" variant="secondary" size="sm">
             Avbryt
           </Button>
           {initialData && (
@@ -572,10 +572,10 @@ export const MealPlanningWizard: React.FC<{
               variant="danger"
               onClick={handleDelete}
               disabled={loading}
-              size="lg"
+              size="sm"
               title="Slett plan"
             >
-              <Icon icon={ui.delete} className="h-6 w-6" />
+              Slett
             </Button>
           )}
         </div>

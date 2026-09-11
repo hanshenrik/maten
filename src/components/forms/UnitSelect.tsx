@@ -5,6 +5,7 @@ interface UnitSelectProps {
   onChange: (value: string) => void;
   className?: string;
   label?: string;
+  id: string;
 }
 
 export const UnitSelect: React.FC<UnitSelectProps> = ({
@@ -12,6 +13,7 @@ export const UnitSelect: React.FC<UnitSelectProps> = ({
   onChange,
   className = "",
   label,
+  id,
 }) => {
   const units = [
     { value: "", label: "" },
@@ -27,9 +29,12 @@ export const UnitSelect: React.FC<UnitSelectProps> = ({
   return (
     <div className="flex flex-col gap-1">
       {label && (
-        <label className="text-text-muted block text-sm">{label}</label>
+        <label htmlFor={id} className="text-text-muted block text-sm">
+          {label}
+        </label>
       )}
       <select
+        id={id}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className={`border-border bg-surface text-text focus:ring-primary h-11 rounded-xl border px-3 transition-all outline-none focus:border-transparent focus:ring-2 ${className}`}
