@@ -134,9 +134,7 @@ export const MealPlanningWizard: React.FC<{
           );
         }
         setSourcePlan(sourcePlanResult.data);
-        setPlanTitle(
-          `${sourcePlanResult.data.title || "Plan"} (Kopi)`,
-        );
+        setPlanTitle(`${sourcePlanResult.data.title || "Plan"} (Kopi)`);
       }
     };
 
@@ -544,40 +542,30 @@ export const MealPlanningWizard: React.FC<{
           ))}
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-4">
           <Button
             onClick={() => savePlan(true)}
             disabled={loading}
             size="sm"
-            className="flex-1 gap-2"
+            className="w-full gap-2"
           >
             {loading ? "Lagrer..." : "Lag handleliste"}
             <Icon icon={ui.next} className="h-5 w-5" />
           </Button>
-          <Button
-            variant="secondary"
-            onClick={() => savePlan(false)}
-            disabled={loading}
-            size="sm"
-            className="flex-1"
-          >
-            {loading ? "Lagrer..." : "Bare lagre menyen"}
-          </Button>
-          <Button as="a" href="/plans" variant="secondary" size="sm">
-            Avbryt
-          </Button>
-          {initialData && (
+          <div className="grid grid-cols-2 gap-4">
             <Button
-              type="button"
-              variant="danger"
-              onClick={handleDelete}
+              variant="secondary"
+              onClick={() => savePlan(false)}
               disabled={loading}
               size="sm"
-              title="Slett plan"
+              className="flex-1"
             >
-              Slett
+              {loading ? "Lagrer..." : "Bare lagre menyen"}
             </Button>
-          )}
+            <Button as="a" href="/plans" variant="secondary" size="sm">
+              Avbryt
+            </Button>
+          </div>
         </div>
       </div>
     );

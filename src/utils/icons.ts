@@ -19,6 +19,8 @@ export const ui = {
   edit: "hugeicons:pencil-edit-02",
   globe: "hugeicons:globe-02",
   x: "hugeicons:cancel-01",
+  more: "hugeicons:more-vertical",
+  chevronDown: "hugeicons:arrow-down-01",
 };
 
 export const app = {
