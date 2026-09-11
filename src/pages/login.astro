@@ -1,130 +1,71 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
-import { createServerClient } from "@supabase/ssr";
+import AuthLayout from "../layouts/AuthLayout.astro";
+import { Alert } from "../components/ui/Alert";
+import { Button } from "../components/ui/Button";
+import { Input } from "../components/forms/Input";
+import { createSupabaseServerClient } from "../lib/supabase-server";
 
 let errorMessage = "";
 
 if (Astro.request.method === "POST") {
   const formData = await Astro.request.formData();
-  const email = formData.get("email")?.toString();
+  const email = formData.get("email")?.toString().trim();
   const password = formData.get("password")?.toString();
 
   if (email && password) {
-    const supabase = createServerClient(
-      import.meta.env.PUBLIC_SUPABASE_URL,
-      import.meta.env.PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-      {
-        cookies: {
-          getAll() {
-            const cookieHeader = Astro.request.headers.get("Cookie") ?? "";
-            return cookieHeader
-              .split("; ")
-              .filter(Boolean)
-              .map((c) => {
-                const [name, ...value] = c.split("=");
-                return { name, value: value.join("=") };
-              });
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              Astro.cookies.set(name, value, {
-                ...options,
-                maxAge: 60 * 60 * 24 * 30, // 30 days
-                secure: true,
-                sameSite: "none",
-                httpOnly: false,
-                path: "/",
-              });
-            });
-          },
-        },
-      },
-    );
-
+    const supabase = createSupabaseServerClient(Astro);
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (error) {
-      if (error.message.includes("Invalid login credentials")) {
-        errorMessage =
-          "Huff da, vi kjenner ikke igjen e-posten eller passordet. Er du sikker på at det er riktig?";
-      } else {
-        errorMessage = "Det skjedde en liten feil: " + error.message;
-      }
-    } else {
+    if (!error) {
       return Astro.redirect("/");
     }
+
+    errorMessage =
+      error.code === "invalid_credentials" ||
+      error.message.includes("Invalid login credentials")
+        ? "Huff da, vi kjenner ikke igjen e-posten eller passordet. Er du sikker på at det er riktig?"
+        : `Det skjedde en liten feil: ${error.message}`;
   } else {
     errorMessage = "Husk å fylle inn både e-post og passord.";
   }
 }
 ---
 
-<BaseLayout title="Logg inn">
-  <div class="flex min-h-dvh items-center justify-center p-4">
-    <div
-      class="border-border bg-surface w-full max-w-md rounded-2xl border p-8"
+<AuthLayout
+  title="Logg inn"
+  heading="Hei igjen!"
+  subtitle="Logg inn for å få maten på bordet"
+>
+  {errorMessage && <Alert className="mb-6">{errorMessage}</Alert>}
+
+  <form method="POST" class="space-y-6">
+    <Input
+      type="email"
+      id="email"
+      name="email"
+      label="E-post"
+      required
+      autoComplete="email"
+      placeholder="deg@eksempel.no"
+    />
+    <Input
+      type="password"
+      id="password"
+      name="password"
+      label="Passord"
+      required
+      autoComplete="current-password"
+    />
+    <Button type="submit" size="lg" fullWidth>Logg inn</Button>
+  </form>
+
+  <Fragment slot="footer">
+    Har du ikke brukerkonto? <a
+      href="/signup"
+      class="text-primary font-medium hover:underline">Lag en her</a
     >
-      <div class="mb-10 text-center">
-        <h1 class="text-text mb-2 text-3xl font-bold">Hei igjen!</h1>
-        <p class="text-text-muted">Logg inn for å få maten på bordet</p>
-      </div>
-
-      {
-        errorMessage && (
-          <div
-            class="mb-6 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-500"
-            role="alert"
-          >
-            {errorMessage}
-          </div>
-        )
-      }
-
-      <form method="POST" class="space-y-6">
-        <div>
-          <label for="email" class="text-text mb-1 block text-sm font-medium"
-            >E-post</label
-          >
-          <input
-            type="email"
-            id="email"
-            name="email"
-            required
-            class="border-border bg-surface text-text focus:ring-primary w-full rounded-xl border px-4 py-3 transition-all outline-none focus:border-transparent focus:ring-2"
-            placeholder="you@example.com"
-          />
-        </div>
-
-        <div>
-          <label for="password" class="text-text mb-1 block text-sm font-medium"
-            >Passord</label
-          >
-          <input
-            type="password"
-            id="password"
-            name="password"
-            required
-            class="border-border bg-surface text-text focus:ring-primary w-full rounded-xl border px-4 py-3 transition-all outline-none focus:border-transparent focus:ring-2"
-          />
-        </div>
-
-        <button
-          type="submit"
-          class="bg-primary hover:bg-primary-hover hover:border-primary-hover w-full transform rounded-xl border border-transparent px-4 py-3 font-semibold text-white transition-all active:scale-[0.98]"
-        >
-          Logg inn
-        </button>
-      </form>
-
-      <p class="text-text-muted mt-8 text-center text-sm">
-        Har du ikke brukerkonto? <a
-          href="/signup"
-          class="text-primary font-medium hover:underline">Lag en her</a
-        >
-      </p>
-    </div>
-  </div>
-</BaseLayout>
+  </Fragment>
+</AuthLayout>

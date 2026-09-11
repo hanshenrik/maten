@@ -1,17 +1,18 @@
 /// <reference types="astro/client" />
+
+interface ImportMetaEnv {
+  readonly PUBLIC_SUPABASE_URL: string;
+  readonly PUBLIC_SUPABASE_PUBLISHABLE_KEY: string;
+  readonly PUBLIC_SITE_URL?: string;
+  /** Server only. Needed to send invitation e-mails. */
+  readonly SUPABASE_SERVICE_ROLE_KEY?: string;
+}
+
 declare namespace App {
   interface Locals {
     user: import("@supabase/supabase-js").User | null;
     supabase: import("@supabase/supabase-js").SupabaseClient;
     householdId: string | undefined;
-    pendingInvitesCount?: number;
-    queryCache: {
-      getOrSet: <T>(key: string, fetchFn: () => Promise<T>) => Promise<T>;
-      get: <T>(key: string) => T | undefined;
-      set: <T>(key: string, data: T) => void;
-      has: (key: string) => boolean;
-      clear: () => void;
-      delete: (key: string) => void;
-    };
+    pendingInvitesCount: number;
   }
 }

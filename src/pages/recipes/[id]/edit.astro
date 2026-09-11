@@ -1,52 +1,39 @@
 ---
 import BaseLayout from "../../../layouts/BaseLayout.astro";
+import Page from "../../../components/Page.astro";
+import PageHeader from "../../../components/PageHeader.astro";
 import { RecipeForm } from "../../../components/RecipeForm";
+import { fetchRecipeWithIngredients } from "../../../lib/queries";
+import { displayNameFor, requireSession } from "../../../lib/session";
 
 const { id } = Astro.params;
+const { supabase, user, householdId } = requireSession(Astro.locals);
 
-// Fetch recipe with ingredients using authenticated client from locals
-const { data: recipe, error: recipeError } = await Astro.locals.supabase
-  .from("recipes")
-  .select(
-    `
-    *,
-    ingredients (*)
-  `,
-  )
-  .eq("id", id)
-  .single();
-
-if (recipeError || !recipe) {
+const recipe = id ? await fetchRecipeWithIngredients(supabase, id) : null;
+if (!recipe) {
   return Astro.redirect("/404");
 }
 
-// Only the owner household can edit
-if (recipe.household_id !== Astro.locals.householdId) {
-  return Astro.redirect(`/recipes/${id}`);
+// Only the household that owns a recipe can change it
+if (recipe.household_id !== householdId) {
+  return Astro.redirect(`/recipes/${recipe.id}`);
 }
-
-const title = `Edit ${recipe.title}`;
 ---
 
-<BaseLayout title={title}>
-  <div class="bg-bg flex min-h-dvh flex-col">
-    <main class="container mx-auto max-w-2xl flex-1 px-4 py-12">
-      <div class="mb-10 text-center">
-        <h1 class="text-text mb-2 text-3xl font-bold">Endre oppskrift</h1>
-        <p class="text-text-muted">
-          Endre oppskriftens detaljer og ingredienser
-        </p>
-      </div>
+<BaseLayout title={`Endre ${recipe.title}`}>
+  <Page size="sm">
+    <PageHeader
+      centered
+      title="Endre oppskrift"
+      description="Endre oppskriftens detaljer og ingredienser"
+    />
 
-      <RecipeForm
-        client:load
-        initialData={recipe}
-        userId={Astro.locals.user.id}
-        householdId={Astro.locals.householdId}
-        authorName={Astro.locals.user.user_metadata?.full_name ||
-          Astro.locals.user.email?.split("@")[0] ||
-          "En kokk"}
-      />
-    </main>
-  </div>
+    <RecipeForm
+      client:load
+      initialData={recipe}
+      userId={user.id}
+      householdId={householdId}
+      authorName={displayNameFor(user)}
+    />
+  </Page>
 </BaseLayout>

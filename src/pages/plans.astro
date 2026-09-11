@@ -1,204 +1,147 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
-import { PlannedMealComponent as PlannedMeal } from "../components/PlannedMeal";
-import { Card } from "../components/ui/Card";
 import { Icon } from "astro-icon/components";
-import { formatISODate, formatDateRange, formatLongDay } from "../utils/date";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Page from "../components/Page.astro";
+import PageHeader from "../components/PageHeader.astro";
+import { PlannedMeal } from "../components/PlannedMeal";
 import { Button } from "../components/ui/Button";
+import { Card } from "../components/ui/Card";
 import { Details } from "../components/ui/Details";
+import { EmptyState } from "../components/ui/EmptyState";
+import { requireSession } from "../lib/session";
+import type { MealPlanWithMeals } from "../types";
+import { formatDateRange, formatLongDay, todayISO } from "../utils/date";
 import { app, ui } from "../utils/icons";
-import { generateCacheKey } from "../lib/supabase-cache";
+import { groupMealsByDate, planTitle } from "../utils/mealPlans";
 
-const title = "Hva skal vi ha til middag?";
+const { supabase, householdId } = requireSession(Astro.locals);
 
-const { queryCache, supabase, user } = Astro.locals;
+const { data, error } = await supabase
+  .from("meal_plans")
+  .select("*, planned_meals (*, recipes (id, title, image_url, cook_time))")
+  .eq("household_id", householdId)
+  .order("start_date", { ascending: false });
 
-// Fetch meal plans from Supabase using the authenticated client from locals
-const { data: plans = [] } = await queryCache.getOrSet(
-  generateCacheKey("meal_plans", "all", { user_id: user?.id }),
-  () => supabase
-    .from("meal_plans")
-    .select(
-      `
-    *,
-    planned_meals (
-      *,
-      recipes (id, title, image_url, cook_time)
-    )
-  `,
-    )
-    .order("start_date", { ascending: false })
-);
+if (error) console.error("Error fetching meal plans:", error);
 
-const today = formatISODate(new Date());
+const plans = (data ?? []) as MealPlanWithMeals[];
+const today = todayISO();
 
 const activePlans = plans.filter((p) => p.end_date >= today);
 const outdatedPlans = plans.filter((p) => p.end_date < today);
-
-/** Group a plan's planned_meals by date */
-function groupByDate(meals: any[]): {
-  date: string;
-  meals: { recipeId: string; notes?: string; recipe?: any }[];
-}[] {
-  const map = new Map<
-    string,
-    { recipeId: string; notes?: string; recipe?: any }[]
-  >();
-  for (const m of meals || []) {
-    const entries = map.get(m.date) || [];
-    entries.push({
-      recipeId: m.recipe_id,
-      notes: m.notes,
-      recipe: m.recipes
-        ? {
-            title: m.recipes.title,
-            image_url: m.recipes.image_url,
-            cook_time: m.recipes.cook_time,
-          }
-        : undefined,
-    });
-    map.set(m.date, entries);
-  }
-  return Array.from(map.entries())
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([date, meals]) => ({ date, meals }));
-}
 ---
 
-<BaseLayout title={title}>
-  <div class="flex min-h-dvh flex-col">
-    <main class="container mx-auto max-w-6xl flex-1 px-4 py-8">
-      <div class="mb-8 flex items-center justify-between">
-        <h1 class="text-text flex items-center gap-3 text-3xl font-bold">
-          <Icon name={app.plans} class="h-8 w-8" />
-          Mine menyer
-        </h1>
-        <div class="hidden md:block">
-          <Button as="a" href="/plans/new" className="gap-2">
-            <Icon name={ui.add} class="h-5 w-5" />
-            Lag ny meny
-          </Button>
+<BaseLayout title="Hva skal vi ha til middag?">
+  <Page>
+    <PageHeader title="Mine menyer" icon={app.plans}>
+      <Button slot="actions" as="a" href="/plans/new" className="gap-2">
+        <Icon name={ui.add} class="h-5 w-5" />
+        Lag ny meny
+      </Button>
+    </PageHeader>
+
+    {
+      activePlans.length > 0 ? (
+        <div class="space-y-12">
+          {activePlans.map((plan) => (
+            <section class="space-y-4">
+              <a href={`/plans/${plan.id}`} class="group block">
+                <h2 class="text-text group-hover:text-primary text-2xl font-bold transition-colors">
+                  {planTitle(plan)}
+                </h2>
+                <p class="text-secondary text-sm font-medium">
+                  {formatDateRange({
+                    start: plan.start_date,
+                    end: plan.end_date,
+                  })}
+                </p>
+              </a>
+              <div class="meal-scroll -mx-4 flex gap-4 overflow-x-auto px-4 pt-4 pb-4">
+                {groupMealsByDate(plan.planned_meals).map((day) => {
+                  const isToday = day.date === today;
+                  return (
+                    <div
+                      class="w-72 shrink-0"
+                      data-today={isToday ? "" : undefined}
+                    >
+                      <PlannedMeal
+                        date={day.date}
+                        meals={day.meals}
+                        isToday={isToday}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          ))}
         </div>
-      </div>
-
-      <div class="mb-8 md:hidden">
-        <Button as="a" href="/plans/new" className="flex w-full gap-2">
-          <Icon name={ui.add} class="h-5 w-5" />
-          Lag ny meny
-        </Button>
-      </div>
-
-      {
-        activePlans.length > 0 ? (
-          <div class="space-y-12">
-            {activePlans.map((plan) => {
-              const grouped = groupByDate(plan.planned_meals);
-              return (
-                <section class="space-y-4">
-                  <div class="flex items-center justify-between">
-                    <a href={`/plans/${plan.id}`} class="group">
-                      <h2 class="text-text hover:text-primary text-2xl font-bold transition-colors">
-                        {plan.title || "Meny"}
-                      </h2>
-                      <p class="text-secondary text-sm font-medium">
-                        {formatDateRange({
-                          start: plan.start_date,
-                          end: plan.end_date,
-                        })}
-                      </p>
-                    </a>
-                  </div>
-                  <div class="meal-scroll -mx-4 flex gap-4 overflow-x-auto px-4 pt-4 pb-4">
-                    {grouped.map((day) => {
-                      const isToday = day.date === today;
-                      return (
-                        <div
-                          class="w-72 shrink-0"
-                          data-today={isToday ? "" : undefined}
-                        >
-                          <PlannedMeal
-                            date={day.date}
-                            meals={day.meals}
-                            isToday={isToday}
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
-                </section>
-              );
-            })}
-          </div>
-        ) : outdatedPlans.length === 0 ? (
-          <div class="border-border bg-surface rounded-xl border p-6">
-            <p class="text-text-muted mb-4">Her var det ingen menyer å se!</p>
-            <p class="text-text-muted">
-              Hva med å sette opp en meny for dagene som kommer?
-            </p>
-          </div>
-        ) : null
-      }
-
-      {
-        outdatedPlans.length > 0 && (
-          <Details
-            className="mt-16"
-            summaryClassName="text-xl font-bold"
-            title={`Tidligere menyer (${outdatedPlans.length})`}
-            client:load
-          >
-            <div class="space-y-4">
-              {outdatedPlans.map((plan) => {
-                const grouped = groupByDate(plan.planned_meals);
-                return (
-                  <a href={`/plans/${plan.id}`} class="block">
-                    <Card isClickable>
-                      <div class="flex items-center justify-between">
-                        <h2 class="text-text text-xl font-bold transition-colors">
-                          {plan.title || "Meny"}
-                        </h2>
-                        <p class="text-text-muted text-sm">
-                          {formatDateRange({
-                            start: plan.start_date,
-                            end: plan.end_date,
-                          })}
-                        </p>
-                      </div>
-                      <table class="table-auto">
-                        <tbody>
-                          {grouped.map((day) =>
-                            day.meals.map((meal, i) => (
-                              <tr>
-                                <td class="capitalize">
-                                  {i === 0 ? formatLongDay(day.date) : ""}
-                                </td>
-                                <td class="overflow-hidden rounded-xl p-1">
-                                  {meal.recipe?.image_url ? (
-                                    <img
-                                      src={meal.recipe.image_url}
-                                      alt={meal.recipe.title}
-                                      class="h-6 w-6 object-cover"
-                                    />
-                                  ) : (
-                                    <div class="bg-bg text-text-muted flex h-6 w-6 flex-col items-center justify-center" />
-                                  )}
-                                </td>
-                                <td class="p-1">{meal.recipe?.title}</td>
-                              </tr>
-                            )),
-                          )}
-                        </tbody>
-                      </table>
-                    </Card>
-                  </a>
-                );
-              })}
-            </div>
-          </Details>
+      ) : (
+        outdatedPlans.length === 0 && (
+          <EmptyState>
+            <p>Her var det ingen menyer å se!</p>
+            <p>Hva med å sette opp en meny for dagene som kommer?</p>
+          </EmptyState>
         )
-      }
-    </main>
-  </div>
+      )
+    }
+
+    {
+      outdatedPlans.length > 0 && (
+        <Details
+          className="mt-16"
+          summaryClassName="text-xl font-bold"
+          title={`Tidligere menyer (${outdatedPlans.length})`}
+        >
+          <div class="space-y-4">
+            {outdatedPlans.map((plan) => (
+              <a href={`/plans/${plan.id}`} class="block">
+                <Card isClickable>
+                  <div class="flex items-center justify-between gap-4">
+                    <h2 class="text-text text-xl font-bold">
+                      {planTitle(plan)}
+                    </h2>
+                    <p class="text-text-muted text-sm">
+                      {formatDateRange({
+                        start: plan.start_date,
+                        end: plan.end_date,
+                      })}
+                    </p>
+                  </div>
+                  <table class="table-auto">
+                    <tbody>
+                      {groupMealsByDate(plan.planned_meals).map((day) =>
+                        day.meals.map((meal, i) => (
+                          <tr>
+                            <td class="capitalize">
+                              {i === 0 ? formatLongDay(day.date) : ""}
+                            </td>
+                            <td class="overflow-hidden rounded-xl p-1">
+                              {meal.recipe?.image_url ? (
+                                <img
+                                  src={meal.recipe.image_url}
+                                  alt=""
+                                  loading="lazy"
+                                  class="h-6 w-6 rounded object-cover"
+                                />
+                              ) : (
+                                <div class="bg-bg h-6 w-6 rounded" />
+                              )}
+                            </td>
+                            <td class="p-1">{meal.recipe?.title}</td>
+                          </tr>
+                        )),
+                      )}
+                    </tbody>
+                  </table>
+                </Card>
+              </a>
+            ))}
+          </div>
+        </Details>
+      )
+    }
+  </Page>
 
   <script>
     import { initScrollToToday } from "../utils/scrollToToday";

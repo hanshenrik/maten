@@ -1,64 +1,73 @@
-const CACHE_NAME = "maten-v7"; // Increment version
-const ASSETS_TO_CACHE = ["/", "/manifest.json"];
+// Bump when the caching strategy changes; old caches are dropped on activate.
+const CACHE_NAME = "maten-v8";
 
-// Install: Cache essential assets
-self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
-    }),
-  );
+self.addEventListener("install", () => {
   self.skipWaiting();
 });
 
-// Activate: Clean up old caches
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames
-          .filter((name) => name !== CACHE_NAME)
-          .map((name) => caches.delete(name)),
-      );
-    }),
+    caches
+      .keys()
+      .then((names) =>
+        Promise.all(
+          names
+            .filter((name) => name !== CACHE_NAME)
+            .map((name) => caches.delete(name)),
+        ),
+      )
+      .then(() => self.clients.claim()),
   );
-  self.clients.claim();
 });
 
-// Fetch: Optimized strategy
+/** Astro puts a content hash in these file names, so they never change. */
+const isImmutableAsset = (url) => url.pathname.startsWith("/_astro/");
+
+/** Icons, the manifest and the like: cached, but refreshed in the background. */
+const isStaticAsset = (url) =>
+  /\.(png|svg|jpg|jpeg|webp|ico|woff2?|json|js|css)$/.test(url.pathname);
+
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // 1. Skip non-GET requests and external origins (except some CDNs if needed)
-  if (request.method !== "GET" || url.origin !== self.location.origin) {
+  // Pages are rendered on the server and depend on who is logged in, so they
+  // always go to the network. Same for anything that isn't a same-origin GET.
+  if (
+    request.method !== "GET" ||
+    url.origin !== self.location.origin ||
+    request.mode === "navigate"
+  ) {
     return;
   }
 
-  // 2. Do NOT intercept navigations (let the browser handle SSR pages directly for speed)
-  if (request.mode === "navigate") {
-    // We let the browser handle it. This removes SW overhead for main page loads.
-    return;
-  }
-
-  // 3. Stale-While-Revalidate for static assets (CSS, JS, Images, Fonts)
-  const isStaticAsset =
-    url.pathname.match(/\.(js|css|png|jpg|jpeg|svg|webp|woff2?|json)$/) &&
-    !url.pathname.includes("manifest.json");
-
-  if (isStaticAsset) {
-    event.respondWith(
-      caches.open(CACHE_NAME).then((cache) => {
-        return cache.match(request).then((response) => {
-          const fetchPromise = fetch(request).then((networkResponse) => {
-            if (networkResponse.ok) {
-              cache.put(request, networkResponse.clone());
-            }
-            return networkResponse;
-          });
-          return response || fetchPromise;
-        });
-      }),
-    );
+  if (isImmutableAsset(url)) {
+    event.respondWith(cacheFirst(request));
+  } else if (isStaticAsset(url)) {
+    event.respondWith(staleWhileRevalidate(request));
   }
 });
+
+async function cacheFirst(request) {
+  const cache = await caches.open(CACHE_NAME);
+  const cached = await cache.match(request);
+  if (cached) return cached;
+
+  const response = await fetch(request);
+  if (response.ok) cache.put(request, response.clone());
+  return response;
+}
+
+async function staleWhileRevalidate(request) {
+  const cache = await caches.open(CACHE_NAME);
+  const cached = await cache.match(request);
+
+  const network = fetch(request)
+    .then((response) => {
+      if (response.ok) cache.put(request, response.clone());
+      return response;
+    })
+    .catch(() => cached);
+
+  return cached || network;
+}

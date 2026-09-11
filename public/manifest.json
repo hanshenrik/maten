@@ -1,12 +1,19 @@
 {
   "name": "Maten",
   "short_name": "Maten",
-  "description": "Recipe, Dinner Planning and Shopping List App",
-  "start_url": "https://maten.hanshenrik.com/",
+  "description": "Oppskrifter, menyer og handleliste for hele husstanden",
+  "lang": "no",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#F7FAFC",
-  "theme_color": "#4299E1",
+  "background_color": "#f9fafb",
+  "theme_color": "#059669",
   "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
     {
       "src": "/android-chrome-192x192.png",
       "sizes": "192x192",
@@ -15,21 +22,12 @@
     {
       "src": "/android-chrome-512x512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/apple-touch-icon.png",
       "sizes": "180x180",
-      "type": "image/png"
-    },
-    {
-      "src": "/favicon-32x32.png",
-      "sizes": "32x32",
-      "type": "image/png"
-    },
-    {
-      "src": "/favicon-16x16.png",
-      "sizes": "16x16",
       "type": "image/png"
     }
   ]

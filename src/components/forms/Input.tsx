@@ -1,4 +1,6 @@
-import React from "react";
+import React, { useId } from "react";
+import { cn } from "../../utils/cn";
+import { Field, inputClassName } from "./Field";
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -7,26 +9,24 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className = "", label, error, fullWidth = true, id, ...props }, ref) => {
-    const inputId =
-      id ||
-      (label ? `input-${label.replace(/\s+/g, "-").toLowerCase()}` : undefined);
+  ({ className, label, error, fullWidth = true, id, ...props }, ref) => {
+    const generatedId = useId();
+    const inputId = id ?? generatedId;
 
     return (
-      <div className={`${fullWidth ? "w-full" : ""} flex flex-col gap-1`}>
-        {label && (
-          <label htmlFor={inputId} className="text-text-muted text-sm">
-            {label}
-          </label>
-        )}
+      <Field
+        htmlFor={inputId}
+        label={label}
+        error={error}
+        className={cn(fullWidth && "w-full")}
+      >
         <input
           id={inputId}
           ref={ref}
-          className={`focus:ring-primary bg-surface text-text h-11 rounded-xl border px-3 transition-all outline-none focus:border-transparent focus:ring-2 ${error ? "border-red-500" : "border-border"} ${className}`}
+          className={cn(inputClassName, error && "border-red-500", className)}
           {...props}
         />
-        {error && <span className="text-sm text-red-500">{error}</span>}
-      </div>
+      </Field>
     );
   },
 );

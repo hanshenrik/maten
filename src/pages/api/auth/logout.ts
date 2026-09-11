@@ -1,96 +1,21 @@
 import type { APIRoute } from "astro";
-import { createServerClient } from "@supabase/ssr";
+import {
+  clearAppCookies,
+  createSupabaseServerClient,
+} from "../../../lib/supabase-server";
 
-export const POST: APIRoute = async ({ cookies, redirect, request }) => {
-  const supabase = createServerClient(
-    import.meta.env.PUBLIC_SUPABASE_URL,
-    import.meta.env.PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-    {
-      cookies: {
-        getAll() {
-          const cookieHeader = request.headers.get("Cookie") ?? "";
-          return cookieHeader
-            .split("; ")
-            .filter(Boolean)
-            .map((c: string) => {
-              const [name, ...value] = c.split("=");
-              return { name, value: value.join("=") };
-            });
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            cookies.set(name, value, {
-              ...options,
-              maxAge: 60 * 60 * 24 * 30, // 30 days
-              secure: true,
-              sameSite: "none",
-              httpOnly: false,
-              path: "/",
-            });
-          });
-        },
-      },
-    },
-  );
+const logout: APIRoute = async ({ cookies, redirect, request }) => {
+  const supabase = createSupabaseServerClient({ request, cookies });
 
-  // Clear household caching cookies
-  const cookieHeader = request.headers.get("Cookie") ?? "";
-  const cookieNames = cookieHeader
-    .split(";")
-    .map((c) => c.trim().split("=")[0]);
-  cookieNames.forEach((name) => {
-    if (name.startsWith("maten_")) {
-      cookies.delete(name, { path: "/" });
-    }
-  });
+  const { error } = await supabase.auth.signOut();
+  if (error) console.error("Error signing out:", error);
 
-  await supabase.auth.signOut();
+  // Forget the cached household too, so the next login starts clean
+  clearAppCookies({ request, cookies });
+
   return redirect("/login");
 };
 
-export const GET: APIRoute = async ({ cookies, redirect, request }) => {
-  const supabase = createServerClient(
-    import.meta.env.SUPABASE_URL,
-    import.meta.env.SUPABASE_PUBLISHABLE_KEY,
-    {
-      cookies: {
-        getAll() {
-          const cookieHeader = request.headers.get("Cookie") ?? "";
-          return cookieHeader
-            .split("; ")
-            .filter(Boolean)
-            .map((c: string) => {
-              const [name, ...value] = c.split("=");
-              return { name, value: value.join("=") };
-            });
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            cookies.set(name, value, {
-              ...options,
-              maxAge: 60 * 60 * 24 * 30, // 30 days
-              secure: true,
-              sameSite: "none",
-              httpOnly: false,
-              path: "/",
-            });
-          });
-        },
-      },
-    },
-  );
-
-  // Clear household caching cookies
-  const cookieHeader = request.headers.get("Cookie") ?? "";
-  const cookieNames = cookieHeader
-    .split(";")
-    .map((c) => c.trim().split("=")[0]);
-  cookieNames.forEach((name) => {
-    if (name.startsWith("maten_")) {
-      cookies.delete(name, { path: "/" });
-    }
-  });
-
-  await supabase.auth.signOut();
-  return redirect("/login");
-};
+export const POST = logout;
+// Lets a plain link log people out as well
+export const GET = logout;

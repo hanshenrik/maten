@@ -1,43 +1,35 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { ShoppingListComponent } from "../components/ShoppingList";
-import { Icon } from "astro-icon/components";
+import Page from "../components/Page.astro";
+import PageHeader from "../components/PageHeader.astro";
+import { ShoppingList } from "../components/ShoppingList";
+import { requireSession } from "../lib/session";
+import type { ShoppingItem } from "../types";
 import { app } from "../utils/icons";
-import { generateCacheKey } from "../lib/supabase-cache";
 
-const title = "Handleliste";
+const { supabase, householdId, user } = requireSession(Astro.locals);
 
-const { queryCache, supabase, householdId, user } = Astro.locals;
+const { data, error } = await supabase
+  .from("shopping_items")
+  .select("*")
+  .eq("household_id", householdId)
+  // Newest first, so items you just added are at the top of the list
+  .order("created_at", { ascending: false });
 
-const { data: shoppingItems } = await queryCache.getOrSet(
-  generateCacheKey("shopping_items", "household", {
-    household_id: householdId,
-  }),
-  () =>
-    supabase
-      .from("shopping_items")
-      .select("*")
-      // Newest first, so items you just added are at the top of the list
-      .order("created_at", { ascending: false }),
-);
+if (error) console.error("Error fetching shopping items:", error);
 
-const initialItems = shoppingItems || [];
+const items = (data ?? []) as ShoppingItem[];
 ---
 
-<BaseLayout title={title}>
-  <div class="flex min-h-dvh flex-col">
-    <main class="container mx-auto max-w-6xl flex-1 px-4 py-8">
-      <h1 class="text-text mb-6 flex items-center gap-3 text-3xl font-bold">
-        <Icon name={app.shopping} class="h-8 w-8" />
-        Handleliste
-      </h1>
+<BaseLayout title="Handleliste">
+  <Page>
+    <PageHeader title="Handleliste" icon={app.shopping} />
 
-      <ShoppingListComponent
-        client:load
-        initialItems={initialItems}
-        userId={user.id}
-        householdId={householdId}
-      />
-    </main>
-  </div>
+    <ShoppingList
+      client:load
+      initialItems={items}
+      userId={user.id}
+      householdId={householdId}
+    />
+  </Page>
 </BaseLayout>

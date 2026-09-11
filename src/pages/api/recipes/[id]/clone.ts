@@ -1,36 +1,23 @@
 import type { APIRoute } from "astro";
+import { apiError, json } from "../../../../lib/api";
+import { fetchRecipeWithIngredients } from "../../../../lib/queries";
 
+/** Copies a recipe into the caller's household as a new, private recipe. */
 export const POST: APIRoute = async ({ params, locals }) => {
   const recipeId = params.id;
   const userId = locals.user?.id;
   const householdId = locals.householdId;
 
   if (!recipeId || !userId || !householdId) {
-    return new Response(JSON.stringify({ error: "Mangler data" }), {
-      status: 400,
-    });
+    return apiError("Mangler data", 400);
   }
 
-  // 1. Fetch the original recipe
-  const { data: original, error: fetchError } = await locals.supabase
-    .from("recipes")
-    .select(
-      `
-      *,
-      ingredients (*)
-    `,
-    )
-    .eq("id", recipeId)
-    .single();
-
-  if (fetchError || !original) {
-    return new Response(JSON.stringify({ error: "Fant ikke oppskriften" }), {
-      status: 404,
-    });
+  const original = await fetchRecipeWithIngredients(locals.supabase, recipeId);
+  if (!original) {
+    return apiError("Fant ikke oppskriften", 404);
   }
 
-  // 2. Create a copy of the recipe
-  const { data: newRecipe, error: insertError } = await locals.supabase
+  const { data: copy, error: insertError } = await locals.supabase
     .from("recipes")
     .insert({
       title: `${original.title} (kopi)`,
@@ -39,44 +26,39 @@ export const POST: APIRoute = async ({ params, locals }) => {
       image_url: original.image_url,
       source_url: original.source_url,
       cook_time: original.cook_time,
+      servings: original.servings,
       user_id: userId,
       household_id: householdId,
       is_public: false,
       author_name: null,
     })
-    .select()
+    .select("id")
     .single();
 
-  if (insertError || !newRecipe) {
-    return new Response(
-      JSON.stringify({
-        error: insertError?.message || "Klarte ikke å kopiere",
-      }),
-      { status: 500 },
-    );
+  if (insertError || !copy) {
+    console.error("Error cloning recipe:", insertError);
+    return apiError("Klarte ikke å kopiere oppskriften", 500);
   }
 
-  // 3. Copy ingredients
-  if (original.ingredients && original.ingredients.length > 0) {
-    const ingredientsCopy = original.ingredients.map((ing: any) => ({
-      recipe_id: newRecipe.id,
-      name: ing.name,
-      amount: ing.amount,
-      unit: ing.unit,
-      is_basic: ing.is_basic,
-    }));
-
-    const { error: ingError } = await locals.supabase
+  if (original.ingredients.length > 0) {
+    const { error: ingredientsError } = await locals.supabase
       .from("ingredients")
-      .insert(ingredientsCopy);
+      .insert(
+        original.ingredients.map((ing) => ({
+          recipe_id: copy.id,
+          name: ing.name,
+          amount: ing.amount,
+          unit: ing.unit,
+          is_basic: ing.is_basic,
+          optional: ing.optional,
+        })),
+      );
 
-    if (ingError) {
-      console.error("Error copying ingredients:", ingError);
-      // Recipe was created, so we still return success but log the error
+    if (ingredientsError) {
+      // The recipe exists, so still report success; the user can add them
+      console.error("Error copying ingredients:", ingredientsError);
     }
   }
 
-  return new Response(JSON.stringify({ success: true, id: newRecipe.id }), {
-    status: 201,
-  });
+  return json({ success: true, id: copy.id }, 201);
 };

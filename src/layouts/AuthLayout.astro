@@ -1,0 +1,31 @@
+---
+import BaseLayout from "./BaseLayout.astro";
+
+/** The centred card used by the login and signup pages. */
+interface Props {
+  title: string;
+  heading: string;
+  subtitle: string;
+}
+
+const { title, heading, subtitle } = Astro.props;
+---
+
+<BaseLayout title={title}>
+  <div class="flex min-h-dvh items-center justify-center p-4">
+    <div
+      class="border-border bg-surface w-full max-w-md rounded-2xl border p-8"
+    >
+      <div class="mb-10 text-center">
+        <h1 class="text-text mb-2 text-3xl font-bold">{heading}</h1>
+        <p class="text-text-muted">{subtitle}</p>
+      </div>
+
+      <slot />
+
+      <p class="text-text-muted mt-8 text-center text-sm">
+        <slot name="footer" />
+      </p>
+    </div>
+  </div>
+</BaseLayout>

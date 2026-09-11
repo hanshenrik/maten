@@ -1,176 +1,157 @@
 import { defineMiddleware } from "astro:middleware";
-import { createServerClient } from "@supabase/ssr";
-import { createQueryCache, generateCacheKey } from "./lib/supabase-cache";
-import { getUserFromCookies } from "./lib/auth";
+import type { SupabaseClient, User } from "@supabase/supabase-js";
+import type { AstroCookies } from "astro";
+import { getUserFromCookies, readSessionCookie } from "./lib/auth";
+import { apiError } from "./lib/api";
+import {
+  APP_COOKIE_PREFIX,
+  COOKIE_OPTIONS,
+  createSupabaseServerClient,
+} from "./lib/supabase-server";
+
+/** Pages you can see without being logged in */
+const PUBLIC_PATHS = new Set(["/login", "/signup", "/auth/callback"]);
+
+// Household membership hardly ever changes, so it's cached in cookies instead
+// of being looked up on every request. Bump the version to invalidate.
+const CACHE_VERSION = "v1";
+const HOUSEHOLD_ID_COOKIE = `${APP_COOKIE_PREFIX}h_id_${CACHE_VERSION}`;
+const PENDING_INVITES_COOKIE = `${APP_COOKIE_PREFIX}p_inv_${CACHE_VERSION}`;
 
 export const onRequest = defineMiddleware(
-  async ({ locals, request, cookies, redirect }, next) => {
-    const supabase = createServerClient(
-      import.meta.env.PUBLIC_SUPABASE_URL,
-      import.meta.env.PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-      {
-        cookies: {
-          getAll() {
-            const cookieHeader = request.headers.get("Cookie") ?? "";
-            return cookieHeader
-              .split("; ")
-              .filter(Boolean)
-              .map((c) => {
-                const [name, ...value] = c.split("=");
-                return { name, value: value.join("=") };
-              });
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              try {
-                cookies.set(name, value, {
-                  ...options,
-                  maxAge: 60 * 60 * 24 * 30, // 30 days
-                  secure: true,
-                  sameSite: "none",
-                  httpOnly: false,
-                  path: "/",
-                });
-              } catch {
-                // Token refresh callback fired after response was already sent.
-                // The existing refresh_token in the browser will retry on the next request.
-              }
-            });
-          },
-        },
-      },
-    );
+  async ({ locals, request, cookies, redirect, url }, next) => {
+    const supabase = createSupabaseServerClient({ request, cookies });
+    const cookieHeader = request.headers.get("Cookie") ?? "";
 
-    // Create request-scoped query cache
-    const queryCache = createQueryCache();
-
-    const CACHE_VERSION = "v1";
-    const HOUSEHOLD_ID_COOKIE = `maten_h_id_${CACHE_VERSION}`;
-    const PENDING_INVITES_COOKIE = `maten_p_inv_${CACHE_VERSION}`;
-
-    const user = await getUserFromCookies(
-      request.headers.get("Cookie") ?? "",
-      import.meta.env.PUBLIC_SUPABASE_URL,
-    );
+    // Fast path: verify the access token locally, no round trip to Supabase.
+    // If that fails but there is a session cookie, the token has most likely
+    // expired; let Supabase refresh it (new cookies are written via setAll)
+    // instead of sending someone with a perfectly good refresh token to login.
+    let user = await getUserFromCookies(cookieHeader);
+    if (!user && readSessionCookie(cookieHeader)) {
+      const { data } = await supabase.auth.getUser();
+      user = data.user;
+    }
 
     locals.user = user;
     locals.supabase = supabase;
-    locals.queryCache = queryCache;
+    locals.householdId = undefined;
+    locals.pendingInvitesCount = 0;
 
-    if (user) {
-      const cachedHId = cookies.get(HOUSEHOLD_ID_COOKIE)?.value;
-      const cachedPInv = cookies.get(PENDING_INVITES_COOKIE)?.value;
+    const isApiRoute = url.pathname.startsWith("/api/");
 
-      let householdId = cachedHId;
-      let pendingCount = cachedPInv ? parseInt(cachedPInv, 10) : undefined;
-
-      // If any of the essential info is missing from cache, fetch it
-      if (householdId === undefined || pendingCount === undefined) {
-        const [inviteRes, memberRes] = await Promise.all([
-          queryCache.getOrSet(
-            generateCacheKey("household_members", "invites", { email: user.email }),
-            () => supabase
-              .from("household_members")
-              .select("*", { count: "exact", head: true })
-              .eq("email", user.email)
-              .is("user_id", null)
-          ),
-          queryCache.getOrSet(
-            generateCacheKey("household_members", "by_user", { user_id: user.id }),
-            () => supabase
-              .from("household_members")
-              .select("household_id")
-              .eq("user_id", user.id)
-              .order("created_at", { ascending: false })
-              .limit(1)
-          ),
-        ]);
-
-        if (inviteRes.error) {
-          console.error("Error counting invitations:", inviteRes.error);
-        } else {
-          pendingCount = inviteRes.count || 0;
-        }
-
-        if (memberRes.error) {
-          console.error(
-            "Error fetching household membership:",
-            memberRes.error,
-          );
-        }
-
-        let member = memberRes.data?.[0];
-
-        // Create a default household if nothing exists
-        if (!member) {
-          const { data: newH, error: createHError } = await supabase
-            .from("households")
-            .insert({ name: `${user.email}'s Household` })
-            .select()
-            .single();
-
-          if (createHError) {
-            console.error("Error creating household:", createHError);
-          }
-
-          if (newH) {
-            const { error: memberError } = await supabase
-              .from("household_members")
-              .insert({
-                household_id: newH.id,
-                user_id: user.id,
-                email: user.email!,
-                role: "owner",
-              });
-
-            if (memberError) {
-              console.error(
-                "Error creating household membership:",
-                memberError,
-              );
-            } else {
-              member = { household_id: newH.id };
-            }
-          }
-        }
-
-        householdId = member?.household_id;
-
-        // Set cookies for next time
-        if (householdId) {
-          cookies.set(HOUSEHOLD_ID_COOKIE, householdId, {
-            path: "/",
-            maxAge: 60 * 60 * 24 * 30, // 30 days
-            httpOnly: false, // Accessible to client-side JS for easier clearing
-            secure: true,
-            sameSite: "none",
-          });
-        }
-        if (pendingCount !== undefined) {
-          cookies.set(PENDING_INVITES_COOKIE, pendingCount.toString(), {
-            path: "/",
-            maxAge: 60 * 60 * 24 * 30,
-            httpOnly: false,
-            secure: true,
-            sameSite: "none",
-          });
-        }
-      }
-
-      locals.pendingInvitesCount = pendingCount || 0;
-      locals.householdId = householdId;
-    }
-
-    const url = new URL(request.url);
-    const publicPaths = ["/login", "/signup", "/auth/callback"];
-    if (!user && !publicPaths.includes(url.pathname)) {
+    if (!user) {
+      if (PUBLIC_PATHS.has(url.pathname)) return next();
+      if (isApiRoute) return apiError("Du må være logget inn", 401);
       return redirect("/login");
     }
 
-    if (user && url.pathname === "/login") {
+    if (url.pathname === "/login" || url.pathname === "/signup") {
       return redirect("/");
+    }
+
+    const household = await resolveHousehold(user, supabase, cookies);
+    locals.householdId = household.id;
+    locals.pendingInvitesCount = household.pendingInvites;
+
+    // Without a household nothing else works. Settings explains what to do.
+    if (!household.id && !isApiRoute && url.pathname !== "/settings") {
+      return redirect("/settings");
     }
 
     return next();
   },
 );
+
+interface Household {
+  id: string | undefined;
+  pendingInvites: number;
+}
+
+/**
+ * The user's household and how many invitations are waiting for them, from
+ * the cookie cache when possible. A user without a household gets one.
+ */
+async function resolveHousehold(
+  user: User,
+  supabase: SupabaseClient,
+  cookies: AstroCookies,
+): Promise<Household> {
+  const cachedId = cookies.get(HOUSEHOLD_ID_COOKIE)?.value;
+  const cachedInvites = cookies.get(PENDING_INVITES_COOKIE)?.value;
+
+  if (cachedId && cachedInvites !== undefined) {
+    return { id: cachedId, pendingInvites: parseInt(cachedInvites, 10) || 0 };
+  }
+
+  const [inviteRes, memberRes] = await Promise.all([
+    user.email
+      ? supabase
+          .from("household_members")
+          .select("*", { count: "exact", head: true })
+          .eq("email", user.email)
+          .is("user_id", null)
+      : Promise.resolve({ count: 0, error: null }),
+    supabase
+      .from("household_members")
+      .select("household_id")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1),
+  ]);
+
+  if (inviteRes.error) {
+    console.error("Error counting invitations:", inviteRes.error);
+  }
+  if (memberRes.error) {
+    console.error("Error fetching household membership:", memberRes.error);
+  }
+
+  const pendingInvites = inviteRes.count ?? 0;
+  let householdId: string | undefined = memberRes.data?.[0]?.household_id;
+
+  if (!householdId && !memberRes.error) {
+    householdId = await createHousehold(user, supabase);
+  }
+
+  if (householdId) {
+    cookies.set(HOUSEHOLD_ID_COOKIE, householdId, COOKIE_OPTIONS);
+  }
+  if (!inviteRes.error) {
+    cookies.set(PENDING_INVITES_COOKIE, String(pendingInvites), COOKIE_OPTIONS);
+  }
+
+  return { id: householdId, pendingInvites };
+}
+
+async function createHousehold(
+  user: User,
+  supabase: SupabaseClient,
+): Promise<string | undefined> {
+  const { data: household, error: householdError } = await supabase
+    .from("households")
+    .insert({ name: `${user.email}'s Household` })
+    .select("id")
+    .single();
+
+  if (householdError || !household) {
+    console.error("Error creating household:", householdError);
+    return undefined;
+  }
+
+  const { error: memberError } = await supabase
+    .from("household_members")
+    .insert({
+      household_id: household.id,
+      user_id: user.id,
+      email: user.email,
+      role: "owner",
+    });
+
+  if (memberError) {
+    console.error("Error creating household membership:", memberError);
+    return undefined;
+  }
+
+  return household.id;
+}

@@ -1,191 +1,187 @@
 ---
-import BaseLayout from "../../layouts/BaseLayout.astro";
 import { Icon } from "astro-icon/components";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Page from "../../components/Page.astro";
 import { Button } from "../../components/ui/Button";
 import { RecipeActions } from "../../components/RecipeActions";
 import { RecipeScaler } from "../../components/RecipeScaler";
+import { renderMarkdown, markdownToPlainText } from "../../lib/markdown";
+import { fetchRecipeWithIngredients } from "../../lib/queries";
+import { requireSession } from "../../lib/session";
 import { ui, app } from "../../utils/icons";
 import { duration } from "../../utils/time";
-import { marked } from "marked";
 
 const { id } = Astro.params;
+const { supabase, householdId } = requireSession(Astro.locals);
 
-// Fetch recipe with ingredients using the authenticated client from locals
-const { data: recipe, error: recipeError } = await Astro.locals.supabase
-  .from("recipes")
-  .select(
-    `
-    *,
-    ingredients (*)
-  `,
-  )
-  .eq("id", id)
-  .order("optional", { referencedTable: "ingredients", ascending: true })
-  .order("is_basic", { referencedTable: "ingredients", ascending: true })
-  .single();
-
-if (recipeError || !recipe) {
+const recipe = id ? await fetchRecipeWithIngredients(supabase, id) : null;
+if (!recipe) {
   return Astro.redirect("/404");
 }
 
-const title = recipe.title;
-const householdId = Astro.locals.householdId;
 const isOwner = recipe.household_id === householdId;
 
 let isSaved = false;
 let saveCount = 0;
 
 if (recipe.is_public) {
-  const [savedResult, countResult] = await Promise.all([
-    !isOwner
-      ? Astro.locals.supabase
+  const [savedRes, countRes] = await Promise.all([
+    isOwner
+      ? Promise.resolve({ data: null })
+      : supabase
           .from("saved_recipes")
           .select("id")
           .eq("household_id", householdId)
-          .eq("recipe_id", id)
-          .maybeSingle()
-      : Promise.resolve({ data: null }),
-    Astro.locals.supabase
+          .eq("recipe_id", recipe.id)
+          .maybeSingle(),
+    supabase
       .from("saved_recipes")
       .select("*", { count: "exact", head: true })
-      .eq("recipe_id", id),
+      .eq("recipe_id", recipe.id),
   ]);
-  isSaved = !!savedResult.data;
-  saveCount = countResult.count || 0;
+  isSaved = !!savedRes.data;
+  saveCount = countRes.count ?? 0;
 }
 
-const descriptionHtml = recipe.description ? marked.parse(recipe.description) : "";
-const instructionsHtml = recipe.instructions ? marked.parse(recipe.instructions) : "";
+// Recipes are shared between households, so the markdown is sanitised
+const descriptionHtml = renderMarkdown(recipe.description);
+const instructionsHtml = renderMarkdown(recipe.instructions);
+const description = markdownToPlainText(recipe.description).slice(0, 160);
 ---
 
-<BaseLayout title={title}>
-  <div class="flex min-h-dvh flex-col">
-    <main class="container mx-auto max-w-4xl flex-1 px-4 py-12">
-      <div class="mb-8 flex items-center justify-between">
-        <Button id="back-btn" variant="secondary" className="gap-2">
-          <Icon name={ui.back} class="h-4 w-4" />
-          Tilbake
-        </Button>
-        <div class="flex gap-2">
+<BaseLayout title={recipe.title} description={description || undefined}>
+  <Page size="md">
+    <div class="mb-8 flex items-center justify-between">
+      <Button id="back-btn" variant="secondary" className="gap-2">
+        <Icon name={ui.back} class="h-4 w-4" />
+        Tilbake
+      </Button>
+      {
+        isOwner && (
+          <Button
+            as="a"
+            href={`/recipes/${recipe.id}/edit`}
+            variant="secondary"
+            className="gap-2"
+          >
+            <Icon name={ui.edit} class="h-5 w-5" />
+            Gjør endringer
+          </Button>
+        )
+      }
+    </div>
+
+    <article
+      class="border-border bg-surface overflow-hidden rounded-3xl border"
+    >
+      {
+        recipe.image_url && (
+          <img
+            src={recipe.image_url}
+            alt=""
+            fetchpriority="high"
+            class="h-64 w-full object-cover"
+          />
+        )
+      }
+
+      <div class="p-8 md:p-16">
+        <div
+          class="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center"
+        >
+          <h1
+            class="text-text mb-4 flex items-center gap-3 text-left text-2xl font-bold md:text-4xl"
+          >
+            <Icon name={app.recipes} class="h-6 w-6 shrink-0 md:h-10 md:w-10" />
+            {recipe.title}
+          </h1>
           {
-            isOwner && (
+            recipe.source_url && (
               <Button
                 as="a"
-                href={`/recipes/${id}/edit`}
                 variant="secondary"
-                className="gap-2"
+                href={recipe.source_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mb-4 gap-2"
               >
-                <Icon name={ui.edit} class="h-5 w-5" />
-                Gjør endringer
+                <Icon name={ui.link} class="h-4 w-4" />
+                Originaloppskrift
               </Button>
             )
           }
         </div>
-      </div>
 
-      <article
-        class="border-border bg-surface overflow-hidden rounded-3xl border"
-      >
+        <div class="mb-8 flex flex-wrap items-center gap-4">
+          {
+            recipe.cook_time && (
+              <div class="text-text-muted flex items-center gap-2 text-sm font-medium">
+                <Icon name={ui.clock} class="text-primary h-5 w-5" />
+                <span>{duration(recipe.cook_time)}</span>
+              </div>
+            )
+          }
+          {
+            recipe.is_public && (
+              <div class="flex items-center gap-2">
+                <div class="bg-primary/10 text-primary flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium">
+                  <Icon name={app.library} class="h-5 w-5" />
+                  <span>Delt i biblioteket</span>
+                </div>
+                <div
+                  class="bg-primary/10 text-primary flex items-center gap-2 rounded-xl px-4 py-2 text-sm"
+                  title="Antall som har lagret oppskriften"
+                >
+                  <Icon name={ui.favourite} class="h-5 w-5" />
+                  <span>{saveCount}</span>
+                </div>
+              </div>
+            )
+          }
+        </div>
+
         {
-          recipe.image_url && (
-            <img
-              src={recipe.image_url}
-              alt={recipe.title}
-              class="h-64 w-full object-cover"
+          descriptionHtml && (
+            <div
+              class="prose prose-emerald prose-lg text-text-muted mb-4 max-w-none"
+              set:html={descriptionHtml}
             />
           )
         }
 
-        <div class="p-8 md:p-16">
-          <div
-            class="flex flex-col items-start justify-between md:flex-row md:items-center"
-          >
-            <h1
-              class="text-text mb-4 flex items-center gap-3 text-left text-2xl font-bold md:text-4xl"
-            >
-              <Icon name={app.recipes} class="h-6 w-6 md:h-10 md:w-10" />
-              {recipe.title}
-            </h1>
-            {
-              recipe.source_url && (
-                <div class="mb-4">
-                  <Button
-                    as="a"
-                    variant="secondary"
-                    href={recipe.source_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex gap-2"
-                  >
-                    <Icon name={ui.link} class="h-4 w-4" />
-                    Originaloppskrift
-                  </Button>
-                </div>
-              )
-            }
+        <RecipeActions
+          client:load
+          recipeId={recipe.id}
+          isOwner={isOwner}
+          isPublic={recipe.is_public}
+          initialIsSaved={isSaved}
+        />
+
+        <div class="grid gap-8 md:grid-cols-3">
+          <div class="md:col-span-1">
+            <h2 class="text-text mb-4 text-xl font-bold">Dette trenger du</h2>
+            <RecipeScaler
+              client:load
+              ingredients={recipe.ingredients}
+              baseServings={recipe.servings}
+            />
           </div>
-          <div class="mb-8 flex flex-wrap gap-4">
-            {
-              recipe.cook_time && (
-                <div class="bg-surface-elevated text-text-muted flex items-center gap-2 text-sm font-medium">
-                  <Icon
-                    name="hugeicons:clock-01"
-                    class="text-primary h-5 w-5"
-                  />
-                  <span>{duration(recipe.cook_time)}</span>
-                </div>
-              )
-            }
-            {
-              recipe.is_public && (
-                <div class="flex items-center gap-2">
-                  <div class="bg-primary/10 text-primary flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium">
-                    <Icon name={app.library} class="h-5 w-5" />
-                    <span>Delt i biblioteket</span>
-                  </div>
-                  <div class="flex items-center gap-3">
-                    <div class="bg-primary/10 text-primary flex items-center gap-2 rounded-xl px-4 py-2 text-sm">
-                      <Icon name={ui.favourite} class="h-5 w-5" />
-                      <span class="">{saveCount}</span>
-                    </div>
-                  </div>
-                </div>
-              )
-            }
-          </div>
-          <div class="prose prose-emerald prose-lg text-text-muted mb-4 max-w-none" set:html={descriptionHtml} />
 
-          <RecipeActions
-            client:load
-            recipeId={id!}
-            isOwner={isOwner}
-            isPublic={recipe.is_public}
-            initialIsSaved={isSaved}
-          />
-
-          <div class="grid gap-8 md:grid-cols-3">
-            <div class="md:col-span-1">
-              <h2 class="text-text mb-4 text-xl font-bold">Dette trenger du</h2>
-              <RecipeScaler
-                client:load
-                ingredients={recipe.ingredients}
-                baseServings={recipe.servings ?? null}
-              />
-            </div>
-
-            <div class="md:col-span-2">
-              <h2 class="text-text mb-4 text-xl font-bold">Slik gjør du det</h2>
-              <div class="prose prose-emerald prose-lg text-text-muted max-w-none" set:html={instructionsHtml} />
-            </div>
+          <div class="md:col-span-2">
+            <h2 class="text-text mb-4 text-xl font-bold">Slik gjør du det</h2>
+            <div
+              class="prose prose-emerald prose-lg text-text-muted max-w-none"
+              set:html={instructionsHtml}
+            />
           </div>
         </div>
-      </article>
-    </main>
-  </div>
+      </div>
+    </article>
+  </Page>
 </BaseLayout>
 
 <script>
   document
-    .getElementById("back-btn")!
-    .addEventListener("click", () => history.back());
+    .getElementById("back-btn")
+    ?.addEventListener("click", () => history.back());
 </script>

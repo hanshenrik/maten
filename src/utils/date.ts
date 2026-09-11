@@ -78,3 +78,15 @@ export const formatShortDate = (date: Date | string) => {
 export const formatDistanceToNow = (date: Date | string) => {
   return formatDistanceToNowFns(date, { locale: nb });
 };
+
+/**
+ * Today's date as "2026-03-28" in Norwegian time. The server runs in UTC, so
+ * plain `new Date()` would be a day behind between midnight and 01:00/02:00.
+ */
+export const todayISO = () =>
+  new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "Europe/Oslo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());

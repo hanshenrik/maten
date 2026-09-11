@@ -1,44 +1,43 @@
 ---
 import BaseLayout from "../../../layouts/BaseLayout.astro";
+import Page from "../../../components/Page.astro";
+import PageHeader from "../../../components/PageHeader.astro";
 import { MealPlanningWizard } from "../../../components/MealPlanningWizard";
+import { fetchMealPlan, fetchWizardRecipes } from "../../../lib/queries";
+import { requireSession } from "../../../lib/session";
 
 const { id } = Astro.params;
+const { supabase, user, householdId } = requireSession(Astro.locals);
 
-// Fetch plan with days
-const { data: plan, error } = await Astro.locals.supabase
-  .from("meal_plans")
-  .select(
-    `
-    *,
-    planned_meals (*)
-  `,
-  )
-  .eq("id", id)
-  .single();
+const [plan, recipes] = await Promise.all([
+  id ? fetchMealPlan(supabase, id) : null,
+  fetchWizardRecipes(supabase),
+]);
 
-if (error || !plan) {
+if (!plan) {
   return Astro.redirect("/404");
 }
 
-const title = "Gjør endringer i menyen";
+// Only the household that owns a plan can change it
+if (plan.household_id !== householdId) {
+  return Astro.redirect(`/plans/${plan.id}`);
+}
 ---
 
-<BaseLayout title={title}>
-  <div class="bg-bg flex min-h-dvh flex-col">
-    <main class="container mx-auto max-w-4xl flex-1 px-4 py-12">
-      <div class="mb-10 text-center">
-        <h1 class="text-text mb-2 text-3xl font-bold">
-          Gjør endringer i menyen
-        </h1>
-        <p class="text-text-muted">Her kan du bytte ut datoer og oppskrifter</p>
-      </div>
+<BaseLayout title="Gjør endringer i menyen">
+  <Page size="md">
+    <PageHeader
+      centered
+      title="Gjør endringer i menyen"
+      description="Her kan du bytte ut datoer og oppskrifter"
+    />
 
-      <MealPlanningWizard
-        client:load
-        userId={Astro.locals.user.id}
-        householdId={Astro.locals.householdId}
-        initialData={plan}
-      />
-    </main>
-  </div>
+    <MealPlanningWizard
+      client:load
+      userId={user.id}
+      householdId={householdId}
+      recipes={recipes}
+      initialData={plan}
+    />
+  </Page>
 </BaseLayout>

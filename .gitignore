@@ -6,3 +6,6 @@ src/migrations
 .vercel
 .env*.local
 .env*
+
+# Keep the template, ignore real secrets
+!.env.example

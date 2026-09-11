@@ -1,32 +1,27 @@
 import React, { useState } from "react";
-import { BasicTag } from "./BasicTag";
-import { OptionalTag } from "./OptionalTag";
-
-interface Ingredient {
-  id: string;
-  name: string;
-  amount: number | null;
-  unit: string;
-  optional: boolean;
-  is_basic: boolean;
-}
+import { BasicTag, OptionalTag } from "./ui/Tag";
+import type { Ingredient } from "../types";
 
 interface RecipeScalerProps {
   ingredients: Ingredient[];
+  /** The number of servings the amounts are written for */
   baseServings: number | null;
 }
 
-function formatAmount(amount: number): string {
-  return parseFloat(amount.toFixed(2)).toString();
-}
+/** "1.3333" -> "1.33", "2.00" -> "2" */
+const formatAmount = (amount: number) =>
+  parseFloat(amount.toFixed(2)).toString();
 
-export const RecipeScaler: React.FC<RecipeScalerProps> = ({
+/** The ingredient list, with a control to scale amounts to more or fewer servings. */
+export const RecipeScaler = ({
   ingredients,
   baseServings,
-}) => {
+}: RecipeScalerProps) => {
   const [servings, setServings] = useState(baseServings ?? 1);
-
   const scale = baseServings ? servings / baseServings : 1;
+
+  const stepperClassName =
+    "text-text hover:bg-surface-elevated flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg text-lg leading-none transition-colors";
 
   return (
     <div>
@@ -36,18 +31,23 @@ export const RecipeScaler: React.FC<RecipeScalerProps> = ({
           <div className="border-border flex items-center gap-1 rounded-xl border p-1">
             <button
               type="button"
-              onClick={() => setServings(Math.max(1, servings - 1))}
-              className="text-text hover:bg-surface-elevated flex h-7 w-7 items-center justify-center rounded-lg transition-colors text-lg leading-none"
+              aria-label="Færre porsjoner"
+              onClick={() => setServings((s) => Math.max(1, s - 1))}
+              className={stepperClassName}
             >
               −
             </button>
-            <span className="text-text min-w-[2ch] text-center font-semibold px-1">
+            <span
+              aria-live="polite"
+              className="text-text min-w-[2ch] px-1 text-center font-semibold"
+            >
               {servings}
             </span>
             <button
               type="button"
-              onClick={() => setServings(servings + 1)}
-              className="text-text hover:bg-surface-elevated flex h-7 w-7 items-center justify-center rounded-lg transition-colors text-lg leading-none"
+              aria-label="Flere porsjoner"
+              onClick={() => setServings((s) => s + 1)}
+              className={stepperClassName}
             >
               +
             </button>
@@ -56,27 +56,19 @@ export const RecipeScaler: React.FC<RecipeScalerProps> = ({
       )}
       <ul className="grid w-full grid-cols-[max-content_1fr] gap-x-4 gap-y-3">
         {ingredients.map((ing) => (
-          <li key={ing.id} className="group contents">
-            <div className="flex w-full items-center gap-3">
-              <span className="text-text flex-1 whitespace-nowrap font-medium">
-                {ing.amount != null
-                  ? `${formatAmount(ing.amount * scale)} ${ing.unit}`
-                  : ""}
-              </span>
-            </div>
-            <div className="flex w-full items-center">
-              <span className="text-text">{ing.name}</span>
-              {ing.optional && (
-                <span className="ml-2 inline-flex">
-                  <OptionalTag />
-                </span>
-              )}
-              {ing.is_basic && (
-                <span className="ml-2 inline-flex">
-                  <BasicTag />
-                </span>
-              )}
-            </div>
+          <li key={ing.id} className="contents">
+            <span className="text-text font-medium whitespace-nowrap">
+              {ing.amount != null
+                ? [formatAmount(ing.amount * scale), ing.unit]
+                    .filter(Boolean)
+                    .join(" ")
+                : ""}
+            </span>
+            <span className="text-text flex items-center gap-2">
+              {ing.name}
+              {ing.optional && <OptionalTag />}
+              {ing.is_basic && <BasicTag />}
+            </span>
           </li>
         ))}
       </ul>

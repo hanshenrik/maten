@@ -10,126 +10,96 @@ interface RecipeActionsProps {
   initialIsSaved: boolean;
 }
 
-export const RecipeActions: React.FC<RecipeActionsProps> = ({
+const GENERIC_ERROR = "Noe gikk galt. Prøv igjen.";
+
+type Action = "save" | "remove" | "clone";
+
+/** Save a shared recipe to your own book, remove it again, or copy it. */
+export const RecipeActions = ({
   recipeId,
   isOwner,
   isPublic,
   initialIsSaved,
-}) => {
+}: RecipeActionsProps) => {
   const [isSaved, setIsSaved] = useState(initialIsSaved);
-  const [saving, setSaving] = useState(false);
-  const [removing, setRemoving] = useState(false);
-  const [cloning, setCloning] = useState(false);
+  const [busy, setBusy] = useState<Action | null>(null);
 
-  const handleSave = async () => {
-    setSaving(true);
+  const call = async (
+    action: Action,
+    path: string,
+    method: "POST" | "DELETE",
+    onOk: (data: { id?: string }) => void,
+  ) => {
+    setBusy(action);
     try {
-      const res = await fetch(`/api/recipes/${recipeId}/save`, {
-        method: "POST",
-      });
-      if (res.ok) {
-        setIsSaved(true);
-      } else {
-        alert("Noe gikk galt. Prøv igjen.");
-      }
+      const res = await fetch(`/api/recipes/${recipeId}/${path}`, { method });
+      if (!res.ok) throw new Error(GENERIC_ERROR);
+      onOk(await res.json().catch(() => ({})));
     } catch {
-      alert("Noe gikk galt. Prøv igjen.");
+      alert(GENERIC_ERROR);
     } finally {
-      setSaving(false);
+      setBusy(null);
     }
   };
 
-  const handleRemove = async () => {
+  const handleSave = () => call("save", "save", "POST", () => setIsSaved(true));
+
+  const handleRemove = () => {
     if (
       !confirm(
         "Er du sikker på at du vil fjerne denne oppskriften fra «Min oppskriftsbok»?",
       )
     )
       return;
-
-    setRemoving(true);
-    try {
-      const res = await fetch(`/api/recipes/${recipeId}/save`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        setIsSaved(false);
-      } else {
-        alert("Noe gikk galt. Prøv igjen.");
-      }
-    } catch {
-      alert("Noe gikk galt. Prøv igjen.");
-    } finally {
-      setRemoving(false);
-    }
+    call("remove", "save", "DELETE", () => setIsSaved(false));
   };
 
-  const handleClone = async () => {
+  const handleClone = () => {
     if (
       !confirm(
         "Vil du lage en kopi av denne oppskriften? Den havner i «Min oppskriftsbok» som en ny, uavhengig oppskrift.",
       )
     )
       return;
-
-    setCloning(true);
-    try {
-      const res = await fetch(`/api/recipes/${recipeId}/clone`, {
-        method: "POST",
-      });
-      if (res.ok) {
-        const data = await res.json();
-        window.location.href = `/recipes/${data.id}`;
-      } else {
-        alert("Noe gikk galt. Prøv igjen.");
-      }
-    } catch {
-      alert("Noe gikk galt. Prøv igjen.");
-    } finally {
-      setCloning(false);
-    }
+    call("clone", "clone", "POST", (data) => {
+      window.location.href = `/recipes/${data.id}`;
+    });
   };
 
   return (
     <div className="mb-8 flex flex-wrap gap-3">
-      {!isOwner && isPublic && (
-        <>
-          {isSaved ? (
-            <Button
-              variant="secondary"
-              disabled={removing}
-              onClick={handleRemove}
-              className="flex items-center gap-2"
-            >
-              <Icon icon={ui.delete} className="h-5 w-5" />
-              <span>
-                {removing ? "Fjerner..." : "Fjern fra Min oppskriftsbok"}
-              </span>
-            </Button>
-          ) : (
-            <Button
-              variant="secondary"
-              disabled={saving}
-              onClick={handleSave}
-              className="flex items-center gap-2"
-            >
-              <Icon icon={ui.add} className="h-5 w-5" />
-              <span>
-                {saving ? "Lagrer..." : "Legg til i Min oppskriftsbok"}
-              </span>
-            </Button>
-          )}
-        </>
-      )}
+      {!isOwner &&
+        isPublic &&
+        (isSaved ? (
+          <Button
+            variant="secondary"
+            disabled={busy !== null}
+            onClick={handleRemove}
+            className="gap-2"
+          >
+            <Icon icon={ui.delete} className="h-5 w-5" />
+            {busy === "remove" ? "Fjerner..." : "Fjern fra Min oppskriftsbok"}
+          </Button>
+        ) : (
+          <Button
+            variant="secondary"
+            disabled={busy !== null}
+            onClick={handleSave}
+            className="gap-2"
+          >
+            <Icon icon={ui.add} className="h-5 w-5" />
+            {busy === "save" ? "Lagrer..." : "Legg til i Min oppskriftsbok"}
+          </Button>
+        ))}
 
       <Button
         variant="secondary"
-        disabled={cloning}
+        disabled={busy !== null}
         onClick={handleClone}
-        className="flex items-center gap-2"
+        className="gap-2"
       >
         <Icon icon={ui.copy} className="h-5 w-5" />
-        <span>{cloning ? "Kopierer..." : "Lag en kopi"}</span>
+        {busy === "clone" ? "Kopierer..." : "Lag en kopi"}
       </Button>
     </div>
   );

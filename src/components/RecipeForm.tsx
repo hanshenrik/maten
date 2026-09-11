@@ -1,25 +1,28 @@
-import React, { useState } from "react";
-import { supabase } from "../lib/supabase";
+import React, { useEffect, useRef, useState } from "react";
 import { Icon } from "@iconify/react";
-import { UnitSelect } from "./forms/UnitSelect";
+import { Reorder, useDragControls } from "motion/react";
+import { supabase } from "../lib/supabase";
+import type { RecipeWithIngredients } from "../types";
+import { cn } from "../utils/cn";
+import { combineEmojiAndName, splitEmojiFromName } from "../utils/emoji";
+import { errorMessage } from "../utils/errors";
+import { ui } from "../utils/icons";
 import { EmojiSelect } from "./forms/EmojiSelect";
-import { splitEmojiFromName, combineEmojiAndName } from "../utils/emoji";
-import { BasicTag } from "./BasicTag";
-import { OptionalTag } from "./OptionalTag";
-import { Button } from "./ui/Button";
-import { Card } from "./ui/Card";
-import { Toggle } from "./forms/Toggle";
+import { inputClassName } from "./forms/Field";
+import { FileInput } from "./forms/FileInput";
 import { Input } from "./forms/Input";
 import { RichTextEditor } from "./forms/RichTextEditor";
-import { FileInput } from "./forms/FileInput";
-import { ui } from "../utils/icons";
-import { Reorder, useDragControls } from "motion/react";
+import { Toggle } from "./forms/Toggle";
+import { UnitSelect } from "./forms/UnitSelect";
+import { Button } from "./ui/Button";
+import { Card } from "./ui/Card";
+import { BasicTag, OptionalTag } from "./ui/Tag";
 
-interface Ingredient {
-  id: string;
-
+/** An ingredient as it's being edited: strings, and an emoji of its own */
+interface IngredientDraft {
+  key: string;
+  emoji: string;
   name: string;
-  emoji?: string;
   amount: string;
   unit: string;
   is_basic: boolean;
@@ -27,48 +30,44 @@ interface Ingredient {
 }
 
 const IngredientRow = ({
-  ing,
-  handleIngredientChange,
-  removeIngredient,
+  ingredient,
+  onChange,
+  onRemove,
 }: {
-  ing: Ingredient;
-  handleIngredientChange: (
-    id: string,
-    field: keyof Ingredient,
-    value: any,
-  ) => void;
-  removeIngredient: (id: string) => void;
+  ingredient: IngredientDraft;
+  onChange: (change: Partial<IngredientDraft>) => void;
+  onRemove: () => void;
 }) => {
   const dragControls = useDragControls();
 
   return (
     <Reorder.Item
-      value={ing}
+      value={ingredient}
       dragListener={false}
       dragControls={dragControls}
-      className="group bg-bg border-border relative flex items-start gap-3 rounded-xl border p-4"
+      className="bg-bg border-border relative flex items-start gap-3 rounded-xl border p-4"
     >
       <div
         onPointerDown={(e) => dragControls.start(e)}
         className="text-text-muted/30 hover:text-text flex cursor-grab touch-none items-center pt-2.5 transition-colors active:cursor-grabbing"
+        title="Dra for å flytte"
       >
-        <Icon icon="hugeicons:drag-drop" className="h-6 w-6" />
+        <Icon icon={ui.dragHandle} className="h-6 w-6" />
       </div>
       <div className="flex-1 space-y-2">
         <div className="flex gap-2">
           <EmojiSelect
-            value={ing.emoji || ""}
-            onChange={(emoji) => handleIngredientChange(ing.id, "emoji", emoji)}
+            value={ingredient.emoji}
+            onChange={(emoji) => onChange({ emoji })}
           />
           <input
             type="text"
             required
+            aria-label="Ingrediens"
             placeholder="Hva trenger vi?"
-            value={ing.name}
-            onChange={(e) =>
-              handleIngredientChange(ing.id, "name", e.target.value)
-            }
-            className="bg-bg border-border focus:ring-primary w-full rounded-xl border px-3 py-2 focus:ring-2"
+            value={ingredient.name}
+            onChange={(e) => onChange({ name: e.target.value })}
+            className={cn(inputClassName, "bg-bg w-full")}
           />
         </div>
         <div className="flex flex-col gap-2 md:flex-row">
@@ -76,42 +75,35 @@ const IngredientRow = ({
             <input
               type="number"
               step="any"
+              min="0"
+              aria-label="Mengde"
               placeholder="Hvor mye?"
-              value={ing.amount}
-              onChange={(e) =>
-                handleIngredientChange(ing.id, "amount", e.target.value)
-              }
-              className="bg-bg border-border focus:ring-primary w-20 rounded-xl border px-3 py-2 focus:ring-2"
+              value={ingredient.amount}
+              onChange={(e) => onChange({ amount: e.target.value })}
+              className={cn(inputClassName, "bg-bg w-24")}
             />
             <UnitSelect
-              id={`unit-${ing.id}`}
-              value={ing.unit}
-              onChange={(value) =>
-                handleIngredientChange(ing.id, "unit", value)
-              }
-              className="w-24"
+              value={ingredient.unit}
+              onChange={(unit) => onChange({ unit })}
+              className="bg-bg w-24"
             />
           </div>
           <div className="flex w-full justify-between md:justify-end md:gap-5">
             <label className="text-text-muted flex cursor-pointer items-center gap-2 text-sm">
               <input
                 type="checkbox"
-                checked={ing.optional}
-                onChange={(e) =>
-                  handleIngredientChange(ing.id, "optional", e.target.checked)
-                }
-                className="text-primary rounded"
+                checked={ingredient.optional}
+                onChange={(e) => onChange({ optional: e.target.checked })}
+                className="accent-primary rounded"
               />
               Valgfri <OptionalTag />
             </label>
             <label className="text-text-muted flex cursor-pointer items-center gap-2 text-sm">
               <input
                 type="checkbox"
-                checked={ing.is_basic}
-                onChange={(e) =>
-                  handleIngredientChange(ing.id, "is_basic", e.target.checked)
-                }
-                className="text-primary rounded"
+                checked={ingredient.is_basic}
+                onChange={(e) => onChange({ is_basic: e.target.checked })}
+                className="accent-primary rounded"
               />
               Basis <BasicTag />
             </label>
@@ -119,11 +111,10 @@ const IngredientRow = ({
         </div>
       </div>
       <Button
-        type="button"
         variant="danger"
-        size="md"
-        onClick={() => removeIngredient(ing.id)}
+        onClick={onRemove}
         className="text-text-muted"
+        title="Fjern ingrediens"
       >
         <Icon icon={ui.delete} className="h-5 w-5" />
       </Button>
@@ -132,227 +123,216 @@ const IngredientRow = ({
 };
 
 interface RecipeFormProps {
-  initialData?: any;
-  onSuccess?: (id: string) => void;
+  initialData?: RecipeWithIngredients | null;
   userId: string;
   householdId: string;
-  authorName?: string;
+  /** Shown on the recipe when it's shared in the library */
+  authorName: string;
 }
 
-export const RecipeForm: React.FC<RecipeFormProps> = ({
+const toDraft = (
+  ingredient: RecipeWithIngredients["ingredients"][number],
+): IngredientDraft => {
+  const { emoji, name } = splitEmojiFromName(ingredient.name);
+  return {
+    key: ingredient.id,
+    emoji,
+    name,
+    amount: ingredient.amount?.toString() ?? "",
+    unit: ingredient.unit ?? "",
+    is_basic: !!ingredient.is_basic,
+    optional: !!ingredient.optional,
+  };
+};
+
+const parseOptionalInt = (value: string) => {
+  const n = parseInt(value, 10);
+  return Number.isFinite(n) ? n : null;
+};
+
+export const RecipeForm = ({
   initialData,
-  onSuccess,
   userId,
   householdId,
   authorName,
-}) => {
-  const isEditing = !!initialData?.id;
-  const [title, setTitle] = useState(initialData?.title || "");
+}: RecipeFormProps) => {
+  const isEditing = !!initialData;
+
+  const [title, setTitle] = useState(initialData?.title ?? "");
   const [description, setDescription] = useState(
-    initialData?.description || "",
+    initialData?.description ?? "",
   );
   const [instructions, setInstructions] = useState(
-    initialData?.instructions || "",
+    initialData?.instructions ?? "",
   );
-  const [imageUrl, setImageUrl] = useState(initialData?.image_url || "");
-  const [sourceUrl, setSourceUrl] = useState(initialData?.source_url || "");
-  const [cookTime, setCookTime] = useState<string>(
-    initialData?.cook_time?.toString() || "",
+  const [sourceUrl, setSourceUrl] = useState(initialData?.source_url ?? "");
+  const [cookTime, setCookTime] = useState(
+    initialData?.cook_time?.toString() ?? "",
   );
-  const [servings, setServings] = useState<string>(
-    initialData?.servings?.toString() || "",
+  const [servings, setServings] = useState(
+    initialData?.servings?.toString() ?? "",
   );
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [ingredients, setIngredients] = useState<Ingredient[]>(
-    initialData?.ingredients?.map((ing: any) => {
-      const { emoji, name } = splitEmojiFromName(ing.name);
-      return {
-        ...ing,
-        id: ing.id || crypto.randomUUID(),
-        emoji,
-        name,
-        amount: ing.amount?.toString() || "",
-        optional: !!ing.optional,
-      };
-    }) || [
-      {
-        id: crypto.randomUUID(),
-        emoji: "",
-        name: "",
-        amount: "",
-        unit: "",
-        is_basic: false,
-        optional: false,
-      },
-    ],
-  );
-  const [loading, setLoading] = useState(false);
-  const [isPublic, setIsPublic] = useState(initialData?.is_public || false);
+  const [isPublic, setIsPublic] = useState(initialData?.is_public ?? false);
   const [saveCount, setSaveCount] = useState(0);
+  const [saving, setSaving] = useState(false);
 
-  React.useEffect(() => {
-    if (isEditing && initialData?.is_public) {
-      supabase
-        .from("saved_recipes")
-        .select("*", { count: "exact", head: true })
-        .eq("recipe_id", initialData.id)
-        .then(({ count, error }) => {
-          if (!error && count !== null) {
-            setSaveCount(count);
-          }
-        });
-    }
-  }, [isEditing, initialData]);
+  // Keys for new rows count up from a ref, so the server and client render
+  // the same keys and React doesn't complain on hydration.
+  const nextKey = useRef(1);
+  const newDraft = (): IngredientDraft => ({
+    key: `new-${nextKey.current++}`,
+    emoji: "",
+    name: "",
+    amount: "",
+    unit: "",
+    is_basic: false,
+    optional: false,
+  });
 
-  const addIngredient = () => {
-    setIngredients([
-      ...ingredients,
-      {
-        id: crypto.randomUUID(),
-        emoji: "",
-        name: "",
-        amount: "",
-        unit: "",
-        is_basic: false,
-        optional: false,
-      },
-    ]);
-  };
+  const [ingredients, setIngredients] = useState<IngredientDraft[]>(() =>
+    initialData?.ingredients?.length
+      ? initialData.ingredients.map(toDraft)
+      : [
+          {
+            key: "new-0",
+            emoji: "",
+            name: "",
+            amount: "",
+            unit: "",
+            is_basic: false,
+            optional: false,
+          },
+        ],
+  );
 
-  const removeIngredient = (id: string) => {
-    setIngredients(ingredients.filter((ing) => ing.id !== id));
-  };
+  // A shared recipe others have saved can't be made private again
+  useEffect(() => {
+    if (!initialData?.is_public) return;
+    supabase
+      .from("saved_recipes")
+      .select("*", { count: "exact", head: true })
+      .eq("recipe_id", initialData.id)
+      .then(({ count, error }) => {
+        if (!error && count != null) setSaveCount(count);
+      });
+  }, [initialData]);
 
-  const handleIngredientChange = (
-    id: string,
-    field: keyof Ingredient,
-    value: any,
-  ) => {
-    setIngredients(
-      ingredients.map((ing) =>
-        ing.id === id ? { ...ing, [field]: value } : ing,
-      ),
+  const changeIngredient = (key: string, change: Partial<IngredientDraft>) =>
+    setIngredients((current) =>
+      current.map((ing) => (ing.key === key ? { ...ing, ...change } : ing)),
     );
+
+  const removeIngredient = (key: string) =>
+    setIngredients((current) => current.filter((ing) => ing.key !== key));
+
+  const addIngredient = () =>
+    setIngredients((current) => [...current, newDraft()]);
+
+  const uploadImage = async (file: File) => {
+    const extension = file.name.split(".").pop() || "jpg";
+    const path = `${userId}/${Date.now()}.${extension}`;
+    const { error } = await supabase.storage
+      .from("recipe-images")
+      .upload(path, file);
+    if (error) throw error;
+    return supabase.storage.from("recipe-images").getPublicUrl(path).data
+      .publicUrl;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSaving(true);
     try {
-      let uploadedImageUrl = imageUrl;
-      if (imageFile) {
-        const fileExt = imageFile.name.split(".").pop();
-        const fileName = `${userId}/${Date.now()}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage
-          .from("recipe-images")
-          .upload(fileName, imageFile);
-
-        if (uploadError) throw uploadError;
-
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from("recipe-images").getPublicUrl(fileName);
-
-        uploadedImageUrl = publicUrl;
-      }
+      const imageUrl = imageFile
+        ? await uploadImage(imageFile)
+        : (initialData?.image_url ?? null);
 
       const recipeData = {
-        title,
+        title: title.trim(),
         description,
         instructions,
-        image_url: uploadedImageUrl,
-        source_url: sourceUrl,
-        cook_time: cookTime ? parseInt(cookTime) : null,
-        servings: servings ? parseInt(servings) : null,
+        image_url: imageUrl,
+        source_url: sourceUrl.trim() || null,
+        cook_time: parseOptionalInt(cookTime),
+        servings: parseOptionalInt(servings),
         is_public: isPublic,
-        author_name: isPublic
-          ? initialData?.author_name || authorName || "En matglad kokk"
-          : null,
+        author_name: isPublic ? initialData?.author_name || authorName : null,
       };
+
       let recipeId = initialData?.id;
 
-      if (isEditing) {
-        // Update recipe
+      if (initialData) {
         const { error } = await supabase
           .from("recipes")
           .update(recipeData)
-          .eq("id", recipeId);
+          .eq("id", initialData.id);
         if (error) throw error;
 
-        // Update ingredients: delete and re-insert
-        await supabase.from("ingredients").delete().eq("recipe_id", recipeId);
+        // Ingredients are replaced wholesale, which also keeps their order
+        const { error: deleteError } = await supabase
+          .from("ingredients")
+          .delete()
+          .eq("recipe_id", initialData.id);
+        if (deleteError) throw deleteError;
       } else {
-        // Create recipe
         const { data, error } = await supabase
           .from("recipes")
-          .insert({
-            ...recipeData,
-            user_id: userId,
-            household_id: householdId,
-          })
-          .select()
+          .insert({ ...recipeData, user_id: userId, household_id: householdId })
+          .select("id")
           .single();
         if (error) throw error;
         recipeId = data.id;
       }
 
-      // Insert ingredients
-      if (ingredients.length > 0) {
-        const ingredientsToInsert = ingredients
-          .filter((ing) => ing.name.trim())
-          .map((ing) => ({
-            name: combineEmojiAndName(ing.emoji || "", ing.name),
-            amount: ing.amount ? parseFloat(String(ing.amount)) : null,
-            unit: ing.unit,
-            is_basic: !!ing.is_basic,
-            optional: !!ing.optional,
-            recipe_id: recipeId,
-          }));
+      const rows = ingredients
+        .filter((ing) => ing.name.trim())
+        .map((ing) => ({
+          recipe_id: recipeId,
+          name: combineEmojiAndName(ing.emoji, ing.name),
+          amount: ing.amount ? parseFloat(ing.amount) : null,
+          unit: ing.unit,
+          is_basic: ing.is_basic,
+          optional: ing.optional,
+        }));
 
-        if (ingredientsToInsert.length > 0) {
-          const { error: ingredientsError } = await supabase
-            .from("ingredients")
-            .insert(ingredientsToInsert);
-          if (ingredientsError) throw ingredientsError;
-        }
+      if (rows.length > 0) {
+        const { error } = await supabase.from("ingredients").insert(rows);
+        if (error) throw error;
       }
 
-      if (onSuccess) {
-        onSuccess(recipeId);
-      } else {
-        window.location.href = isEditing ? `/recipes/${recipeId}` : "/recipes";
-      }
-    } catch (err: any) {
+      window.location.href = isEditing ? `/recipes/${recipeId}` : "/recipes";
+    } catch (err) {
       console.error("Feil ved lagring av oppskrift:", err);
       alert(
-        "Huff da, det skjedde en feil da vi prøvde å lagre oppskriften: " +
-          err.message,
+        `Huff da, det skjedde en feil da vi prøvde å lagre oppskriften: ${errorMessage(err)}`,
       );
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!initialData?.id) return;
+    if (!initialData) return;
     if (!confirm("Er du helt sikker på at du vil slette denne godbiten?"))
       return;
 
-    setLoading(true);
+    setSaving(true);
     try {
       const { error } = await supabase
         .from("recipes")
         .delete()
         .eq("id", initialData.id);
-
       if (error) throw error;
 
       window.location.href = "/recipes";
-    } catch (err: any) {
+    } catch (err) {
       console.error("Feil ved sletting av oppskrift:", err);
-      alert("Vi klarte desverre ikke å slette oppskriften: " + err.message);
+      alert(
+        `Vi klarte dessverre ikke å slette oppskriften: ${errorMessage(err)}`,
+      );
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
@@ -369,7 +349,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
           placeholder="f.eks. Klassisk Margherita Pizza"
         />
 
-        <div className="border-border bg-surface/50 items-top flex justify-between rounded-xl border p-4">
+        <div className="border-border bg-surface/50 flex items-start justify-between gap-4 rounded-xl border p-4">
           <div>
             <h3 className="text-text font-medium">
               Del oppskriften i biblioteket
@@ -394,7 +374,6 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
         </div>
 
         <RichTextEditor
-          id="description"
           label="Hva gjør denne retten god?"
           value={description}
           onChange={setDescription}
@@ -402,7 +381,6 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
         />
 
         <RichTextEditor
-          id="instructions"
           label="Hvordan lager vi den?"
           value={instructions}
           onChange={setInstructions}
@@ -410,10 +388,9 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
         />
 
         <FileInput
-          id="image"
           label="Et fristende bilde"
           accept="image/*"
-          previewUrl={imageUrl}
+          previewUrl={initialData?.image_url ?? undefined}
           selectedFile={imageFile}
           onChange={setImageFile}
         />
@@ -424,10 +401,12 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
             type="url"
             value={sourceUrl}
             onChange={(e) => setSourceUrl(e.target.value)}
+            placeholder="https://"
           />
           <Input
             label="Hvor lang tid tar det? (minutter)"
             type="number"
+            min="0"
             value={cookTime}
             onChange={(e) => setCookTime(e.target.value)}
             placeholder="f.eks. 30"
@@ -446,12 +425,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
       <Card className="space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">Ingredienser</h2>
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={addIngredient}
-          >
+          <Button variant="secondary" size="sm" onClick={addIngredient}>
             + Legg til ingrediens
           </Button>
         </div>
@@ -462,40 +436,40 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
           onReorder={setIngredients}
           className="space-y-4"
         >
-          {ingredients.map((ing) => (
+          {ingredients.map((ingredient) => (
             <IngredientRow
-              key={ing.id}
-              ing={ing}
-              handleIngredientChange={handleIngredientChange}
-              removeIngredient={removeIngredient}
+              key={ingredient.key}
+              ingredient={ingredient}
+              onChange={(change) => changeIngredient(ingredient.key, change)}
+              onRemove={() => removeIngredient(ingredient.key)}
             />
           ))}
         </Reorder.Group>
       </Card>
 
       <div className="flex gap-4">
-        <Button type="submit" disabled={loading} size="lg" className="flex-1">
-          {loading ? "Lagrer..." : "Lagre"}
+        <Button type="submit" disabled={saving} size="lg" className="flex-1">
+          {saving ? "Lagrer..." : "Lagre"}
         </Button>
         <Button
-          type="button"
+          as="a"
+          href={isEditing ? `/recipes/${initialData.id}` : "/recipes"}
           variant="secondary"
           size="lg"
-          onClick={() => (window.location.href = "/recipes")}
           className="px-8"
         >
           Avbryt
         </Button>
         {isEditing && (
           <Button
-            type="button"
             variant="danger"
             size="lg"
             onClick={handleDelete}
-            disabled={loading}
+            disabled={saving}
             title="Slett oppskrift"
           >
             <Icon icon={ui.delete} className="h-6 w-6" />
+            <span className="sr-only">Slett oppskrift</span>
           </Button>
         )}
       </div>

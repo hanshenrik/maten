@@ -1,172 +1,182 @@
-import React, { useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { Icon } from "@iconify/react";
-import { Hr } from "./ui/Hr";
 import { supabase } from "../lib/supabase";
-import { CheckboxButton } from "./forms/CheckboxButton";
-import { UnitSelect } from "./forms/UnitSelect";
-import { EmojiSelect } from "./forms/EmojiSelect";
+import type { ShoppingItem } from "../types";
 import { combineEmojiAndName } from "../utils/emoji";
+import { errorMessage } from "../utils/errors";
+import { ui } from "../utils/icons";
 import {
   formatItemAmount,
   planShoppingListAdditions,
 } from "../utils/shoppingList";
-import { Card } from "./ui/Card";
-import { Button } from "./ui/Button";
+import { CheckboxButton } from "./forms/CheckboxButton";
+import { EmojiSelect } from "./forms/EmojiSelect";
+import { Field } from "./forms/Field";
 import { Input } from "./forms/Input";
+import { UnitSelect } from "./forms/UnitSelect";
+import { Button } from "./ui/Button";
+import { Card } from "./ui/Card";
 import { Details } from "./ui/Details";
-import { ui } from "../utils/icons";
-
-export interface ShoppingListItem {
-  id: string;
-  name: string;
-  amount: number | null;
-  unit: string;
-  completed: boolean;
-  notes?: string;
-}
+import { Hr } from "./ui/Hr";
 
 interface ShoppingListProps {
-  initialItems: ShoppingListItem[];
+  initialItems: ShoppingItem[];
   userId: string;
   householdId: string;
 }
 
-export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
+const emptyDraft = { emoji: "", name: "", amount: "", unit: "" };
+
+const itemSubLabel = (item: ShoppingItem) =>
+  [formatItemAmount(item.amount, item.unit), item.notes]
+    .filter(Boolean)
+    .join(" • ");
+
+export const ShoppingList = ({
   initialItems,
   userId,
   householdId,
-}) => {
-  const [items, setItems] = useState<ShoppingListItem[]>(initialItems);
-  const [loading, setLoading] = useState(false);
-  const [addItemCardOpen, setAddItemCardOpen] = useState(false);
-  const [newItem, setNewItem] = useState({
-    emoji: "",
-    name: "",
-    amount: "",
-    unit: "",
-  });
+}: ShoppingListProps) => {
+  const [items, setItems] = useState(initialItems);
+  const [saving, setSaving] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
+  const [draft, setDraft] = useState(emptyDraft);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
-  // Get unique names of previously completed items for autosuggestion
-  const suggestions = Array.from(
-    new Set(items.filter((item) => item.completed).map((item) => item.name)),
-  ).sort();
+  // Things bought before are what you're most likely to buy again
+  const suggestions = useMemo(
+    () =>
+      Array.from(
+        new Set(items.filter((i) => i.completed).map((i) => i.name)),
+      ).sort(),
+    [items],
+  );
 
-  const handleSubmitNewItem = (event: React.FormEvent) => {
-    // Enter anywhere in the form adds the item, on desktop and mobile alike
+  const activeItems = items.filter((i) => !i.completed);
+  const completedItems = items.filter((i) => i.completed);
+
+  const handleAddItem = async (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
-    handleAddItem();
-  };
-
-  const handleAddItem = async () => {
-    if (!newItem.name.trim() || loading) return;
-    setLoading(true);
+    if (!draft.name.trim() || saving) return;
+    setSaving(true);
 
     try {
       const { updates, inserts } = planShoppingListAdditions(
         // Completed items are already bought, so we never merge into those.
         // No amount means one of the thing, so adding it again gives you 2.
-        items
-          .filter((item) => !item.completed)
-          .map((item) => ({ ...item, amount: item.amount ?? 1 })),
+        activeItems.map((item) => ({ ...item, amount: item.amount ?? 1 })),
         [
           {
-            name: combineEmojiAndName(newItem.emoji, newItem.name),
-            amount: newItem.amount ? Number(newItem.amount) : 1,
-            unit: newItem.unit,
+            name: combineEmojiAndName(draft.emoji, draft.name),
+            amount: draft.amount ? Number(draft.amount) : 1,
+            unit: draft.unit,
           },
         ],
       );
 
       const [update] = updates;
-
       if (update) {
-        // Same name and unit is already on the list — bump the amount
+        // Same name and unit is already on the list: bump the amount
         const { error } = await supabase
           .from("shopping_items")
           .update({ name: update.name, amount: update.amount })
           .eq("id", update.id);
-
         if (error) throw error;
 
         // Newest first, so the merged item shows up where you added it
-        const merged = items.find((item) => item.id === update.id);
-        setItems(
-          merged
-            ? [
-                { ...merged, name: update.name, amount: update.amount },
-                ...items.filter((item) => item.id !== update.id),
-              ]
-            : items,
-        );
+        setItems((current) => {
+          const merged = current.find((item) => item.id === update.id);
+          if (!merged) return current;
+          return [
+            { ...merged, name: update.name, amount: update.amount },
+            ...current.filter((item) => item.id !== update.id),
+          ];
+        });
       } else {
+        const [insert] = inserts;
         const { data, error } = await supabase
           .from("shopping_items")
           .insert({
             user_id: userId,
             household_id: householdId,
-            name: inserts[0].name,
-            amount: inserts[0].amount,
-            unit: inserts[0].unit,
+            name: insert.name,
+            amount: insert.amount,
+            unit: insert.unit,
             completed: false,
           })
           .select()
           .single();
-
         if (error) throw error;
 
-        setItems([data, ...items]);
+        setItems((current) => [data as ShoppingItem, ...current]);
       }
 
-      setNewItem({ emoji: "", name: "", amount: "", unit: "" });
+      setDraft(emptyDraft);
       // Ready for the next item without reaching for the mouse
       nameInputRef.current?.focus();
-    } catch (err: any) {
-      alert("Error adding item: " + err.message);
+    } catch (err) {
+      alert(`Fikk ikke lagt til varen: ${errorMessage(err)}`);
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
-  const handleToggleComplete = async (
-    itemId: string,
-    currentStatus: boolean,
-  ) => {
+  const handleToggle = async (item: ShoppingItem) => {
+    const completed = !item.completed;
     try {
       const { error } = await supabase
         .from("shopping_items")
-        .update({ completed: !currentStatus })
-        .eq("id", itemId);
-
+        .update({ completed })
+        .eq("id", item.id);
       if (error) throw error;
 
-      setItems(
-        items.map((item) =>
-          item.id === itemId ? { ...item, completed: !currentStatus } : item,
-        ),
+      setItems((current) =>
+        current.map((i) => (i.id === item.id ? { ...i, completed } : i)),
       );
-    } catch (err: any) {
-      alert("Error updating item: " + err.message);
+    } catch (err) {
+      alert(`Fikk ikke oppdatert varen: ${errorMessage(err)}`);
     }
   };
 
-  const handleDeleteItem = async (itemId: string) => {
+  const handleDelete = async (item: ShoppingItem) => {
     try {
       const { error } = await supabase
         .from("shopping_items")
         .delete()
-        .eq("id", itemId);
-
+        .eq("id", item.id);
       if (error) throw error;
 
-      setItems(items.filter((item) => item.id !== itemId));
-    } catch (err: any) {
-      alert("Error deleting item: " + err.message);
+      setItems((current) => current.filter((i) => i.id !== item.id));
+    } catch (err) {
+      alert(`Fikk ikke fjernet varen: ${errorMessage(err)}`);
     }
   };
 
-  const activeItems = items.filter((i) => !i.completed);
-  const completedItems = items.filter((i) => i.completed);
+  const renderItems = (list: ShoppingItem[]) => (
+    <ul className="space-y-2">
+      {list.map((item) => (
+        <li key={item.id} className="relative">
+          <CheckboxButton
+            checked={item.completed}
+            onChange={() => handleToggle(item)}
+            label={item.name}
+            subLabel={itemSubLabel(item)}
+            className="pr-16"
+          />
+          <Button
+            onClick={() => handleDelete(item)}
+            variant="danger"
+            size="sm"
+            className="absolute top-1/2 right-4 -translate-y-1/2"
+            title="Fjern vare"
+            aria-label={`Fjern ${item.name}`}
+          >
+            <Icon icon={ui.x} className="h-4 w-4" />
+          </Button>
+        </li>
+      ))}
+    </ul>
+  );
 
   return (
     <div className="flex flex-col gap-4">
@@ -176,126 +186,81 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
         ))}
       </datalist>
 
-      {addItemCardOpen ? (
+      {isAdding ? (
         <Card className="overflow-visible">
           <h3 className="text-text mb-3 font-medium">Noe mer du mangler?</h3>
-          <form onSubmit={handleSubmitNewItem}>
+          <form onSubmit={handleAddItem}>
             <div className="grid grid-cols-1 items-end gap-2 md:grid-cols-3">
-              <div className="flex flex-row items-end gap-2">
-                <div className="flex flex-col gap-1">
-                  <label className="text-text-muted block text-sm">Ikon</label>
+              <div className="flex items-end gap-2">
+                <Field label="Ikon">
                   <EmojiSelect
-                    value={newItem.emoji}
-                    onChange={(emoji) => setNewItem({ ...newItem, emoji })}
+                    value={draft.emoji}
+                    onChange={(emoji) => setDraft({ ...draft, emoji })}
                   />
-                </div>
-
-                <div className="flex w-full flex-col gap-1 md:col-span-2">
-                  <label className="text-text-muted block text-sm">Navn</label>
-                  <Input
-                    list="shopping-suggestions"
-                    ref={nameInputRef}
-                    value={newItem.name}
-                    autoFocus
-                    enterKeyHint="done"
-                    onChange={(e) =>
-                      setNewItem({ ...newItem, name: e.target.value })
-                    }
-                    placeholder="f.eks. Epler"
-                  />
-                </div>
-              </div>
-              <div>
+                </Field>
                 <Input
-                  type="number"
-                  label="Antall"
+                  label="Navn"
+                  list="shopping-suggestions"
+                  ref={nameInputRef}
+                  value={draft.name}
+                  autoFocus
                   enterKeyHint="done"
-                  value={newItem.amount}
-                  onChange={(e) =>
-                    setNewItem({
-                      ...newItem,
-                      amount: e.target.value,
-                    })
-                  }
-                  min="1"
+                  onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+                  placeholder="f.eks. Epler"
                 />
               </div>
-
+              <Input
+                type="number"
+                label="Antall"
+                enterKeyHint="done"
+                min="1"
+                step="any"
+                value={draft.amount}
+                onChange={(e) => setDraft({ ...draft, amount: e.target.value })}
+              />
               <UnitSelect
-                id="unit"
                 label="Enhet"
-                value={newItem.unit}
-                onChange={(value) => setNewItem({ ...newItem, unit: value })}
+                value={draft.unit}
+                onChange={(unit) => setDraft({ ...draft, unit })}
               />
             </div>
             <div className="mt-4 flex w-full gap-2">
               <Button
                 type="submit"
-                disabled={loading}
+                disabled={saving}
                 className="w-full gap-2 md:w-fit"
               >
                 <Icon icon={ui.add} className="h-5 w-5" />
-                {loading ? "Legger til..." : "Legg i listen"}
+                {saving ? "Legger til..." : "Legg i listen"}
               </Button>
-              <Button
-                type="button"
-                onClick={() => setAddItemCardOpen(false)}
-                variant="secondary"
-              >
+              <Button onClick={() => setIsAdding(false)} variant="secondary">
                 Avbryt
               </Button>
             </div>
           </form>
         </Card>
       ) : (
-        <div className="flex flex-col gap-1">
-          <label className="text-text-muted block text-sm">Legg til noe</label>
+        <Field label="Legg til noe">
           <button
-            className={`bg-surface text-text-muted border-border h-10 rounded-xl border px-3 py-2 text-left leading-1 transition-all outline-none`}
-            onClick={() => setAddItemCardOpen(true)}
+            type="button"
+            className="bg-surface text-text-muted border-border h-11 cursor-text rounded-xl border px-3 text-left transition-all outline-none"
+            onClick={() => setIsAdding(true)}
           >
             f.eks. Epler
           </button>
-        </div>
+        </Field>
       )}
 
       <Hr />
 
       <div className="space-y-4">
-        {activeItems.length > 0 ? (
-          <ul className="space-y-2">
-            {activeItems.map((item) => (
-              <li key={item.id} className="group relative">
-                <CheckboxButton
-                  checked={item.completed}
-                  onChange={() => handleToggleComplete(item.id, item.completed)}
-                  label={item.name}
-                  subLabel={[
-                    formatItemAmount(item.amount, item.unit),
-                    item.notes,
-                  ]
-                    .filter(Boolean)
-                    .join(" • ")}
-                />
-                <Button
-                  onClick={() => handleDeleteItem(item.id)}
-                  variant="danger"
-                  size="sm"
-                  className="absolute top-1/2 right-4 -translate-y-1/2"
-                  title="Fjern vare"
-                >
-                  <Icon icon={ui.x} className="h-4 w-4" />
-                </Button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          !completedItems.length && (
-            <p className="text-text-muted py-8 text-center">
-              Handlelisten er tom. Kanskje dere har alt dere trenger?
-            </p>
-          )
-        )}
+        {activeItems.length > 0
+          ? renderItems(activeItems)
+          : completedItems.length === 0 && (
+              <p className="text-text-muted py-8 text-center">
+                Handlelisten er tom. Kanskje dere har alt dere trenger?
+              </p>
+            )}
 
         {completedItems.length > 0 && (
           <div className="flex flex-col gap-4">
@@ -305,34 +270,7 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
               summaryClassName="text-sm font-medium"
               title={`Dette har dere lagt i kurven (${completedItems.length})`}
             >
-              <ul className="mt-4 space-y-2">
-                {completedItems.map((item) => (
-                  <li key={item.id} className="group relative">
-                    <CheckboxButton
-                      checked={item.completed}
-                      onChange={() =>
-                        handleToggleComplete(item.id, item.completed)
-                      }
-                      label={item.name}
-                      subLabel={[
-                        formatItemAmount(item.amount, item.unit),
-                        item.notes,
-                      ]
-                        .filter(Boolean)
-                        .join(" • ")}
-                    />
-                    <Button
-                      onClick={() => handleDeleteItem(item.id)}
-                      variant="danger"
-                      size="sm"
-                      className="absolute top-1/2 right-4 -translate-y-1/2"
-                      title="Fjern vare"
-                    >
-                      <Icon icon={ui.x} className="h-4 w-4" />
-                    </Button>
-                  </li>
-                ))}
-              </ul>
+              {renderItems(completedItems)}
             </Details>
           </div>
         )}

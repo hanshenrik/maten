@@ -1,96 +1,105 @@
-import React, { useState, useEffect, useRef } from "react";
-import { supabase } from "../lib/supabase";
-import { ui } from "../utils/icons";
+import React, { useEffect, useRef, useState } from "react";
 import { Icon } from "@iconify/react";
-import { CheckboxButton } from "./forms/CheckboxButton";
-import {
-  formatISODate,
-  formatShortDay,
-  formatMonthDay,
-  formatDateRange,
-} from "../utils/date";
-import { Card } from "./ui/Card";
-import { Button } from "./ui/Button";
-import { Input } from "./forms/Input";
-import { RecipeSelect } from "./RecipeSelect";
+import { supabase } from "../lib/supabase";
+import type { MealPlanWithMeals, RecipeSummary } from "../types";
+import { formatDateRange, formatMonthDay, formatShortDay } from "../utils/date";
+import { errorMessage } from "../utils/errors";
+import { ui } from "../utils/icons";
+import { datesBetween, nextWeekRange } from "../utils/mealPlans";
 import {
   formatItemAmount,
   mergeShoppingItems,
   planShoppingListAdditions,
+  type MergeableItem,
 } from "../utils/shoppingList";
+import { CheckboxButton } from "./forms/CheckboxButton";
+import { Input } from "./forms/Input";
+import { Button } from "./ui/Button";
+import { Card } from "./ui/Card";
+import { RecipeSelect } from "./RecipeSelect";
 
-interface Ingredient {
-  name: string;
-  amount: number;
-  unit: string;
-  is_basic: boolean;
-}
+/** A recipe with what the wizard needs to build a shopping list from it */
+export type WizardRecipe = RecipeSummary & {
+  ingredients: {
+    name: string;
+    amount: number | null;
+    unit: string;
+    is_basic: boolean;
+  }[];
+};
 
-interface Recipe {
-  id: string;
-  title: string;
-  cook_time?: number | null;
-  image_url?: string | null;
-  ingredients?: Ingredient[];
-}
-
-interface RecipeSlot {
+interface Slot {
   recipe_id: string;
   notes: string;
 }
 
 interface DayPlan {
   date: string;
-  slots: RecipeSlot[];
+  slots: Slot[];
 }
 
-interface ShoppingItem {
-  name: string;
-  amount: number;
-  unit: string;
-  checked: boolean;
-}
+type DraftItem = MergeableItem & { checked: boolean };
 
-/**
- * Groups a flat array of planned_meals (from DB or initialData) into DayPlan[]
- * where each date has multiple slots.
- */
-function groupMealsByDate(
-  meals: { date: string; recipe_id?: string; notes?: string }[],
-): DayPlan[] {
-  const map = new Map<string, RecipeSlot[]>();
-  for (const m of meals) {
-    const slots = map.get(m.date) || [];
-    slots.push({ recipe_id: m.recipe_id || "", notes: m.notes || "" });
-    map.set(m.date, slots);
+const emptySlot = (): Slot => ({ recipe_id: "", notes: "" });
+
+/** Groups a plan's meals into one entry per date, oldest first */
+function groupIntoDays(meals: MealPlanWithMeals["planned_meals"]): DayPlan[] {
+  const byDate = new Map<string, Slot[]>();
+  for (const meal of meals) {
+    const slots = byDate.get(meal.date) ?? [];
+    slots.push({ recipe_id: meal.recipe_id ?? "", notes: meal.notes ?? "" });
+    byDate.set(meal.date, slots);
   }
-  // Sort dates and return
-  return Array.from(map.entries())
+  return Array.from(byDate.entries())
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([date, slots]) => ({ date, slots }));
 }
 
-export const MealPlanningWizard: React.FC<{
+const MAX_DAYS = 60;
+
+interface MealPlanningWizardProps {
   userId: string;
   householdId: string;
-  initialData?: any;
-}> = ({ userId, householdId, initialData }) => {
-  const [step, setStep] = useState(initialData ? 2 : 1);
-  const [startDate, setStartDate] = useState(initialData?.start_date || "");
-  const [endDate, setEndDate] = useState(initialData?.end_date || "");
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [dayPlans, setDayPlans] = useState<DayPlan[]>(
-    initialData?.planned_meals
-      ? groupMealsByDate(initialData.planned_meals)
-      : [],
-  );
-  const [loading, setLoading] = useState(false);
-  const [planTitle, setPlanTitle] = useState(initialData?.title || "");
-  const [sourcePlan, setSourcePlan] = useState<any>(null);
-  const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]);
+  recipes: WizardRecipe[];
+  /** The plan being edited */
+  initialData?: MealPlanWithMeals | null;
+  /** A plan to copy meals from, matched day by day */
+  sourcePlan?: MealPlanWithMeals | null;
+}
 
-  // Scroll to top when moving between wizard steps, so we don't land
-  // mid-page (or at the bottom) after a long step
+export const MealPlanningWizard = ({
+  userId,
+  householdId,
+  recipes,
+  initialData,
+  sourcePlan,
+}: MealPlanningWizardProps) => {
+  const isEditing = !!initialData;
+
+  const [step, setStep] = useState<1 | 2 | 3>(isEditing ? 2 : 1);
+  const [planTitle, setPlanTitle] = useState(
+    initialData?.title ??
+      (sourcePlan ? `${sourcePlan.title || "Meny"} (kopi)` : ""),
+  );
+  const [startDate, setStartDate] = useState(initialData?.start_date ?? "");
+  const [endDate, setEndDate] = useState(initialData?.end_date ?? "");
+  const [dateError, setDateError] = useState<string | null>(null);
+  const [dayPlans, setDayPlans] = useState<DayPlan[]>(() =>
+    initialData ? groupIntoDays(initialData.planned_meals) : [],
+  );
+  const [draftItems, setDraftItems] = useState<DraftItem[]>([]);
+  const [saving, setSaving] = useState(false);
+
+  // New plans default to next week. Done on the client so the dates come
+  // out in the user's time zone, not the server's.
+  useEffect(() => {
+    if (isEditing) return;
+    const { start, end } = nextWeekRange();
+    setStartDate(start);
+    setEndDate(end);
+  }, [isEditing]);
+
+  // Scroll to the top when moving between steps, so we don't land mid-page
   const isFirstRender = useRef(true);
   useEffect(() => {
     if (isFirstRender.current) {
@@ -100,343 +109,238 @@ export const MealPlanningWizard: React.FC<{
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [step]);
 
-  useEffect(() => {
-    // Default to next week Mon-Sun
-    const nextMonday = new Date();
-    nextMonday.setDate(
-      nextMonday.getDate() + ((1 + 7 - nextMonday.getDay()) % 7 || 7),
-    );
-    const nextSunday = new Date(nextMonday);
-    nextSunday.setDate(nextMonday.getDate() + 6);
-
-    setStartDate(formatISODate(nextMonday));
-    setEndDate(formatISODate(nextSunday));
-
-    // Batch fetch recipes and source plan in parallel
-    const urlParams = new URLSearchParams(window.location.search);
-    const copyFrom = urlParams.get("copyFrom");
-
-    const fetchData = async () => {
-      const [recipesPromise, sourcePlanPromise] = [
-        supabase
-          .from("recipes")
-          .select(
-            "id, title, cook_time, image_url, ingredients(name, amount, unit, is_basic)",
-          )
-          .order("title"),
-        copyFrom && !initialData
-          ? supabase
-              .from("meal_plans")
-              .select("*, planned_meals(*)")
-              .eq("id", copyFrom)
-              .single()
-          : Promise.resolve({ data: null, error: null }),
-      ];
-
-      const [recipesResult, sourcePlanResult] = await Promise.all([
-        recipesPromise,
-        sourcePlanPromise,
-      ]);
-
-      if (recipesResult.data) {
-        setRecipes(recipesResult.data as any);
-      }
-
-      if (sourcePlanResult.data) {
-        // Sort planned_meals by date to ensure correct mapping
-        if (sourcePlanResult.data.planned_meals) {
-          sourcePlanResult.data.planned_meals.sort((a: any, b: any) =>
-            a.date.localeCompare(b.date),
-          );
-        }
-        setSourcePlan(sourcePlanResult.data);
-        setPlanTitle(`${sourcePlanResult.data.title || "Plan"} (Kopi)`);
-      }
-    };
-
-    fetchData();
-  }, [initialData]);
-
   const handleDateSelection = () => {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-
-    // If we have a source plan, group its meals by date
-    const sourceByDate = new Map<string, RecipeSlot[]>();
-    if (sourcePlan?.planned_meals) {
-      for (const m of sourcePlan.planned_meals) {
-        const slots = sourceByDate.get(m.date) || [];
-        slots.push({ recipe_id: m.recipe_id || "", notes: m.notes || "" });
-        sourceByDate.set(m.date, slots);
-      }
+    if (!startDate || !endDate) {
+      setDateError("Velg både første og siste dag.");
+      return;
+    }
+    if (endDate < startDate) {
+      setDateError("Siste dag kan ikke være før første dag.");
+      return;
+    }
+    const dates = datesBetween(startDate, endDate);
+    if (dates.length > MAX_DAYS) {
+      setDateError(`En meny kan være på maks ${MAX_DAYS} dager.`);
+      return;
     }
 
-    const days: DayPlan[] = [];
-    const sourceDates = Array.from(sourceByDate.keys()).sort();
+    // Keep what's already been chosen for dates that are still in range,
+    // fill the rest from the plan being copied (day by day), else blank.
+    const existing = new Map(dayPlans.map((day) => [day.date, day.slots]));
+    const sourceDays = sourcePlan
+      ? groupIntoDays(sourcePlan.planned_meals)
+      : [];
 
-    let i = 0;
-    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-      const dateStr = formatISODate(d);
-      // Try to match source meals by position (day index)
-      const sourceDate = sourceDates[i];
-      const sourceSlots = sourceDate ? sourceByDate.get(sourceDate) : undefined;
-
-      days.push({
-        date: dateStr,
-        slots: sourceSlots
-          ? sourceSlots.map((s) => ({ ...s }))
-          : [{ recipe_id: "", notes: "" }],
-      });
-      i++;
-    }
-    setDayPlans(days);
+    setDayPlans(
+      dates.map((date, i) => ({
+        date,
+        slots: existing.get(date) ??
+          sourceDays[i]?.slots.map((slot) => ({ ...slot })) ?? [emptySlot()],
+      })),
+    );
+    setDateError(null);
     setStep(2);
   };
 
-  const handleSlotChange = (
+  const updateDay = (dayIndex: number, update: (slots: Slot[]) => Slot[]) =>
+    setDayPlans((days) =>
+      days.map((day, i) =>
+        i === dayIndex ? { ...day, slots: update(day.slots) } : day,
+      ),
+    );
+
+  const changeSlot = (
     dayIndex: number,
     slotIndex: number,
-    field: "recipe_id" | "notes",
-    value: string,
-  ) => {
-    const newPlans = [...dayPlans];
-    const newSlots = [...newPlans[dayIndex].slots];
-    newSlots[slotIndex] = { ...newSlots[slotIndex], [field]: value };
-    newPlans[dayIndex] = { ...newPlans[dayIndex], slots: newSlots };
-    setDayPlans(newPlans);
-  };
+    change: Partial<Slot>,
+  ) =>
+    updateDay(dayIndex, (slots) =>
+      slots.map((slot, i) => (i === slotIndex ? { ...slot, ...change } : slot)),
+    );
 
-  const addSlot = (dayIndex: number) => {
-    const newPlans = [...dayPlans];
-    newPlans[dayIndex] = {
-      ...newPlans[dayIndex],
-      slots: [...newPlans[dayIndex].slots, { recipe_id: "", notes: "" }],
-    };
-    setDayPlans(newPlans);
-  };
+  const addSlot = (dayIndex: number) =>
+    updateDay(dayIndex, (slots) => [...slots, emptySlot()]);
 
-  const removeSlot = (dayIndex: number, slotIndex: number) => {
-    const newPlans = [...dayPlans];
-    const newSlots = newPlans[dayIndex].slots.filter((_, i) => i !== slotIndex);
-    newPlans[dayIndex] = {
-      ...newPlans[dayIndex],
-      slots: newSlots.length > 0 ? newSlots : [{ recipe_id: "", notes: "" }],
-    };
-    setDayPlans(newPlans);
-  };
+  const removeSlot = (dayIndex: number, slotIndex: number) =>
+    updateDay(dayIndex, (slots) => {
+      const rest = slots.filter((_, i) => i !== slotIndex);
+      return rest.length > 0 ? rest : [emptySlot()];
+    });
 
-  const calculateShoppingItems = () => {
-    const ingredients: ShoppingItem[] = [];
+  /** Everything the chosen recipes need, minus pantry staples, merged */
+  const buildShoppingDraft = (): DraftItem[] => {
+    const recipeById = new Map(recipes.map((r) => [r.id, r]));
+    const ingredients: MergeableItem[] = [];
 
-    dayPlans.forEach((day) => {
-      day.slots.forEach((slot) => {
-        const recipe = recipes.find((r) => r.id === slot.recipe_id);
-        recipe?.ingredients?.forEach((ing) => {
-          if (ing.is_basic) return;
-
+    for (const day of dayPlans) {
+      for (const slot of day.slots) {
+        for (const ing of recipeById.get(slot.recipe_id)?.ingredients ?? []) {
+          if (ing.is_basic) continue;
           ingredients.push({
             name: ing.name,
-            amount: Number(ing.amount) || 0,
+            amount: ing.amount,
             unit: ing.unit,
-            checked: false,
           });
-        });
-      });
-    });
+        }
+      }
+    }
 
-    // The same ingredient from several recipes becomes one line
-    return mergeShoppingItems(ingredients);
+    return mergeShoppingItems(ingredients).map((item) => ({
+      ...item,
+      checked: false,
+    }));
   };
 
-  const generateShoppingList = () => {
-    const items = calculateShoppingItems();
-    setShoppingItems(items);
-    setStep(3);
-  };
-
-  const toggleShoppingItem = (index: number) => {
-    const newItems = [...shoppingItems];
-    newItems[index].checked = !newItems[index].checked;
-    setShoppingItems(newItems);
-  };
-
-  /** Flatten dayPlans into individual planned_meals rows for DB insert */
-  const flattenPlannedMeals = (planId: string) => {
-    const rows: {
-      meal_plan_id: string;
-      date: string;
-      recipe_id: string | null;
-      notes: string;
-    }[] = [];
-    dayPlans.forEach((day) => {
-      day.slots.forEach((slot) => {
-        rows.push({
-          meal_plan_id: planId,
-          date: day.date,
-          recipe_id: slot.recipe_id || null,
-          notes: slot.notes,
-        });
-      });
-    });
-    return rows;
-  };
-
-  const savePlan = async (showShopping = false) => {
-    setLoading(true);
+  const savePlan = async (next: "shopping" | "view") => {
+    setSaving(true);
     try {
+      const title =
+        planTitle.trim() ||
+        `Plan for ${formatDateRange({ start: startDate, end: endDate })}`;
       let planId = initialData?.id;
 
       if (initialData) {
-        // 1. Update Meal Plan
-        const { error: planError } = await supabase
+        const { error } = await supabase
           .from("meal_plans")
-          .update({
-            start_date: startDate,
-            end_date: endDate,
-            title:
-              planTitle ||
-              `Plan for ${formatDateRange({
-                start: startDate,
-                end: endDate,
-              })}`,
-          })
-          .eq("id", planId);
+          .update({ start_date: startDate, end_date: endDate, title })
+          .eq("id", initialData.id);
+        if (error) throw error;
 
-        if (planError) throw planError;
-
-        // 2. Delete old days
-        await supabase
+        const { error: deleteError } = await supabase
           .from("planned_meals")
           .delete()
-          .eq("meal_plan_id", planId);
+          .eq("meal_plan_id", initialData.id);
+        if (deleteError) throw deleteError;
       } else {
-        // 1. Create Meal Plan
-        const { data: plan, error: planError } = await supabase
+        const { data, error } = await supabase
           .from("meal_plans")
           .insert({
             user_id: userId,
             household_id: householdId,
             start_date: startDate,
             end_date: endDate,
-            title:
-              planTitle ||
-              `Plan for ${formatDateRange({
-                start: startDate,
-                end: endDate,
-              })}`,
+            title,
           })
-          .select()
+          .select("id")
           .single();
-
-        if (planError) throw planError;
-        planId = plan.id;
+        if (error) throw error;
+        planId = data.id;
       }
 
-      // 3. Create Planned Meals (flattened — one row per slot)
-      const planDaysToInsert = flattenPlannedMeals(planId);
-
-      const { error: daysError } = await supabase
+      const rows = dayPlans.flatMap((day) =>
+        day.slots.map((slot) => ({
+          meal_plan_id: planId,
+          date: day.date,
+          recipe_id: slot.recipe_id || null,
+          notes: slot.notes,
+        })),
+      );
+      const { error: mealsError } = await supabase
         .from("planned_meals")
-        .insert(planDaysToInsert);
+        .insert(rows);
+      if (mealsError) throw mealsError;
 
-      if (daysError) throw daysError;
-
-      // Prepare shopping items if needed
-      if (showShopping) {
-        const items = calculateShoppingItems();
-        setShoppingItems(items);
+      if (next === "shopping") {
+        setDraftItems(buildShoppingDraft());
         setStep(3);
       } else {
         window.location.href = `/plans/${planId}`;
       }
-    } catch (err: any) {
-      alert("Feil ved lagring av plan: " + err.message);
+    } catch (err) {
+      alert(`Feil ved lagring av menyen: ${errorMessage(err)}`);
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
-  const handleFinishWizard = async () => {
-    setLoading(true);
+  const handleFinish = async () => {
+    setSaving(true);
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      // Ticked items are already in the cupboard
+      const toAdd = draftItems.filter((item) => !item.checked);
 
-      // Only add things we don't have
-      const itemsToAdd = shoppingItems.filter((item) => !item.checked);
-
-      if (user && itemsToAdd.length > 0) {
+      if (toAdd.length > 0) {
         // Anything already on the list gets its amount bumped instead of
         // ending up as a duplicate line. Completed items are already bought,
         // so they're left alone and the ingredient starts over on a new line.
-        const { data: existingItems, error: existingError } = await supabase
+        const { data: existing, error: existingError } = await supabase
           .from("shopping_items")
           .select("id, name, amount, unit")
           .eq("household_id", householdId)
           .eq("completed", false);
-
         if (existingError) throw existingError;
 
         const { updates, inserts } = planShoppingListAdditions(
-          existingItems || [],
-          itemsToAdd,
+          existing ?? [],
+          toAdd,
         );
 
         if (inserts.length > 0) {
-          const { error: shoppingError } = await supabase
-            .from("shopping_items")
-            .insert(
-              inserts.map((item) => ({
-                user_id: user.id,
-                household_id: householdId,
-                name: item.name,
-                amount: item.amount,
-                unit: item.unit,
-                completed: false,
-              })),
-            );
-          if (shoppingError) throw shoppingError;
+          const { error } = await supabase.from("shopping_items").insert(
+            inserts.map((item) => ({
+              user_id: userId,
+              household_id: householdId,
+              name: item.name,
+              amount: item.amount,
+              unit: item.unit,
+              completed: false,
+            })),
+          );
+          if (error) throw error;
         }
 
-        for (const update of updates) {
-          const { error: updateError } = await supabase
-            .from("shopping_items")
-            .update({ name: update.name, amount: update.amount })
-            .eq("id", update.id);
-          if (updateError) throw updateError;
-        }
+        const results = await Promise.all(
+          updates.map((update) =>
+            supabase
+              .from("shopping_items")
+              .update({ name: update.name, amount: update.amount })
+              .eq("id", update.id),
+          ),
+        );
+        const failed = results.find((r) => r.error);
+        if (failed?.error) throw failed.error;
       }
-      window.location.href = `/plans`;
-    } catch (err: any) {
-      console.error("Feil ved ferdigstilling av handleliste:", err);
-      alert("Feil ved ferdigstilling: " + err.message);
+
+      window.location.href = "/plans";
+    } catch (err) {
+      alert(`Feil ved ferdigstilling av handlelisten: ${errorMessage(err)}`);
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!initialData?.id) return;
+    if (!initialData) return;
     if (!confirm("Er du helt sikker på at du vil slette denne menyen?")) return;
 
-    setLoading(true);
+    setSaving(true);
     try {
       const { error } = await supabase
         .from("meal_plans")
         .delete()
         .eq("id", initialData.id);
-
       if (error) throw error;
 
       window.location.href = "/plans";
-    } catch (err: any) {
-      console.error("Feil ved sletting av plan:", err);
-      alert("Feil ved sletting: " + err.message);
+    } catch (err) {
+      alert(`Feil ved sletting: ${errorMessage(err)}`);
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
+
+  const deleteButton = isEditing && (
+    <Button
+      variant="danger"
+      size="lg"
+      onClick={handleDelete}
+      disabled={saving}
+      title="Slett meny"
+    >
+      <Icon icon={ui.delete} className="h-6 w-6" />
+      <span className="sr-only">Slett meny</span>
+    </Button>
+  );
 
   if (step === 1) {
     return (
@@ -446,7 +350,7 @@ export const MealPlanningWizard: React.FC<{
         </h2>
         <div className="space-y-6">
           <Input
-            label="Navn på plan (valgfritt)"
+            label="Navn på menyen (valgfritt)"
             value={planTitle}
             onChange={(e) => setPlanTitle(e.target.value)}
             placeholder="f.eks. «Italiensk uke»"
@@ -456,15 +360,18 @@ export const MealPlanningWizard: React.FC<{
               type="date"
               label="Fra og med"
               value={startDate}
+              max={endDate || undefined}
               onChange={(e) => setStartDate(e.target.value)}
             />
             <Input
               type="date"
               label="Til og med"
               value={endDate}
+              min={startDate || undefined}
               onChange={(e) => setEndDate(e.target.value)}
             />
           </div>
+          {dateError && <p className="text-sm text-red-500">{dateError}</p>}
           <Button
             onClick={handleDateSelection}
             size="lg"
@@ -473,15 +380,13 @@ export const MealPlanningWizard: React.FC<{
             Velg oppskrifter
             <Icon icon={ui.next} className="h-5 w-5" />
           </Button>
-          {initialData && (
+          {isEditing && (
             <Button
-              type="button"
               variant="danger"
               size="lg"
               onClick={handleDelete}
-              disabled={loading}
-              className="w-full"
-              title="Slett meny"
+              disabled={saving}
+              className="w-full gap-2"
             >
               <Icon icon={ui.delete} className="h-6 w-6" /> Slett meny
             </Button>
@@ -494,14 +399,15 @@ export const MealPlanningWizard: React.FC<{
   if (step === 2) {
     return (
       <div className="mx-auto max-w-2xl space-y-6">
-        <Card className="flex items-center justify-between">
+        <Card className="flex items-center justify-between gap-4">
           <h2 className="text-text text-2xl font-bold">
             Steg 2: Hva har dere lyst på?
           </h2>
           <Button
             variant="secondary"
+            size="sm"
             onClick={() => setStep(1)}
-            className="gap-1 text-sm"
+            className="shrink-0 gap-1"
           >
             <Icon icon={ui.back} className="h-4 w-4" />
             Endre datoer
@@ -533,13 +439,8 @@ export const MealPlanningWizard: React.FC<{
                       <RecipeSelect
                         recipes={recipes}
                         value={slot.recipe_id}
-                        onChange={(value) =>
-                          handleSlotChange(
-                            dayIndex,
-                            slotIndex,
-                            "recipe_id",
-                            value,
-                          )
+                        onChange={(recipe_id) =>
+                          changeSlot(dayIndex, slotIndex, { recipe_id })
                         }
                       />
                       {day.slots.length > 1 && (
@@ -558,19 +459,17 @@ export const MealPlanningWizard: React.FC<{
                       placeholder="Legg til et notat (f.eks. rester, spise ute...)"
                       value={slot.notes}
                       onChange={(e) =>
-                        handleSlotChange(
-                          dayIndex,
-                          slotIndex,
-                          "notes",
-                          e.target.value,
-                        )
+                        changeSlot(dayIndex, slotIndex, {
+                          notes: e.target.value,
+                        })
                       }
                     />
                   </div>
                 ))}
                 <button
+                  type="button"
                   onClick={() => addSlot(dayIndex)}
-                  className="text-primary hover:text-primary/80 flex items-center gap-1 text-sm font-medium transition-colors"
+                  className="text-primary hover:text-primary/80 flex cursor-pointer items-center gap-1 text-sm font-medium transition-colors"
                 >
                   <Icon icon={ui.add} className="h-4 w-4" />
                   Legg til oppskrift
@@ -582,25 +481,22 @@ export const MealPlanningWizard: React.FC<{
 
         <div className="space-y-4">
           <Button
-            onClick={() => savePlan(true)}
-            disabled={loading}
-            size="sm"
+            onClick={() => savePlan("shopping")}
+            disabled={saving}
             className="w-full gap-2"
           >
-            {loading ? "Lagrer..." : "Lag handleliste"}
+            {saving ? "Lagrer..." : "Lag handleliste"}
             <Icon icon={ui.next} className="h-5 w-5" />
           </Button>
           <div className="grid grid-cols-2 gap-4">
             <Button
               variant="secondary"
-              onClick={() => savePlan(false)}
-              disabled={loading}
-              size="sm"
-              className="flex-1"
+              onClick={() => savePlan("view")}
+              disabled={saving}
             >
-              {loading ? "Lagrer..." : "Bare lagre menyen"}
+              {saving ? "Lagrer..." : "Bare lagre menyen"}
             </Button>
-            <Button as="a" href="/plans" variant="secondary" size="sm">
+            <Button as="a" href="/plans" variant="secondary">
               Avbryt
             </Button>
           </div>
@@ -609,75 +505,69 @@ export const MealPlanningWizard: React.FC<{
     );
   }
 
-  if (step === 3) {
-    return (
-      <div className="mx-auto max-w-2xl space-y-6">
-        <Card className="flex items-center justify-between">
-          <h2 className="text-text text-2xl font-bold">
-            Steg 3: Sjekk hva som mangler
-          </h2>
-          <Button
-            variant="secondary"
-            onClick={() => setStep(2)}
-            className="gap-1 text-sm"
-          >
-            <Icon icon={ui.back} className="h-4 w-4" />
-            Tilbake til meny
-          </Button>
-        </Card>
+  return (
+    <div className="mx-auto max-w-2xl space-y-6">
+      <Card className="flex items-center justify-between gap-4">
+        <h2 className="text-text text-2xl font-bold">
+          Steg 3: Sjekk hva som mangler
+        </h2>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => setStep(2)}
+          className="shrink-0 gap-1"
+        >
+          <Icon icon={ui.back} className="h-4 w-4" />
+          Tilbake til meny
+        </Button>
+      </Card>
 
-        <Card>
-          <p className="text-text-muted mb-6">
-            Her er det dere trenger. Kryss av for det dere allerede har i
-            skapet, så slipper dere å kjøpe det én gang til.
-          </p>
+      <Card>
+        <p className="text-text-muted mb-6">
+          Her er det dere trenger. Kryss av for det dere allerede har i skapet,
+          så slipper dere å kjøpe det én gang til.
+        </p>
 
-          {shoppingItems.length > 0 ? (
-            <div className="space-y-3">
-              {shoppingItems.map((item, index) => (
-                <CheckboxButton
-                  key={index}
-                  checked={item.checked}
-                  onChange={() => toggleShoppingItem(index)}
-                  label={item.name}
-                  subLabel={formatItemAmount(item.amount, item.unit)}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-text-muted py-8 text-center">
-              <Icon
-                icon="hugeicons:shopping-basket-01"
-                className="mx-auto mb-3 h-12 w-12 opacity-20"
+        {draftItems.length > 0 ? (
+          <div className="space-y-3">
+            {draftItems.map((item, index) => (
+              <CheckboxButton
+                key={`${item.name}|${item.unit}`}
+                checked={item.checked}
+                onChange={() =>
+                  setDraftItems((current) =>
+                    current.map((it, i) =>
+                      i === index ? { ...it, checked: !it.checked } : it,
+                    ),
+                  )
+                }
+                label={item.name}
+                subLabel={formatItemAmount(item.amount, item.unit)}
               />
-              Det ser ut til at dere har alt dere trenger for disse rettene!
-            </div>
-          )}
-        </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="text-text-muted py-8 text-center">
+            <Icon
+              icon={ui.basket}
+              className="mx-auto mb-3 h-12 w-12 opacity-20"
+            />
+            Det ser ut til at dere har alt dere trenger for disse rettene!
+          </div>
+        )}
+      </Card>
 
-        <div className="flex gap-4">
-          <Button
-            onClick={handleFinishWizard}
-            disabled={loading}
-            size="lg"
-            className="flex-1"
-          >
-            {loading ? "Fullfører..." : "Ferdig"}
-          </Button>
-          {initialData && (
-            <Button
-              type="button"
-              variant="danger"
-              size="lg"
-              onClick={handleDelete}
-              disabled={loading}
-              title="Slett plan"
-            >
-              <Icon icon={ui.delete} className="h-6 w-6" />
-            </Button>
-          )}
-        </div>
+      <div className="flex gap-4">
+        <Button
+          onClick={handleFinish}
+          disabled={saving}
+          size="lg"
+          className="flex-1"
+        >
+          {saving ? "Fullfører..." : "Ferdig"}
+        </Button>
+        {deleteButton}
       </div>
-    );
-  }
+    </div>
+  );
 };
