@@ -218,7 +218,6 @@ export const ShoppingList = ({
 
       {isAdding ? (
         <Card className="overflow-visible">
-          <h3 className="text-text mb-3 font-medium">Noe mer du mangler?</h3>
           <form onSubmit={handleAddItem}>
             <div className="flex flex-col gap-2 md:flex-row md:items-end">
               <div className="flex min-w-0 flex-1 items-end gap-2">
@@ -235,6 +234,7 @@ export const ShoppingList = ({
                   ref={nameInputRef}
                   value={draft.name}
                   autoFocus
+                  autoComplete="off"
                   enterKeyHint="done"
                   onChange={(e) => setDraft({ ...draft, name: e.target.value })}
                   placeholder="f.eks. Epler"
