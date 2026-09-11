@@ -6,6 +6,7 @@ import { CheckboxButton } from "./forms/CheckboxButton";
 import { UnitSelect } from "./forms/UnitSelect";
 import { EmojiSelect } from "./forms/EmojiSelect";
 import { combineEmojiAndName } from "../utils/emoji";
+import { planShoppingListAdditions } from "../utils/shoppingList";
 import { Card } from "./ui/Card";
 import { Button } from "./ui/Button";
 import { Input } from "./forms/Input";
@@ -52,22 +53,55 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
     setLoading(true);
 
     try {
-      const { data, error } = await supabase
-        .from("shopping_items")
-        .insert({
-          user_id: userId,
-          household_id: householdId,
-          name: combineEmojiAndName(newItem.emoji, newItem.name),
-          amount: newItem.amount || null,
-          unit: newItem.unit,
-          completed: false,
-        })
-        .select()
-        .single();
+      const { updates, inserts } = planShoppingListAdditions(
+        // Completed items are already bought, so we never merge into those
+        items.filter((item) => !item.completed),
+        [
+          {
+            name: combineEmojiAndName(newItem.emoji, newItem.name),
+            amount: newItem.amount ? Number(newItem.amount) : null,
+            unit: newItem.unit,
+          },
+        ],
+      );
 
-      if (error) throw error;
+      const [update] = updates;
 
-      setItems([...items, data]);
+      if (update) {
+        // Same name and unit is already on the list — bump the amount
+        const { error } = await supabase
+          .from("shopping_items")
+          .update({ name: update.name, amount: update.amount })
+          .eq("id", update.id);
+
+        if (error) throw error;
+
+        setItems(
+          items.map((item) =>
+            item.id === update.id
+              ? { ...item, name: update.name, amount: update.amount }
+              : item,
+          ),
+        );
+      } else {
+        const { data, error } = await supabase
+          .from("shopping_items")
+          .insert({
+            user_id: userId,
+            household_id: householdId,
+            name: inserts[0].name,
+            amount: inserts[0].amount,
+            unit: inserts[0].unit,
+            completed: false,
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        setItems([...items, data]);
+      }
+
       setNewItem({ emoji: "", name: "", amount: "", unit: "" });
     } catch (err: any) {
       alert("Error adding item: " + err.message);

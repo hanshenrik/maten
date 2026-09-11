@@ -562,7 +562,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
           Be noen flere inn i varmen
         </h2>
         <p className="text-text-muted mb-6">
-          Alle i husstanden deler de samme oppskriftene, planene og den samme
+          Alle i husstanden deler de samme oppskriftene, menyene og den samme
           handlelisten. Det du gjør her, ser de andre med en gang!
         </p>
 

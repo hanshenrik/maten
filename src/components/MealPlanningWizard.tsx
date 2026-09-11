@@ -13,6 +13,10 @@ import { Card } from "./ui/Card";
 import { Button } from "./ui/Button";
 import { Input } from "./forms/Input";
 import { RecipeSelect } from "./RecipeSelect";
+import {
+  mergeShoppingItems,
+  planShoppingListAdditions,
+} from "../utils/shoppingList";
 
 interface Ingredient {
   name: string;
@@ -150,7 +154,7 @@ export const MealPlanningWizard: React.FC<{
     };
 
     fetchData();
-  }, []);
+  }, [initialData]);
 
   const handleDateSelection = () => {
     const start = new Date(startDate);
@@ -221,7 +225,7 @@ export const MealPlanningWizard: React.FC<{
   };
 
   const calculateShoppingItems = () => {
-    const itemMap: Record<string, ShoppingItem> = {};
+    const ingredients: ShoppingItem[] = [];
 
     dayPlans.forEach((day) => {
       day.slots.forEach((slot) => {
@@ -229,22 +233,18 @@ export const MealPlanningWizard: React.FC<{
         recipe?.ingredients?.forEach((ing) => {
           if (ing.is_basic) return;
 
-          const key = `${ing.name.toLowerCase()}-${ing.unit?.toLowerCase() || "none"}`;
-          if (itemMap[key]) {
-            itemMap[key].amount += Number(ing.amount) || 0;
-          } else {
-            itemMap[key] = {
-              name: ing.name,
-              amount: Number(ing.amount) || 0,
-              unit: ing.unit,
-              checked: false,
-            };
-          }
+          ingredients.push({
+            name: ing.name,
+            amount: Number(ing.amount) || 0,
+            unit: ing.unit,
+            checked: false,
+          });
         });
       });
     });
 
-    return Object.values(itemMap);
+    // The same ingredient from several recipes becomes one line
+    return mergeShoppingItems(ingredients);
   };
 
   const generateShoppingList = () => {
@@ -361,23 +361,49 @@ export const MealPlanningWizard: React.FC<{
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (user && shoppingItems.length > 0) {
-        const itemsToInsert = shoppingItems
-          .filter((item) => !item.checked) // Only add things we don't have
-          .map((item) => ({
-            user_id: user.id,
-            household_id: householdId,
-            name: item.name,
-            amount: item.amount,
-            unit: item.unit,
-            completed: false,
-          }));
 
-        if (itemsToInsert.length > 0) {
+      // Only add things we don't have
+      const itemsToAdd = shoppingItems.filter((item) => !item.checked);
+
+      if (user && itemsToAdd.length > 0) {
+        // Anything already on the list gets its amount bumped instead of
+        // ending up as a duplicate line. Completed items are already bought,
+        // so they're left alone and the ingredient starts over on a new line.
+        const { data: existingItems, error: existingError } = await supabase
+          .from("shopping_items")
+          .select("id, name, amount, unit")
+          .eq("household_id", householdId)
+          .eq("completed", false);
+
+        if (existingError) throw existingError;
+
+        const { updates, inserts } = planShoppingListAdditions(
+          existingItems || [],
+          itemsToAdd,
+        );
+
+        if (inserts.length > 0) {
           const { error: shoppingError } = await supabase
             .from("shopping_items")
-            .insert(itemsToInsert);
+            .insert(
+              inserts.map((item) => ({
+                user_id: user.id,
+                household_id: householdId,
+                name: item.name,
+                amount: item.amount,
+                unit: item.unit,
+                completed: false,
+              })),
+            );
           if (shoppingError) throw shoppingError;
+        }
+
+        for (const update of updates) {
+          const { error: updateError } = await supabase
+            .from("shopping_items")
+            .update({ name: update.name, amount: update.amount })
+            .eq("id", update.id);
+          if (updateError) throw updateError;
         }
       }
       window.location.href = `/plans`;
