@@ -3,7 +3,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import Page from "../components/Page.astro";
 import PageHeader from "../components/PageHeader.astro";
 import { ShoppingList } from "../components/ShoppingList";
-import { requireSession } from "../lib/session";
+import { ActiveMembers } from "../components/ActiveMembers";
+import { requireSession, displayNameFor } from "../lib/session";
 import type { ShoppingItem } from "../types";
 import { app } from "../utils/icons";
 
@@ -19,11 +20,23 @@ const { data, error } = await supabase
 if (error) console.error("Error fetching shopping items:", error);
 
 const items = (data ?? []) as ShoppingItem[];
+
+const name = displayNameFor(user);
+const avatarUrl =
+  (user.user_metadata?.avatar_url as string | undefined) ?? null;
 ---
 
 <BaseLayout title="Handleliste">
   <Page size="sm">
-    <PageHeader title="Handleliste" icon={app.shopping} />
+    <PageHeader title="Handleliste" icon={app.shopping}>
+      <Fragment slot="actions">
+        <ActiveMembers
+          client:load
+          householdId={householdId}
+          user={{ id: user.id, name, avatarUrl }}
+        />
+      </Fragment>
+    </PageHeader>
 
     <ShoppingList
       client:load
