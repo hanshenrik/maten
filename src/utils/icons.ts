@@ -18,6 +18,7 @@ export const ui = {
   moon: "hugeicons:moon-02",
   computer: "hugeicons:computer",
   user: "hugeicons:user",
+  userGroup: "hugeicons:user-group",
   favourite: "hugeicons:bookmark-02",
   logout: "hugeicons:logout-01",
   login: "hugeicons:login-01",

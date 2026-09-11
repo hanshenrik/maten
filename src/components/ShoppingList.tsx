@@ -1,10 +1,11 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "./ui/Icon";
 import { supabase } from "../lib/supabase";
 import type { ShoppingItem } from "../types";
 import { combineEmojiAndName } from "../utils/emoji";
 import { errorMessage } from "../utils/errors";
 import { ui } from "../utils/icons";
+import { subscribeShoppingChanges } from "../utils/realtime";
 import {
   formatItemAmount,
   planShoppingListAdditions,
@@ -57,6 +58,34 @@ export const ShoppingList = ({
 
   const activeItems = items.filter((i) => !i.completed);
   const completedItems = items.filter((i) => i.completed);
+
+  // Live updates from anyone else in the household. Each change is reconciled
+  // by id; our own optimistic writes arrive here too and just reapply the
+  // same values. Newest items stay on top to match the page's sort order.
+  useEffect(() => {
+    return subscribeShoppingChanges(householdId, (change) => {
+      setItems((current) => {
+        if (change.type === "DELETE") {
+          return current.filter((item) => item.id !== change.id);
+        }
+        const row = change.row;
+        const existing = current.find((item) => item.id === row.id);
+        if (existing) {
+          // Reuse the current position unless the row moved between the
+          // active and completed groups, which is the only re-sort a toggle
+          // causes. The rest of the row is overwritten from the server.
+          const next: ShoppingItem = { ...existing, ...row };
+          return current.map((item) => (item.id === row.id ? next : item));
+        }
+        if (change.type === "INSERT") {
+          return [row as ShoppingItem, ...current];
+        }
+        // An update for a row we don't have: ignore it rather than resurrect a
+        // phantom item.
+        return current;
+      });
+    });
+  }, [householdId]);
 
   const handleAddItem = async (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();

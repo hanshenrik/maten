@@ -42,6 +42,13 @@ export function readSessionCookie(cookieHeader: string): string | null {
   return chunks.length ? chunks.join("") : null;
 }
 
+/** Decodes base64url text without Node's Buffer, so this runs on any runtime. */
+function decodeBase64Url(value: string): string {
+  const binary = atob(value.replace(/-/g, "+").replace(/_/g, "/"));
+  const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
+
 /**
  * Verifies the access token in the session cookie against Supabase's public
  * keys, without a round trip to Supabase. Returns null when there is no token
@@ -50,17 +57,14 @@ export function readSessionCookie(cookieHeader: string): string | null {
 export async function getUserFromCookies(
   cookieHeader: string,
 ): Promise<User | null> {
-  let session = readSessionCookie(cookieHeader);
-  if (!session) return null;
+  const raw = readSessionCookie(cookieHeader);
+  if (!raw) return null;
 
   // @supabase/ssr optionally encodes values with a "base64-" prefix
   const BASE64_PREFIX = "base64-";
-  if (session.startsWith(BASE64_PREFIX)) {
-    session = Buffer.from(
-      session.slice(BASE64_PREFIX.length),
-      "base64url",
-    ).toString("utf-8");
-  }
+  const session = raw.startsWith(BASE64_PREFIX)
+    ? decodeBase64Url(raw.slice(BASE64_PREFIX.length))
+    : raw;
 
   let accessToken: string | undefined;
   try {
