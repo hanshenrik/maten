@@ -16,6 +16,7 @@ import { Toggle } from "./forms/Toggle";
 import { UnitSelect } from "./forms/UnitSelect";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
+import { Dialog } from "./ui/Dialog";
 import { BasicTag, OptionalTag } from "./ui/Tag";
 
 /** An ingredient as it's being edited: strings, and an emoji of its own */
@@ -85,7 +86,8 @@ const IngredientRow = ({
             <UnitSelect
               value={ingredient.unit}
               onChange={(unit) => onChange({ unit })}
-              className="bg-bg w-24"
+              className="w-24"
+              inputClassName="bg-bg"
             />
           </div>
           <div className="flex w-full justify-between md:justify-end md:gap-5">
@@ -176,6 +178,7 @@ export const RecipeForm = ({
   const [isPublic, setIsPublic] = useState(initialData?.is_public ?? false);
   const [saveCount, setSaveCount] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
   // Keys for new rows count up from a ref, so the server and client render
   // the same keys and React doesn't complain on hydration.
@@ -304,32 +307,8 @@ export const RecipeForm = ({
       window.location.href = isEditing ? `/recipes/${recipeId}` : "/recipes";
     } catch (err) {
       console.error("Feil ved lagring av oppskrift:", err);
-      alert(
+      setAlertMessage(
         `Huff da, det skjedde en feil da vi prøvde å lagre oppskriften: ${errorMessage(err)}`,
-      );
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!initialData) return;
-    if (!confirm("Er du helt sikker på at du vil slette denne godbiten?"))
-      return;
-
-    setSaving(true);
-    try {
-      const { error } = await supabase
-        .from("recipes")
-        .delete()
-        .eq("id", initialData.id);
-      if (error) throw error;
-
-      window.location.href = "/recipes";
-    } catch (err) {
-      console.error("Feil ved sletting av oppskrift:", err);
-      alert(
-        `Vi klarte dessverre ikke å slette oppskriften: ${errorMessage(err)}`,
       );
     } finally {
       setSaving(false);
@@ -460,19 +439,11 @@ export const RecipeForm = ({
         >
           Avbryt
         </Button>
-        {isEditing && (
-          <Button
-            variant="danger"
-            size="lg"
-            onClick={handleDelete}
-            disabled={saving}
-            title="Slett oppskrift"
-          >
-            <Icon icon={ui.delete} className="h-6 w-6" />
-            <span className="sr-only">Slett oppskrift</span>
-          </Button>
-        )}
       </div>
+
+      <Dialog alert open={!!alertMessage} onClose={() => setAlertMessage(null)}>
+        {alertMessage}
+      </Dialog>
     </form>
   );
 };

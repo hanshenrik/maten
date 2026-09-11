@@ -64,10 +64,10 @@ export const RecipeScaler = ({
                     .join(" ")
                 : ""}
             </span>
-            <span className="text-text flex items-center gap-2">
+            <span className="text-text flex items-start gap-2">
               {ing.name}
-              {ing.optional && <OptionalTag />}
-              {ing.is_basic && <BasicTag />}
+              {ing.optional && <OptionalTag className="mt-1" />}
+              {ing.is_basic && <BasicTag className="mt-1" />}
             </span>
           </li>
         ))}

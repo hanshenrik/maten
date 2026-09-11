@@ -20,15 +20,21 @@ const Tag = ({ title, className, children }: TagProps) => (
 );
 
 /** Marks an ingredient most kitchens already have, like salt or oil. */
-export const BasicTag = () => (
-  <Tag title="Basisvare" className="bg-blue-50 dark:bg-blue-950">
+export const BasicTag = ({ className }: { className?: string }) => (
+  <Tag
+    title="Basisvare"
+    className={cn("bg-blue-50 dark:bg-blue-950", className)}
+  >
     B
   </Tag>
 );
 
 /** Marks an ingredient the recipe works fine without. */
-export const OptionalTag = () => (
-  <Tag title="Valgfri" className="bg-fuchsia-100 dark:bg-fuchsia-950">
+export const OptionalTag = ({ className }: { className?: string }) => (
+  <Tag
+    title="Valgfri"
+    className={cn("bg-fuchsia-100 dark:bg-fuchsia-950", className)}
+  >
     V
   </Tag>
 );

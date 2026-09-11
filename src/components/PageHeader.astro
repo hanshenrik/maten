@@ -12,11 +12,9 @@ interface Props {
   icon?: string;
   description?: string;
   backHref?: string;
-  /** Centre everything, for the form pages */
-  centered?: boolean;
 }
 
-const { title, icon, description, backHref, centered = false } = Astro.props;
+const { title, icon, description, backHref } = Astro.props;
 const hasActions = Astro.slots.has("actions");
 ---
 
@@ -24,7 +22,6 @@ const hasActions = Astro.slots.has("actions");
   class:list={[
     "mb-8 flex flex-col gap-4",
     hasActions && "md:flex-row md:items-center md:justify-between",
-    centered && "mb-10 items-center text-center",
   ]}
 >
   <div>

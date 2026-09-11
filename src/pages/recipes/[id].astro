@@ -4,6 +4,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import Page from "../../components/Page.astro";
 import { Button } from "../../components/ui/Button";
 import { RecipeActions } from "../../components/RecipeActions";
+import { RecipeMenu } from "../../components/RecipeMenu";
 import { RecipeScaler } from "../../components/RecipeScaler";
 import { renderMarkdown, markdownToPlainText } from "../../lib/markdown";
 import { fetchRecipeWithIngredients } from "../../lib/queries";
@@ -56,19 +57,7 @@ const description = markdownToPlainText(recipe.description).slice(0, 160);
         <Icon name={ui.back} class="h-4 w-4" />
         Tilbake
       </Button>
-      {
-        isOwner && (
-          <Button
-            as="a"
-            href={`/recipes/${recipe.id}/edit`}
-            variant="secondary"
-            className="gap-2"
-          >
-            <Icon name={ui.edit} class="h-5 w-5" />
-            Gjør endringer
-          </Button>
-        )
-      }
+      <RecipeMenu client:load recipeId={recipe.id} isOwner={isOwner} />
     </div>
 
     <article

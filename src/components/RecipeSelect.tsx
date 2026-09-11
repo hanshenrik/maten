@@ -30,6 +30,7 @@ export function RecipeSelect({ recipes, value, onChange }: RecipeSelectProps) {
       placeholder="Søk etter oppskrift …"
       emptyLabel="(Ingenting valgt ennå)"
       noResultsLabel="Fant ingen oppskrifter"
+      className="w-full"
     />
   );
 }

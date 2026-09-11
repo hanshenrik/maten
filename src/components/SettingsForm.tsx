@@ -16,6 +16,7 @@ import { applyTheme, readTheme, themeOptions } from "../utils/theme";
 import { Input } from "./forms/Input";
 import { Alert } from "./ui/Alert";
 import { Button } from "./ui/Button";
+import { Dialog } from "./ui/Dialog";
 import { Card } from "./ui/Card";
 import { SegmentedControl } from "./ui/SegmentedControl";
 
@@ -109,6 +110,10 @@ export const SettingsForm = ({
     fetchInvites();
   }, [fetchMembers, fetchInvites]);
 
+  const [memberToRemove, setMemberToRemove] = useState<HouseholdMember | null>(
+    null,
+  );
+
   /** Runs an action, showing a message on success or failure */
   const run = async (
     action: () => Promise<void>,
@@ -165,13 +170,7 @@ export const SettingsForm = ({
       { failure: "Vi klarte ikke å fjerne invitasjonen." },
     );
 
-  const handleRemoveMember = (member: HouseholdMember) => {
-    if (
-      !confirm(
-        `Er du helt sikker på at du vil fjerne ${member.email} fra husstanden?`,
-      )
-    )
-      return;
+  const removeMember = (member: HouseholdMember) =>
     run(
       async () => {
         const { error } = await supabase
@@ -183,7 +182,6 @@ export const SettingsForm = ({
       },
       { failure: "Det gikk ikke å fjerne medlemmet." },
     );
-  };
 
   if (loading) {
     return <div className="text-text-muted">Henter innstillingene dine...</div>;
@@ -221,7 +219,7 @@ export const SettingsForm = ({
             value={householdName}
             onChange={setHouseholdName}
             placeholder="f.eks. Familien Hansen"
-            buttonLabel="Lagre nytt navn"
+            buttonLabel="Lagre"
             onSubmit={(name) =>
               run(
                 async () => {
@@ -365,7 +363,7 @@ export const SettingsForm = ({
               </div>
               {member.role !== "owner" && (
                 <Button
-                  onClick={() => handleRemoveMember(member)}
+                  onClick={() => setMemberToRemove(member)}
                   variant="danger"
                   size="sm"
                   title="Fjern fra husstand"
@@ -378,6 +376,20 @@ export const SettingsForm = ({
           ))}
         </ul>
       </Card>
+
+      <Dialog
+        open={!!memberToRemove}
+        onClose={() => setMemberToRemove(null)}
+        onConfirm={() => {
+          if (memberToRemove) removeMember(memberToRemove);
+          setMemberToRemove(null);
+        }}
+        confirmLabel="Fjern"
+        confirmVariant="danger"
+      >
+        {memberToRemove &&
+          `Er du helt sikker på at du vil fjerne ${memberToRemove.email} fra husstanden?`}
+      </Dialog>
     </div>
   );
 };
@@ -457,7 +469,7 @@ const InviteForm = ({
       value={email}
       onChange={setEmail}
       placeholder="E-postadresse til den du vil invitere"
-      buttonLabel="Send invitasjon"
+      buttonLabel="Inviter"
       onSubmit={(address) =>
         run(
           async () => {
@@ -590,7 +602,7 @@ const ProfileCard = ({
         value={displayName}
         onChange={setDisplayName}
         placeholder="f.eks. Ola Nordmann"
-        buttonLabel="Lagre navn"
+        buttonLabel="Lagre"
         onSubmit={(name) =>
           run(
             async () => {

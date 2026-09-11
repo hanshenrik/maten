@@ -17,6 +17,7 @@ import { UnitSelect } from "./forms/UnitSelect";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
 import { Details } from "./ui/Details";
+import { Dialog } from "./ui/Dialog";
 import { Hr } from "./ui/Hr";
 
 interface ShoppingListProps {
@@ -39,6 +40,7 @@ export const ShoppingList = ({
 }: ShoppingListProps) => {
   const [items, setItems] = useState(initialItems);
   const [saving, setSaving] = useState(false);
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [draft, setDraft] = useState(emptyDraft);
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -115,7 +117,7 @@ export const ShoppingList = ({
       // Ready for the next item without reaching for the mouse
       nameInputRef.current?.focus();
     } catch (err) {
-      alert(`Fikk ikke lagt til varen: ${errorMessage(err)}`);
+      setAlertMessage(`Fikk ikke lagt til varen: ${errorMessage(err)}`);
     } finally {
       setSaving(false);
     }
@@ -134,7 +136,7 @@ export const ShoppingList = ({
         current.map((i) => (i.id === item.id ? { ...i, completed } : i)),
       );
     } catch (err) {
-      alert(`Fikk ikke oppdatert varen: ${errorMessage(err)}`);
+      setAlertMessage(`Fikk ikke oppdatert varen: ${errorMessage(err)}`);
     }
   };
 
@@ -148,7 +150,7 @@ export const ShoppingList = ({
 
       setItems((current) => current.filter((i) => i.id !== item.id));
     } catch (err) {
-      alert(`Fikk ikke fjernet varen: ${errorMessage(err)}`);
+      setAlertMessage(`Fikk ikke fjernet varen: ${errorMessage(err)}`);
     }
   };
 
@@ -231,7 +233,7 @@ export const ShoppingList = ({
                 className="w-full gap-2 md:w-fit"
               >
                 <Icon icon={ui.add} className="h-5 w-5" />
-                {saving ? "Legger til..." : "Legg i listen"}
+                {saving ? "Legger til..." : "Legg til"}
               </Button>
               <Button onClick={() => setIsAdding(false)} variant="secondary">
                 Avbryt
@@ -275,6 +277,10 @@ export const ShoppingList = ({
           </div>
         )}
       </div>
+
+      <Dialog alert open={!!alertMessage} onClose={() => setAlertMessage(null)}>
+        {alertMessage}
+      </Dialog>
     </div>
   );
 };

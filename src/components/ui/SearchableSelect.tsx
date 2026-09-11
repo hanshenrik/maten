@@ -7,6 +7,7 @@ import {
   ComboboxOptions,
 } from "@headlessui/react";
 import { Icon } from "./Icon";
+import { cn } from "../../utils/cn";
 import { ui } from "../../utils/icons";
 
 export interface SearchableSelectProps<T> {
@@ -26,7 +27,12 @@ export interface SearchableSelectProps<T> {
   placeholder?: string;
   noResultsLabel?: string;
   ariaLabel?: string;
+  /** The id of the input, so a label can point at it */
+  id?: string;
+  /** Classes for the wrapper, e.g. its width */
   className?: string;
+  /** Classes for the input itself, e.g. its background */
+  inputClassName?: string;
 }
 
 /** Every word in the query must appear somewhere in the label */
@@ -51,7 +57,9 @@ export function SearchableSelect<T>({
   placeholder = "Søk …",
   noResultsLabel = "Ingen treff",
   ariaLabel,
-  className = "",
+  id,
+  className,
+  inputClassName,
 }: SearchableSelectProps<T>) {
   const [query, setQuery] = useState("");
 
@@ -68,20 +76,25 @@ export function SearchableSelect<T>({
       onClose={() => setQuery("")}
       immediate
     >
-      <div className={`relative w-full ${className}`}>
+      <div className={cn("relative", className)}>
         {leading && (
           <div className="pointer-events-none absolute top-1/2 left-2 -translate-y-1/2">
             {leading}
           </div>
         )}
         <ComboboxInput
+          id={id}
           aria-label={ariaLabel}
           placeholder={placeholder}
           displayValue={() => (selected ? getLabel(selected) : "")}
           onChange={(event) => setQuery(event.target.value)}
           // Select the current title so typing starts a fresh search
           onFocus={(event) => event.target.select()}
-          className={`border-border bg-surface text-text focus:ring-primary h-11 w-full rounded-xl border py-2 pr-10 transition-all outline-none focus:border-transparent focus:ring-2 ${leading ? "pl-12" : "pl-3"}`}
+          className={cn(
+            "border-border bg-surface text-text focus:ring-primary h-11 w-full rounded-xl border py-2 pr-10 transition-all outline-none focus:border-transparent focus:ring-2",
+            leading ? "pl-12" : "pl-3",
+            inputClassName,
+          )}
         />
         <ComboboxButton
           aria-label="Vis alternativer"
@@ -89,18 +102,18 @@ export function SearchableSelect<T>({
         >
           <Icon
             icon={ui.chevronDown}
-            className="h-4 w-4 transition-transform group-data-[open]:rotate-180"
+            className="h-4 w-4 transition-transform group-data-open:rotate-180"
           />
         </ComboboxButton>
 
         <ComboboxOptions
           anchor={{ to: "bottom start", gap: 4, padding: 8 }}
-          className="border-border bg-surface z-50 max-h-72 w-[var(--input-width)] overflow-auto rounded-xl border shadow-lg outline-none"
+          className="border-border bg-surface z-50 max-h-72 w-(--input-width) overflow-auto rounded-xl border shadow-lg outline-none"
         >
           {emptyLabel && !query && (
             <ComboboxOption
               value=""
-              className="text-text-muted data-[focus]:bg-primary/5 cursor-pointer px-3 py-2 text-sm outline-none"
+              className="text-text-muted data-focus:bg-primary/5 cursor-pointer px-3 py-2 text-sm outline-none"
             >
               {emptyLabel}
             </ComboboxOption>
@@ -109,7 +122,7 @@ export function SearchableSelect<T>({
             <ComboboxOption
               key={getKey(item)}
               value={getKey(item)}
-              className="data-[focus]:bg-primary/5 data-[selected]:text-primary cursor-pointer px-3 py-2 outline-none"
+              className="data-focus:bg-primary/5 data-selected:text-primary cursor-pointer px-3 py-2 outline-none"
             >
               {renderItem ? renderItem(item) : getLabel(item)}
             </ComboboxOption>

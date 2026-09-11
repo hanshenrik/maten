@@ -16,6 +16,7 @@ import { CheckboxButton } from "./forms/CheckboxButton";
 import { Input } from "./forms/Input";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
+import { Dialog } from "./ui/Dialog";
 import { RecipeSelect } from "./RecipeSelect";
 
 /** A recipe with what the wizard needs to build a shopping list from it */
@@ -89,6 +90,7 @@ export const MealPlanningWizard = ({
   );
   const [draftItems, setDraftItems] = useState<DraftItem[]>([]);
   const [saving, setSaving] = useState(false);
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
   // New plans default to next week. Done on the client so the dates come
   // out in the user's time zone, not the server's.
@@ -247,7 +249,7 @@ export const MealPlanningWizard = ({
         window.location.href = `/plans/${planId}`;
       }
     } catch (err) {
-      alert(`Feil ved lagring av menyen: ${errorMessage(err)}`);
+      setAlertMessage(`Feil ved lagring av menyen: ${errorMessage(err)}`);
     } finally {
       setSaving(false);
     }
@@ -303,102 +305,69 @@ export const MealPlanningWizard = ({
 
       window.location.href = "/plans";
     } catch (err) {
-      alert(`Feil ved ferdigstilling av handlelisten: ${errorMessage(err)}`);
+      setAlertMessage(
+        `Feil ved ferdigstilling av handlelisten: ${errorMessage(err)}`,
+      );
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = async () => {
-    if (!initialData) return;
-    if (!confirm("Er du helt sikker på at du vil slette denne menyen?")) return;
-
-    setSaving(true);
-    try {
-      const { error } = await supabase
-        .from("meal_plans")
-        .delete()
-        .eq("id", initialData.id);
-      if (error) throw error;
-
-      window.location.href = "/plans";
-    } catch (err) {
-      alert(`Feil ved sletting: ${errorMessage(err)}`);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const deleteButton = isEditing && (
-    <Button
-      variant="danger"
-      size="lg"
-      onClick={handleDelete}
-      disabled={saving}
-      title="Slett meny"
-    >
-      <Icon icon={ui.delete} className="h-6 w-6" />
-      <span className="sr-only">Slett meny</span>
-    </Button>
+  const alertDialog = (
+    <Dialog alert open={!!alertMessage} onClose={() => setAlertMessage(null)}>
+      {alertMessage}
+    </Dialog>
   );
 
   if (step === 1) {
     return (
-      <Card className="mx-auto max-w-md">
-        <h2 className="text-text mb-6 text-2xl font-bold">
-          Steg 1: Velg datoer
-        </h2>
-        <div className="space-y-6">
-          <Input
-            label="Navn på menyen (valgfritt)"
-            value={planTitle}
-            onChange={(e) => setPlanTitle(e.target.value)}
-            placeholder="f.eks. «Italiensk uke»"
-          />
-          <div className="grid grid-cols-2 gap-4">
+      <>
+        <Card>
+          <h2 className="text-text mb-6 text-2xl font-bold">
+            Steg 1: Velg datoer
+          </h2>
+          <div className="space-y-6">
             <Input
-              type="date"
-              label="Fra og med"
-              value={startDate}
-              max={endDate || undefined}
-              onChange={(e) => setStartDate(e.target.value)}
+              label="Navn på menyen (valgfritt)"
+              value={planTitle}
+              onChange={(e) => setPlanTitle(e.target.value)}
+              placeholder="f.eks. «Italiensk uke»"
             />
-            <Input
-              type="date"
-              label="Til og med"
-              value={endDate}
-              min={startDate || undefined}
-              onChange={(e) => setEndDate(e.target.value)}
-            />
-          </div>
-          {dateError && <p className="text-sm text-red-500">{dateError}</p>}
-          <Button
-            onClick={handleDateSelection}
-            size="lg"
-            className="w-full gap-2"
-          >
-            Velg oppskrifter
-            <Icon icon={ui.next} className="h-5 w-5" />
-          </Button>
-          {isEditing && (
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                type="date"
+                label="Fra og med"
+                value={startDate}
+                max={endDate || undefined}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+              <Input
+                type="date"
+                label="Til og med"
+                value={endDate}
+                min={startDate || undefined}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </div>
+            {dateError && <p className="text-sm text-red-500">{dateError}</p>}
             <Button
-              variant="danger"
+              onClick={handleDateSelection}
               size="lg"
-              onClick={handleDelete}
-              disabled={saving}
               className="w-full gap-2"
             >
-              <Icon icon={ui.delete} className="h-6 w-6" /> Slett meny
+              Velg oppskrifter
+              <Icon icon={ui.next} className="h-5 w-5" />
             </Button>
-          )}
-        </div>
-      </Card>
+          </div>
+        </Card>
+        {alertDialog}
+      </>
     );
   }
 
   if (step === 2) {
     return (
-      <div className="mx-auto max-w-2xl space-y-6">
+      <div className="space-y-6">
         <Card className="flex items-center justify-between gap-4">
           <h2 className="text-text text-2xl font-bold">
             Steg 2: Hva har dere lyst på?
@@ -501,12 +470,13 @@ export const MealPlanningWizard = ({
             </Button>
           </div>
         </div>
+        {alertDialog}
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="space-y-6">
       <Card className="flex items-center justify-between gap-4">
         <h2 className="text-text text-2xl font-bold">
           Steg 3: Sjekk hva som mangler
@@ -566,8 +536,8 @@ export const MealPlanningWizard = ({
         >
           {saving ? "Fullfører..." : "Ferdig"}
         </Button>
-        {deleteButton}
       </div>
+      {alertDialog}
     </div>
   );
 };

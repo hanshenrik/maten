@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Icon } from "./ui/Icon";
 import { Button } from "./ui/Button";
+import { Dialog } from "./ui/Dialog";
 import { ui } from "../utils/icons";
 
 interface RecipeActionsProps {
@@ -12,9 +13,9 @@ interface RecipeActionsProps {
 
 const GENERIC_ERROR = "Noe gikk galt. Prøv igjen.";
 
-type Action = "save" | "remove" | "clone";
+type Action = "save" | "remove";
 
-/** Save a shared recipe to your own book, remove it again, or copy it. */
+/** Save a shared recipe to your own book, or remove it again. */
 export const RecipeActions = ({
   recipeId,
   isOwner,
@@ -23,6 +24,8 @@ export const RecipeActions = ({
 }: RecipeActionsProps) => {
   const [isSaved, setIsSaved] = useState(initialIsSaved);
   const [busy, setBusy] = useState<Action | null>(null);
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
+  const [confirmingRemove, setConfirmingRemove] = useState(false);
 
   const call = async (
     action: Action,
@@ -36,7 +39,7 @@ export const RecipeActions = ({
       if (!res.ok) throw new Error(GENERIC_ERROR);
       onOk(await res.json().catch(() => ({})));
     } catch {
-      alert(GENERIC_ERROR);
+      setAlertMessage(GENERIC_ERROR);
     } finally {
       setBusy(null);
     }
@@ -44,37 +47,20 @@ export const RecipeActions = ({
 
   const handleSave = () => call("save", "save", "POST", () => setIsSaved(true));
 
-  const handleRemove = () => {
-    if (
-      !confirm(
-        "Er du sikker på at du vil fjerne denne oppskriften fra «Min oppskriftsbok»?",
-      )
-    )
-      return;
+  const handleRemove = () =>
     call("remove", "save", "DELETE", () => setIsSaved(false));
-  };
 
-  const handleClone = () => {
-    if (
-      !confirm(
-        "Vil du lage en kopi av denne oppskriften? Den havner i «Min oppskriftsbok» som en ny, uavhengig oppskrift.",
-      )
-    )
-      return;
-    call("clone", "clone", "POST", (data) => {
-      window.location.href = `/recipes/${data.id}`;
-    });
-  };
+  // Owners, and anyone looking at a private recipe, have nothing to save
+  if (isOwner || !isPublic) return null;
 
   return (
-    <div className="mb-8 flex flex-wrap gap-3">
-      {!isOwner &&
-        isPublic &&
-        (isSaved ? (
+    <>
+      <div className="mb-8 flex flex-wrap gap-3">
+        {isSaved ? (
           <Button
             variant="secondary"
             disabled={busy !== null}
-            onClick={handleRemove}
+            onClick={() => setConfirmingRemove(true)}
             className="gap-2"
           >
             <Icon icon={ui.delete} className="h-5 w-5" />
@@ -90,17 +76,26 @@ export const RecipeActions = ({
             <Icon icon={ui.add} className="h-5 w-5" />
             {busy === "save" ? "Lagrer..." : "Legg til i Min oppskriftsbok"}
           </Button>
-        ))}
+        )}
+      </div>
 
-      <Button
-        variant="secondary"
-        disabled={busy !== null}
-        onClick={handleClone}
-        className="gap-2"
+      <Dialog
+        open={confirmingRemove}
+        onClose={() => setConfirmingRemove(false)}
+        onConfirm={() => {
+          setConfirmingRemove(false);
+          handleRemove();
+        }}
+        confirmLabel="Fjern"
+        confirmVariant="danger"
       >
-        <Icon icon={ui.copy} className="h-5 w-5" />
-        {busy === "clone" ? "Kopierer..." : "Lag en kopi"}
-      </Button>
-    </div>
+        Er du sikker på at du vil fjerne denne oppskriften fra «Min
+        oppskriftsbok»?
+      </Dialog>
+
+      <Dialog alert open={!!alertMessage} onClose={() => setAlertMessage(null)}>
+        {alertMessage}
+      </Dialog>
+    </>
   );
 };

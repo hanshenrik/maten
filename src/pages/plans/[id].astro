@@ -1,14 +1,12 @@
 ---
-import { Icon } from "astro-icon/components";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import Page from "../../components/Page.astro";
 import PageHeader from "../../components/PageHeader.astro";
 import { PlannedMeal } from "../../components/PlannedMeal";
-import { Button } from "../../components/ui/Button";
+import { PlanMenu } from "../../components/PlanMenu";
 import { fetchMealPlan } from "../../lib/queries";
 import { requireSession } from "../../lib/session";
 import { formatDateRange, todayISO } from "../../utils/date";
-import { ui } from "../../utils/icons";
 import { groupMealsByDate } from "../../utils/mealPlans";
 
 const { id } = Astro.params;
@@ -35,26 +33,14 @@ const today = todayISO();
       backHref="/plans"
       description={`Her er menyen deres for ${dateRange}`}
     >
-      <Fragment slot="actions">
-        <Button
-          as="a"
-          href={`/plans/${plan.id}/edit`}
-          variant="secondary"
-          className="gap-2"
-        >
-          <Icon name={ui.edit} class="h-5 w-5" />
-          Gjør endringer
-        </Button>
-        <Button
-          as="a"
-          href={`/plans/new?copyFrom=${plan.id}`}
-          variant="secondary"
-          className="gap-2"
-        >
-          <Icon name={ui.copy} class="h-5 w-5" />
-          Lag kopi
-        </Button>
-      </Fragment>
+      <PlanMenu
+        slot="actions"
+        client:load
+        planId={plan.id}
+        withLinks
+        afterDelete="/plans"
+        className="self-end md:self-auto"
+      />
     </PageHeader>
 
     <div class="meal-scroll -mx-4 flex gap-4 overflow-x-auto px-4 pt-4 pb-4">
