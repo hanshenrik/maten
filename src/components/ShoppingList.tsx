@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { Icon } from "@iconify/react";
 import { Hr } from "./ui/Hr";
 import { supabase } from "../lib/supabase";
@@ -6,7 +6,10 @@ import { CheckboxButton } from "./forms/CheckboxButton";
 import { UnitSelect } from "./forms/UnitSelect";
 import { EmojiSelect } from "./forms/EmojiSelect";
 import { combineEmojiAndName } from "../utils/emoji";
-import { planShoppingListAdditions } from "../utils/shoppingList";
+import {
+  formatItemAmount,
+  planShoppingListAdditions,
+} from "../utils/shoppingList";
 import { Card } from "./ui/Card";
 import { Button } from "./ui/Button";
 import { Input } from "./forms/Input";
@@ -42,24 +45,34 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
     amount: "",
     unit: "",
   });
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
   // Get unique names of previously completed items for autosuggestion
   const suggestions = Array.from(
     new Set(items.filter((item) => item.completed).map((item) => item.name)),
   ).sort();
 
+  const handleSubmitNewItem = (event: React.FormEvent) => {
+    // Enter anywhere in the form adds the item, on desktop and mobile alike
+    event.preventDefault();
+    handleAddItem();
+  };
+
   const handleAddItem = async () => {
-    if (!newItem.name.trim()) return;
+    if (!newItem.name.trim() || loading) return;
     setLoading(true);
 
     try {
       const { updates, inserts } = planShoppingListAdditions(
-        // Completed items are already bought, so we never merge into those
-        items.filter((item) => !item.completed),
+        // Completed items are already bought, so we never merge into those.
+        // No amount means one of the thing, so adding it again gives you 2.
+        items
+          .filter((item) => !item.completed)
+          .map((item) => ({ ...item, amount: item.amount ?? 1 })),
         [
           {
             name: combineEmojiAndName(newItem.emoji, newItem.name),
-            amount: newItem.amount ? Number(newItem.amount) : null,
+            amount: newItem.amount ? Number(newItem.amount) : 1,
             unit: newItem.unit,
           },
         ],
@@ -76,12 +89,15 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
 
         if (error) throw error;
 
+        // Newest first, so the merged item shows up where you added it
+        const merged = items.find((item) => item.id === update.id);
         setItems(
-          items.map((item) =>
-            item.id === update.id
-              ? { ...item, name: update.name, amount: update.amount }
-              : item,
-          ),
+          merged
+            ? [
+                { ...merged, name: update.name, amount: update.amount },
+                ...items.filter((item) => item.id !== update.id),
+              ]
+            : items,
         );
       } else {
         const { data, error } = await supabase
@@ -99,10 +115,12 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
 
         if (error) throw error;
 
-        setItems([...items, data]);
+        setItems([data, ...items]);
       }
 
       setNewItem({ emoji: "", name: "", amount: "", unit: "" });
+      // Ready for the next item without reaching for the mouse
+      nameInputRef.current?.focus();
     } catch (err: any) {
       alert("Error adding item: " + err.message);
     } finally {
@@ -161,67 +179,73 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
       {addItemCardOpen ? (
         <Card className="overflow-visible">
           <h3 className="text-text mb-3 font-medium">Noe mer du mangler?</h3>
-          <div className="grid grid-cols-1 items-end gap-2 md:grid-cols-3">
-            <div className="flex flex-row items-end gap-2">
-              <div className="flex flex-col gap-1">
-                <label className="text-text-muted block text-sm">Ikon</label>
-                <EmojiSelect
-                  value={newItem.emoji}
-                  onChange={(emoji) => setNewItem({ ...newItem, emoji })}
+          <form onSubmit={handleSubmitNewItem}>
+            <div className="grid grid-cols-1 items-end gap-2 md:grid-cols-3">
+              <div className="flex flex-row items-end gap-2">
+                <div className="flex flex-col gap-1">
+                  <label className="text-text-muted block text-sm">Ikon</label>
+                  <EmojiSelect
+                    value={newItem.emoji}
+                    onChange={(emoji) => setNewItem({ ...newItem, emoji })}
+                  />
+                </div>
+
+                <div className="flex w-full flex-col gap-1 md:col-span-2">
+                  <label className="text-text-muted block text-sm">Navn</label>
+                  <Input
+                    list="shopping-suggestions"
+                    ref={nameInputRef}
+                    value={newItem.name}
+                    autoFocus
+                    enterKeyHint="done"
+                    onChange={(e) =>
+                      setNewItem({ ...newItem, name: e.target.value })
+                    }
+                    placeholder="f.eks. Epler"
+                  />
+                </div>
+              </div>
+              <div>
+                <Input
+                  type="number"
+                  label="Antall"
+                  enterKeyHint="done"
+                  value={newItem.amount}
+                  onChange={(e) =>
+                    setNewItem({
+                      ...newItem,
+                      amount: e.target.value,
+                    })
+                  }
+                  min="1"
                 />
               </div>
 
-              <div className="flex w-full flex-col gap-1 md:col-span-2">
-                <label className="text-text-muted block text-sm">Navn</label>
-                <Input
-                  list="shopping-suggestions"
-                  value={newItem.name}
-                  autoFocus
-                  onChange={(e) =>
-                    setNewItem({ ...newItem, name: e.target.value })
-                  }
-                  placeholder="f.eks. Epler"
-                />
-              </div>
-            </div>
-            <div>
-              <Input
-                type="number"
-                label="Antall"
-                value={newItem.amount}
-                onChange={(e) =>
-                  setNewItem({
-                    ...newItem,
-                    amount: e.target.value,
-                  })
-                }
-                min="1"
+              <UnitSelect
+                id="unit"
+                label="Enhet"
+                value={newItem.unit}
+                onChange={(value) => setNewItem({ ...newItem, unit: value })}
               />
             </div>
-
-            <UnitSelect
-              id="unit"
-              label="Enhet"
-              value={newItem.unit}
-              onChange={(value) => setNewItem({ ...newItem, unit: value })}
-            />
-          </div>
-          <div className="mt-4 flex w-full gap-2">
-            <Button
-              onClick={handleAddItem}
-              disabled={loading}
-              className="w-full gap-2 md:w-fit"
-            >
-              <Icon icon={ui.add} className="h-5 w-5" />
-              {loading ? "Legger til..." : "Legg i listen"}
-            </Button>
-            <Button
-              onClick={() => setAddItemCardOpen(false)}
-              variant="secondary"
-            >
-              Avbryt
-            </Button>
-          </div>
+            <div className="mt-4 flex w-full gap-2">
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full gap-2 md:w-fit"
+              >
+                <Icon icon={ui.add} className="h-5 w-5" />
+                {loading ? "Legger til..." : "Legg i listen"}
+              </Button>
+              <Button
+                type="button"
+                onClick={() => setAddItemCardOpen(false)}
+                variant="secondary"
+              >
+                Avbryt
+              </Button>
+            </div>
+          </form>
         </Card>
       ) : (
         <div className="flex flex-col gap-1">
@@ -246,7 +270,12 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
                   checked={item.completed}
                   onChange={() => handleToggleComplete(item.id, item.completed)}
                   label={item.name}
-                  subLabel={`${item.amount} ${item.unit}${item.notes ? ` • ${item.notes}` : ""}`}
+                  subLabel={[
+                    formatItemAmount(item.amount, item.unit),
+                    item.notes,
+                  ]
+                    .filter(Boolean)
+                    .join(" • ")}
                 />
                 <Button
                   onClick={() => handleDeleteItem(item.id)}
@@ -285,7 +314,12 @@ export const ShoppingListComponent: React.FC<ShoppingListProps> = ({
                         handleToggleComplete(item.id, item.completed)
                       }
                       label={item.name}
-                      subLabel={`${item.amount} ${item.unit}${item.notes ? ` • ${item.notes}` : ""}`}
+                      subLabel={[
+                        formatItemAmount(item.amount, item.unit),
+                        item.notes,
+                      ]
+                        .filter(Boolean)
+                        .join(" • ")}
                     />
                     <Button
                       onClick={() => handleDeleteItem(item.id)}

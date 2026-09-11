@@ -14,6 +14,7 @@ import { Button } from "./ui/Button";
 import { Input } from "./forms/Input";
 import { RecipeSelect } from "./RecipeSelect";
 import {
+  formatItemAmount,
   mergeShoppingItems,
   planShoppingListAdditions,
 } from "../utils/shoppingList";
@@ -639,7 +640,7 @@ export const MealPlanningWizard: React.FC<{
                   checked={item.checked}
                   onChange={() => toggleShoppingItem(index)}
                   label={item.name}
-                  subLabel={`${item.amount} ${item.unit}`}
+                  subLabel={formatItemAmount(item.amount, item.unit)}
                 />
               ))}
             </div>

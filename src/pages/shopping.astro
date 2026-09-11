@@ -10,11 +10,15 @@ const title = "Handleliste";
 const { queryCache, supabase, householdId, user } = Astro.locals;
 
 const { data: shoppingItems } = await queryCache.getOrSet(
-  generateCacheKey("shopping_items", "household", { household_id: householdId }),
-  () => supabase
-    .from("shopping_items")
-    .select("*")
-    .order("created_at", { ascending: true })
+  generateCacheKey("shopping_items", "household", {
+    household_id: householdId,
+  }),
+  () =>
+    supabase
+      .from("shopping_items")
+      .select("*")
+      // Newest first, so items you just added are at the top of the list
+      .order("created_at", { ascending: false }),
 );
 
 const initialItems = shoppingItems || [];

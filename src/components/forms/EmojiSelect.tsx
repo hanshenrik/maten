@@ -161,10 +161,21 @@ export const EmojiSelect: React.FC<EmojiSelectProps> = ({
               placeholder="Søk emoji..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key !== "Enter") return;
+                // Never let the search escape to a surrounding form
+                e.preventDefault();
+                const [first] = filteredEmojis;
+                if (!first) return;
+                onChange(first.emoji);
+                setIsOpen(false);
+                setSearchTerm("");
+              }}
               className="text-text w-full bg-transparent text-sm outline-none"
             />
             {searchTerm && (
               <button
+                type="button"
                 onClick={() => setSearchTerm("")}
                 className="text-text-muted hover:text-text"
               >
@@ -175,6 +186,7 @@ export const EmojiSelect: React.FC<EmojiSelectProps> = ({
 
           <div className="custom-scrollbar grid max-h-48 grid-cols-6 gap-1 overflow-y-auto p-1">
             <button
+              type="button"
               onClick={() => {
                 onChange("");
                 setIsOpen(false);
@@ -191,6 +203,7 @@ export const EmojiSelect: React.FC<EmojiSelectProps> = ({
             {filteredEmojis.map((item) => (
               <button
                 key={item.emoji}
+                type="button"
                 onClick={() => {
                   onChange(item.emoji);
                   setIsOpen(false);

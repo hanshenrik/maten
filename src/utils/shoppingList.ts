@@ -24,6 +24,25 @@ export const shoppingItemKey = (name: string, unit?: string | null): string => {
   return `${bareName.toLowerCase()}|${(unit || "").trim().toLowerCase()}`;
 };
 
+/**
+ * The "2 kg" line under an item's name. Missing pieces are left out instead of
+ * printing "null", and a lone "1" is dropped — one of something is what you
+ * get when you don't say otherwise.
+ */
+export const formatItemAmount = (
+  amount: number | null | undefined,
+  unit?: string | null,
+): string => {
+  const cleanUnit = (unit || "").trim();
+  if (!cleanUnit && (amount == null || amount === 1)) return "";
+
+  const parts: string[] = [];
+  if (amount != null) parts.push(String(amount));
+  if (cleanUnit) parts.push(cleanUnit);
+
+  return parts.join(" ");
+};
+
 /** Adds two amounts, staying null only when neither side has a number. */
 const addAmounts = (
   a: number | null | undefined,
