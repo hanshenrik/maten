@@ -3,9 +3,13 @@ import { Icon } from "astro-icon/components";
 import { ui } from "../utils/icons";
 
 /**
- * Page title with an optional icon, back link and description. Buttons go
- * in the `actions` slot: they sit to the right on wide screens and stack
- * below the title on narrow ones.
+ * Page title with an optional icon, back link and description.
+ *
+ * There are two ways to put controls next to the title:
+ * - `actions` for buttons: to the right on wide screens, stacked below the
+ *   title on narrow ones, since full-width buttons need the room.
+ * - `menu` for a dot menu: always next to the title, as it stays small
+ *   enough to share the line even on a phone.
  */
 interface Props {
   title: string;
@@ -16,12 +20,14 @@ interface Props {
 
 const { title, icon, description, backHref } = Astro.props;
 const hasActions = Astro.slots.has("actions");
+const hasMenu = Astro.slots.has("menu");
 ---
 
 <header
   class:list={[
-    "mb-8 flex flex-col gap-4",
-    hasActions && "flex-row justify-between md:items-center",
+    "mb-8 flex gap-4",
+    hasMenu ? "flex-row items-start justify-between" : "flex-col",
+    hasActions && "md:flex-row md:items-center md:justify-between",
   ]}
 >
   <div>
@@ -44,6 +50,7 @@ const hasActions = Astro.slots.has("actions");
     </div>
     {description && <p class="text-text-muted mt-2">{description}</p>}
   </div>
+  {hasMenu && <slot name="menu" />}
   {
     hasActions && (
       <div class="flex flex-col gap-3 md:flex-row">

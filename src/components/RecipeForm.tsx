@@ -46,7 +46,7 @@ const IngredientRow = ({
       value={ingredient}
       dragListener={false}
       dragControls={dragControls}
-      className="bg-bg border-border relative flex items-start gap-3 rounded-xl border p-4"
+      className="bg-bg border-border relative flex items-start gap-2 rounded-xl border p-2 md:p-4"
     >
       <div
         onPointerDown={(e) => dragControls.start(e)}
@@ -65,10 +65,10 @@ const IngredientRow = ({
             type="text"
             required
             aria-label="Ingrediens"
-            placeholder="Hva trenger vi?"
+            placeholder="Hva trengs?"
             value={ingredient.name}
             onChange={(e) => onChange({ name: e.target.value })}
-            className={cn(inputClassName, "bg-bg w-full")}
+            className={cn(inputClassName, "bg-bg w-full text-sm")}
           />
         </div>
         <div className="flex flex-col gap-2 md:flex-row">
@@ -174,7 +174,10 @@ export const RecipeForm = ({
   const [servings, setServings] = useState(
     initialData?.servings?.toString() ?? "",
   );
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(
+    initialData?.image_url ?? null,
+  );
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [isPublic, setIsPublic] = useState(initialData?.is_public ?? false);
   const [saveCount, setSaveCount] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -232,25 +235,37 @@ export const RecipeForm = ({
   const addIngredient = () =>
     setIngredients((current) => [...current, newDraft()]);
 
-  const uploadImage = async (file: File) => {
-    const extension = file.name.split(".").pop() || "jpg";
-    const path = `${userId}/${Date.now()}.${extension}`;
-    const { error } = await supabase.storage
-      .from("recipe-images")
-      .upload(path, file);
-    if (error) throw error;
-    return supabase.storage.from("recipe-images").getPublicUrl(path).data
-      .publicUrl;
+  // The picture is uploaded as soon as it is picked, so the form only ever
+  // holds the url of something that is already in storage
+  const handleImageChange = async (file: File | null) => {
+    if (!file) {
+      setImageUrl(null);
+      return;
+    }
+    setUploadingImage(true);
+    try {
+      const extension = file.name.split(".").pop() || "jpg";
+      const path = `${userId}/${Date.now()}.${extension}`;
+      const { error } = await supabase.storage
+        .from("recipe-images")
+        .upload(path, file);
+      if (error) throw error;
+      setImageUrl(
+        supabase.storage.from("recipe-images").getPublicUrl(path).data
+          .publicUrl,
+      );
+    } catch (err) {
+      console.error("Feil ved opplasting av bilde:", err);
+      setAlertMessage(`Klarte ikke å laste opp bildet: ${errorMessage(err)}`);
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSaving(true);
     try {
-      const imageUrl = imageFile
-        ? await uploadImage(imageFile)
-        : (initialData?.image_url ?? null);
-
       const recipeData = {
         title: title.trim(),
         description,
@@ -321,36 +336,12 @@ export const RecipeForm = ({
         <h2 className="text-xl font-semibold">Litt om retten</h2>
 
         <Input
-          label="Hva skal vi kalle den?"
+          label="Hva kalles retten?"
           required
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="f.eks. Klassisk Margherita Pizza"
         />
-
-        <div className="border-border bg-surface/50 flex items-start justify-between gap-4 rounded-xl border p-4">
-          <div>
-            <h3 className="text-text font-medium">
-              Del oppskriften i biblioteket
-            </h3>
-            <p className="text-text-muted mt-1 text-sm">
-              Gjør oppskriften åpen så andre kan lagre den i sin app.
-            </p>
-            {saveCount > 0 && (
-              <p className="text-primary mt-2 text-sm font-medium">
-                Du kan ikke gjøre oppskriften privat igjen fordi{" "}
-                {saveCount === 1 ? "1 person" : `${saveCount} personer`} har
-                lagret den.
-              </p>
-            )}
-          </div>
-          <Toggle
-            id="publicly-shared-recipe"
-            checked={isPublic}
-            disabled={saveCount > 0}
-            onChange={setIsPublic}
-          />
-        </div>
 
         <RichTextEditor
           label="Hva gjør denne retten god?"
@@ -360,18 +351,18 @@ export const RecipeForm = ({
         />
 
         <RichTextEditor
-          label="Hvordan lager vi den?"
+          label="Hvordan lages den?"
           value={instructions}
           onChange={setInstructions}
           placeholder="Steg for steg fremgangsmåte..."
         />
 
         <FileInput
-          label="Et fristende bilde"
+          label="Hvordan ser den ut?"
           accept="image/*"
-          previewUrl={initialData?.image_url ?? undefined}
-          selectedFile={imageFile}
-          onChange={setImageFile}
+          previewUrl={imageUrl}
+          uploading={uploadingImage}
+          onChange={handleImageChange}
         />
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -391,7 +382,7 @@ export const RecipeForm = ({
             placeholder="f.eks. 30"
           />
           <Input
-            label="Antall porsjoner"
+            label="Hvor mange mennesker metter den?"
             type="number"
             min="1"
             value={servings}
@@ -426,8 +417,39 @@ export const RecipeForm = ({
         </Reorder.Group>
       </Card>
 
+      <Card className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-text font-medium">
+              Del oppskriften i biblioteket
+            </h3>
+            <p className="text-text-muted mt-1 text-sm">
+              Gjør oppskriften åpen så andre kan lagre den i sin app.
+            </p>
+            {saveCount > 0 && (
+              <p className="text-primary mt-2 text-sm font-medium">
+                Du kan ikke gjøre oppskriften privat igjen fordi{" "}
+                {saveCount === 1 ? "1 person" : `${saveCount} personer`} har
+                lagret den.
+              </p>
+            )}
+          </div>
+          <Toggle
+            id="publicly-shared-recipe"
+            checked={isPublic}
+            disabled={saveCount > 0}
+            onChange={setIsPublic}
+          />
+        </div>
+      </Card>
+
       <div className="flex gap-4">
-        <Button type="submit" disabled={saving} size="lg" className="flex-1">
+        <Button
+          type="submit"
+          disabled={saving || uploadingImage}
+          size="lg"
+          className="flex-1"
+        >
           {saving ? "Lagrer..." : "Lagre"}
         </Button>
         <Button

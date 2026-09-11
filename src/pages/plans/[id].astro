@@ -34,12 +34,11 @@ const today = todayISO();
       description={`Her er menyen for ${dateRange}`}
     >
       <PlanMenu
-        slot="actions"
+        slot="menu"
         client:load
         planId={plan.id}
         withLinks
         afterDelete="/plans"
-        className="self-end md:self-auto"
       />
     </PageHeader>
 
