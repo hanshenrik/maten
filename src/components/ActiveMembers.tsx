@@ -44,7 +44,6 @@ export const ActiveMembers = ({ householdId, user }: ActiveMembersProps) => {
       role="group"
       aria-label={`Pålogget nå: ${byPerson.map((u) => u.name).join(", ")}`}
     >
-      <Icon icon={ui.userGroup} className="text-text-muted h-4 w-4" />
       <div className="flex -space-x-2">
         {byPerson.map((u) => (
           <Avatar
