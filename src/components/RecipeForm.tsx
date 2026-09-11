@@ -16,6 +16,7 @@ import { Toggle } from "./forms/Toggle";
 import { UnitSelect } from "./forms/UnitSelect";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
+import { IconButton } from "./ui/IconButton";
 import { Dialog } from "./ui/Dialog";
 import { BasicTag, OptionalTag } from "./ui/Tag";
 
@@ -112,14 +113,13 @@ const IngredientRow = ({
           </div>
         </div>
       </div>
-      <Button
+      <IconButton
         variant="danger"
+        size="md"
+        icon={ui.delete}
+        label="Fjern ingrediens"
         onClick={onRemove}
-        className="text-text-muted"
-        title="Fjern ingrediens"
-      >
-        <Icon icon={ui.delete} className="h-5 w-5" />
-      </Button>
+      />
     </Reorder.Item>
   );
 };

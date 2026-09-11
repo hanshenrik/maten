@@ -1,5 +1,6 @@
 ---
 import { Icon } from "astro-icon/components";
+import { IconButton } from "./ui/IconButton";
 import { ui } from "../utils/icons";
 
 /**
@@ -34,13 +35,13 @@ const hasMenu = Astro.slots.has("menu");
     <div class="flex items-center gap-3">
       {
         backHref && (
-          <a
+          <IconButton
+            as="a"
             href={backHref}
-            aria-label="Tilbake"
-            class="text-text hover:text-primary transition-colors"
-          >
-            <Icon name={ui.back} class="h-6 w-6" />
-          </a>
+            icon={ui.back}
+            label="Tilbake"
+            className="-ml-2"
+          />
         )
       }
       <h1 class="text-text flex items-center gap-3 text-3xl font-bold">

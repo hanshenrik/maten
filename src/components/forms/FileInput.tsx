@@ -1,6 +1,7 @@
 import React, { useId, useRef } from "react";
 import { cn } from "../../utils/cn";
 import { Icon } from "../ui/Icon";
+import { IconButton } from "../ui/IconButton";
 import { ui } from "../../utils/icons";
 import { Field } from "./Field";
 
@@ -17,8 +18,8 @@ interface FileInputProps extends Omit<
   onChange: (file: File | null) => void;
 }
 
-const actionClassName =
-  "border-border bg-surface/90 text-text flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border shadow-sm backdrop-blur transition-colors";
+// The buttons sit on top of the picture, so they need a backdrop of their own
+const actionClassName = "bg-surface/90 shadow-sm backdrop-blur";
 
 /**
  * Picks a single image. The file is handed straight to the parent, which
@@ -72,24 +73,20 @@ export const FileInput = ({
 
         {previewUrl && !uploading && (
           <div className="absolute right-2 bottom-2 flex gap-2">
-            <button
-              type="button"
+            <IconButton
+              variant="secondary"
+              icon={ui.edit}
+              label="Bytt bilde"
               onClick={pickFile}
-              title="Bytt bilde"
-              aria-label="Bytt bilde"
-              className={cn(actionClassName, "hover:text-primary")}
-            >
-              <Icon icon={ui.edit} className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
+              className={actionClassName}
+            />
+            <IconButton
+              variant="danger"
+              icon={ui.delete}
+              label="Fjern bilde"
               onClick={() => onChange(null)}
-              title="Fjern bilde"
-              aria-label="Fjern bilde"
-              className={cn(actionClassName, "hover:text-red-500")}
-            >
-              <Icon icon={ui.delete} className="h-4 w-4" />
-            </button>
+              className={actionClassName}
+            />
           </div>
         )}
       </div>

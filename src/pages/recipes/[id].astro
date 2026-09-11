@@ -4,6 +4,7 @@ import { Icon } from "astro-icon/components";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import Page from "../../components/Page.astro";
 import { Button } from "../../components/ui/Button";
+import { IconButton } from "../../components/ui/IconButton";
 import { RecipeActions } from "../../components/RecipeActions";
 import { RecipeMenu } from "../../components/RecipeMenu";
 import { RecipeScaler } from "../../components/RecipeScaler";
@@ -54,10 +55,7 @@ const description = markdownToPlainText(recipe.description).slice(0, 160);
 <BaseLayout title={recipe.title} description={description || undefined}>
   <Page size="md">
     <div class="mb-8 flex items-center justify-between">
-      <Button id="back-btn" variant="secondary" className="gap-2">
-        <Icon name={ui.back} class="h-4 w-4" />
-        Tilbake
-      </Button>
+      <IconButton id="back-btn" icon={ui.back} label="Tilbake" />
       <RecipeMenu client:load recipeId={recipe.id} isOwner={isOwner} />
     </div>
 

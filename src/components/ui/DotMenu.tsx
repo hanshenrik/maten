@@ -7,6 +7,7 @@ import {
   MenuSeparator,
 } from "@headlessui/react";
 import { Icon } from "./Icon";
+import { IconButton } from "./IconButton";
 import { ui } from "../../utils/icons";
 
 export interface DotMenuItem {
@@ -42,11 +43,11 @@ export const DotMenu: React.FC<DotMenuProps> = ({
 }) => (
   <Menu>
     <MenuButton
-      aria-label={label}
-      className={`text-text-muted hover:bg-primary/5 hover:text-primary focus:ring-border data-[open]:bg-primary/5 data-[open]:text-primary flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-xl transition-all focus:ring-2 focus:outline-none ${className}`}
-    >
-      <Icon icon={ui.more} className="h-5 w-5" />
-    </MenuButton>
+      as={IconButton}
+      icon={ui.more}
+      label={label}
+      className={className}
+    />
 
     {/* `anchor` flips and shifts the panel to keep it inside the viewport, and
         caps its height at `--anchor-max-height` or the space available. */}

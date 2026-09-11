@@ -19,6 +19,7 @@ import { Card } from "./ui/Card";
 import { Details } from "./ui/Details";
 import { Dialog } from "./ui/Dialog";
 import { Hr } from "./ui/Hr";
+import { IconButton } from "./ui/IconButton";
 
 interface ShoppingListProps {
   initialItems: ShoppingItem[];
@@ -165,16 +166,14 @@ export const ShoppingList = ({
             subLabel={itemSubLabel(item)}
             className="pr-16"
           />
-          <Button
+          <IconButton
             onClick={() => handleDelete(item)}
             variant="danger"
-            size="sm"
-            className="absolute top-1/2 right-4 -translate-y-1/2"
+            icon={ui.x}
+            label={`Fjern ${item.name}`}
             title="Fjern vare"
-            aria-label={`Fjern ${item.name}`}
-          >
-            <Icon icon={ui.x} className="h-4 w-4" />
-          </Button>
+            className="absolute top-1/2 right-4 -translate-y-1/2"
+          />
         </li>
       ))}
     </ul>

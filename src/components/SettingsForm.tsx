@@ -18,6 +18,7 @@ import { Alert } from "./ui/Alert";
 import { Button } from "./ui/Button";
 import { Dialog } from "./ui/Dialog";
 import { Card } from "./ui/Card";
+import { IconButton } from "./ui/IconButton";
 import { SegmentedControl } from "./ui/SegmentedControl";
 
 interface PendingInvite {
@@ -362,15 +363,13 @@ export const SettingsForm = ({
                 </div>
               </div>
               {member.role !== "owner" && (
-                <Button
+                <IconButton
                   onClick={() => setMemberToRemove(member)}
                   variant="danger"
-                  size="sm"
+                  icon={ui.delete}
+                  label={`Fjern ${member.email}`}
                   title="Fjern fra husstand"
-                  aria-label={`Fjern ${member.email}`}
-                >
-                  <Icon icon={ui.delete} className="h-5 w-5" />
-                </Button>
+                />
               )}
             </li>
           ))}

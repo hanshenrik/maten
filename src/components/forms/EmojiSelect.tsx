@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Icon } from "../ui/Icon";
+import { IconButton } from "../ui/IconButton";
 import { ui } from "../../utils/icons";
 
 interface EmojiItem {
@@ -175,13 +176,12 @@ export const EmojiSelect: React.FC<EmojiSelectProps> = ({
               className="text-text w-full bg-transparent text-sm outline-none"
             />
             {searchTerm && (
-              <button
-                type="button"
+              <IconButton
+                size="xs"
+                icon={ui.cancel}
+                label="Tøm søket"
                 onClick={() => setSearchTerm("")}
-                className="text-text-muted hover:text-text"
-              >
-                <Icon icon={ui.cancel} className="h-4 w-4" />
-              </button>
+              />
             )}
           </div>
 

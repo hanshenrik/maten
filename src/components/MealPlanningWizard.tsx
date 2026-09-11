@@ -17,6 +17,8 @@ import { Input } from "./forms/Input";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
 import { Dialog } from "./ui/Dialog";
+import { IconButton } from "./ui/IconButton";
+import { StepProgress } from "./ui/StepProgress";
 import { RecipeSelect } from "./RecipeSelect";
 
 /** A recipe with what the wizard needs to build a shopping list from it */
@@ -57,6 +59,9 @@ function groupIntoDays(meals: MealPlanWithMeals["planned_meals"]): DayPlan[] {
 }
 
 const MAX_DAYS = 60;
+
+/** Pick dates, pick recipes, check the shopping list */
+const TOTAL_STEPS = 3;
 
 interface MealPlanningWizardProps {
   userId: string;
@@ -323,9 +328,12 @@ export const MealPlanningWizard = ({
     return (
       <>
         <Card>
-          <h2 className="text-text mb-6 text-2xl font-bold">
-            Steg 1: Velg datoer
-          </h2>
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+            <h2 className="text-text text-2xl font-bold">
+              Steg 1: Velg datoer
+            </h2>
+            <StepProgress current={1} total={TOTAL_STEPS} />
+          </div>
           <div className="space-y-6">
             <Input
               label="Navn på menyen (valgfritt)"
@@ -368,19 +376,19 @@ export const MealPlanningWizard = ({
   if (step === 2) {
     return (
       <div className="space-y-6">
-        <Card className="flex items-center justify-between gap-4">
-          <h2 className="text-text text-2xl font-bold">
-            Steg 2: Hva har dere lyst på?
-          </h2>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => setStep(1)}
-            className="shrink-0 gap-1"
-          >
-            <Icon icon={ui.back} className="h-4 w-4" />
-            Endre datoer
-          </Button>
+        <Card className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <IconButton
+              icon={ui.back}
+              label="Tilbake til datoene"
+              onClick={() => setStep(1)}
+              className="-ml-2"
+            />
+            <h2 className="text-text text-2xl font-bold">
+              Steg 2: Hva har dere lyst på?
+            </h2>
+          </div>
+          <StepProgress current={2} total={TOTAL_STEPS} />
         </Card>
 
         <div className="space-y-4">
@@ -413,15 +421,12 @@ export const MealPlanningWizard = ({
                         }
                       />
                       {day.slots.length > 1 && (
-                        <Button
-                          variant="secondary"
-                          size="sm"
+                        <IconButton
+                          variant="danger"
+                          icon={ui.x}
+                          label="Fjern oppskrift"
                           onClick={() => removeSlot(dayIndex, slotIndex)}
-                          title="Fjern oppskrift"
-                          className="text-text-muted hover:text-danger shrink-0"
-                        >
-                          <Icon icon={ui.x} className="h-4 w-4" />
-                        </Button>
+                        />
                       )}
                     </div>
                     <Input
@@ -448,25 +453,26 @@ export const MealPlanningWizard = ({
           ))}
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-2">
           <Button
             onClick={() => savePlan("shopping")}
             disabled={saving}
             className="w-full gap-2"
           >
-            {saving ? "Lagrer..." : "Lag handleliste"}
+            {saving ? "Lagrer..." : "Legg ingrediensene i handlelista"}
             <Icon icon={ui.next} className="h-5 w-5" />
           </Button>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="flex gap-2">
+            <Button as="a" href="/plans" variant="secondary">
+              Avbryt
+            </Button>
             <Button
               variant="secondary"
               onClick={() => savePlan("view")}
               disabled={saving}
+              className="flex-1"
             >
               {saving ? "Lagrer..." : "Bare lagre menyen"}
-            </Button>
-            <Button as="a" href="/plans" variant="secondary">
-              Avbryt
             </Button>
           </div>
         </div>
@@ -477,19 +483,19 @@ export const MealPlanningWizard = ({
 
   return (
     <div className="space-y-6">
-      <Card className="flex items-center justify-between gap-4">
-        <h2 className="text-text text-2xl font-bold">
-          Steg 3: Sjekk hva som mangler
-        </h2>
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => setStep(2)}
-          className="shrink-0 gap-1"
-        >
-          <Icon icon={ui.back} className="h-4 w-4" />
-          Tilbake til meny
-        </Button>
+      <Card className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <IconButton
+            icon={ui.back}
+            label="Tilbake til menyen"
+            onClick={() => setStep(2)}
+            className="-ml-2"
+          />
+          <h2 className="text-text text-2xl font-bold">
+            Steg 3: Sjekk hva som mangler
+          </h2>
+        </div>
+        <StepProgress current={3} total={TOTAL_STEPS} />
       </Card>
 
       <Card>
