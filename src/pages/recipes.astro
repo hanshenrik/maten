@@ -1,106 +1,78 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
-import { RecipeCard } from "../components/RecipeCard";
 import { Icon } from "astro-icon/components";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Page from "../components/Page.astro";
+import PageHeader from "../components/PageHeader.astro";
+import { RecipeCard } from "../components/RecipeCard";
 import { Button } from "../components/ui/Button";
+import { EmptyState } from "../components/ui/EmptyState";
+import { requireSession } from "../lib/session";
+import type { Recipe } from "../types";
 import { app, ui } from "../utils/icons";
-import { generateCacheKey } from "../lib/supabase-cache";
 
-const title = "Alle de gode oppskriftene";
+const { supabase, householdId } = requireSession(Astro.locals);
 
-const { queryCache, supabase, householdId } = Astro.locals;
-
-const [
-  { data: myRecipes, error: myError },
-  { data: savedRecipesData, error: savedError },
-] = await Promise.all([
-  queryCache.getOrSet(
-    generateCacheKey("recipes", "household", { household_id: householdId }),
-    () => supabase
-      .from("recipes")
-      .select("*")
-      .eq("household_id", householdId)
-  ),
-  queryCache.getOrSet(
-    generateCacheKey("saved_recipes", "household", { household_id: householdId }),
-    () => supabase
-      .from("saved_recipes")
-      .select("recipes(*)")
-      .eq("household_id", householdId)
-  ),
+const [myRecipesRes, savedRecipesRes] = await Promise.all([
+  supabase.from("recipes").select("*").eq("household_id", householdId),
+  supabase
+    .from("saved_recipes")
+    .select("recipes(*)")
+    .eq("household_id", householdId),
 ]);
 
-if (myError) console.error("Error fetching recipes:", myError);
-if (savedError) console.error("Error fetching saved recipes:", savedError);
+if (myRecipesRes.error) {
+  console.error("Error fetching recipes:", myRecipesRes.error);
+}
+if (savedRecipesRes.error) {
+  console.error("Error fetching saved recipes:", savedRecipesRes.error);
+}
 
-// Combine and sort
-const recipes = [
-  ...(myRecipes || []),
-  ...(savedRecipesData || [])
-    .map((sr: any) => sr.recipes)
-    .filter((r) => r !== null),
-].sort(
+const myRecipes = (myRecipesRes.data ?? []) as Recipe[];
+const savedRecipes = (
+  (savedRecipesRes.data ?? []) as unknown as { recipes: Recipe | null }[]
+)
+  .map((saved) => saved.recipes)
+  .filter((recipe): recipe is Recipe => recipe !== null);
+
+// Newest first
+const recipes = [...myRecipes, ...savedRecipes].sort(
   (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
 );
 ---
 
-<BaseLayout title={title}>
-  <div class="flex min-h-dvh flex-col">
-    <main class="container mx-auto max-w-6xl flex-1 px-4 py-8">
-      <div class="mb-8 flex items-center justify-between">
-        <h1 class="text-text flex items-center gap-3 text-3xl font-bold">
-          <Icon name={app.recipes} class="h-8 w-8" />
-          Min oppskriftsbok
-        </h1>
-        <div class="hidden gap-3 md:flex">
-          <Button as="a" href="/library" variant="secondary" className="gap-2">
-            <Icon name={app.library} class="h-5 w-5" />
-            Biblioteket
-          </Button>
-          <Button as="a" href="/recipes/new" className="gap-2">
-            <Icon name={ui.add} class="h-5 w-5" />
-            Legg til ny
-          </Button>
-        </div>
-      </div>
-
-      <div class="mb-8 flex flex-col gap-3 md:hidden">
-        <Button
-          as="a"
-          href="/library"
-          variant="secondary"
-          className="flex w-full gap-2"
-        >
+<BaseLayout title="Alle de gode oppskriftene">
+  <Page>
+    <PageHeader title="Min oppskriftsbok" icon={app.recipes}>
+      <Fragment slot="actions">
+        <Button as="a" href="/library" variant="secondary" className="gap-2">
           <Icon name={app.library} class="h-5 w-5" />
           Utforsk biblioteket
         </Button>
-        <Button as="a" href="/recipes/new" className="flex w-full gap-2">
+        <Button as="a" href="/recipes/new" className="gap-2">
           <Icon name={ui.add} class="h-5 w-5" />
           Legg til ny oppskrift
         </Button>
-      </div>
+      </Fragment>
+    </PageHeader>
 
-      {
-        recipes && recipes.length > 0 ? (
-          <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {recipes.map((recipe) => (
-              <a href={`/recipes/${recipe.id}`} class="block">
-                <RecipeCard recipe={recipe} />
-              </a>
-            ))}
-          </div>
-        ) : (
-          <div class="border-border bg-surface rounded-xl border p-6">
-            <p class="text-text-muted mb-4">
-              Her var det tomt! Oppskriftsboken din venter på å bli fylt med
-              godsaker.
-            </p>
-            <p class="text-text-muted">
-              Hva med å legge inn din første favoritt med en gang?
-            </p>
-          </div>
-        )
-      }
-    </main>
-  </div>
+    {
+      recipes.length > 0 ? (
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {recipes.map((recipe) => (
+            <a href={`/recipes/${recipe.id}`} class="block">
+              <RecipeCard recipe={recipe} />
+            </a>
+          ))}
+        </div>
+      ) : (
+        <EmptyState>
+          <p>
+            Her var det tomt! Oppskriftsboken din venter på å bli fylt med
+            godsaker.
+          </p>
+          <p>Hva med å legge inn din første favoritt med en gang?</p>
+        </EmptyState>
+      )
+    }
+  </Page>
 </BaseLayout>

@@ -1,57 +1,68 @@
 ---
 import { Icon } from "astro-icon/components";
 import { app } from "../utils/icons";
-import { IconBackground } from "./IconBackground";
+import { IconBackground, type NavSection } from "./IconBackground";
+
 const { pendingInvitesCount } = Astro.locals;
+const { pathname } = Astro.url;
+
+const items: {
+  section: NavSection;
+  href: string;
+  label: string;
+  isSelected: boolean;
+}[] = [
+  {
+    section: "recipes",
+    href: "/recipes",
+    label: "Oppskrifter",
+    isSelected: pathname.startsWith("/recipes") || pathname === "/library",
+  },
+  {
+    section: "plans",
+    href: "/plans",
+    label: "Menyer",
+    isSelected: pathname.startsWith("/plans"),
+  },
+  {
+    section: "shopping",
+    href: "/shopping",
+    label: "Handleliste",
+    isSelected: pathname === "/shopping",
+  },
+  {
+    section: "settings",
+    href: "/settings",
+    label: "Innstillinger",
+    isSelected: pathname === "/settings",
+  },
+];
 ---
 
 <nav
+  aria-label="Hovedmeny"
   class="border-border bg-surface fixed bottom-0 left-0 z-50 w-full border-t px-4 pt-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))]"
 >
   <div class="container mx-auto flex justify-around">
-    <a href="/recipes" class="text-secondary group flex flex-col items-center">
-      <IconBackground
-        icon="recipes"
-        isSelected={Astro.url.pathname.startsWith("/recipes")}
-      >
-        <Icon name={app.recipes} class="h-6 w-6" />
-      </IconBackground>
-      <span class="mt-1 text-xs">Oppskrifter</span>
-    </a>
-    <a href="/plans" class="text-secondary group flex flex-col items-center">
-      <IconBackground
-        icon="plans"
-        isSelected={Astro.url.pathname.startsWith("/plans")}
-      >
-        <Icon name={app.plans} class="h-6 w-6" />
-      </IconBackground>
-      <span class="mt-1 text-xs">Menyer</span>
-    </a>
-    <a href="/shopping" class="text-secondary group flex flex-col items-center">
-      <IconBackground
-        icon="shopping"
-        isSelected={Astro.url.pathname === "/shopping"}
-      >
-        <Icon name={app.shopping} class="h-6 w-6" />
-      </IconBackground>
-      <span class="mt-1 text-xs">Handleliste</span>
-    </a>
-    <a
-      href="/settings"
-      class="text-secondary group relative flex flex-col items-center"
-    >
-      <IconBackground
-        icon="settings"
-        isSelected={Astro.url.pathname === "/settings"}
-      >
-        <Icon name={app.settings} class="h-6 w-6" />
-      </IconBackground>
-      {
-        pendingInvitesCount > 0 && (
-          <span class="ring-surface absolute top-0 right-1 h-2.5 w-2.5 rounded-full bg-red-500 shadow-sm ring-2" />
-        )
-      }
-      <span class="mt-1 text-xs">Innstillinger</span>
-    </a>
+    {
+      items.map((item) => (
+        <a
+          href={item.href}
+          aria-current={item.isSelected ? "page" : undefined}
+          class="text-secondary group relative flex flex-col items-center"
+        >
+          <IconBackground icon={item.section} isSelected={item.isSelected}>
+            <Icon name={app[item.section]} class="h-6 w-6" />
+          </IconBackground>
+          {item.section === "settings" && pendingInvitesCount > 0 && (
+            <span
+              class="ring-surface absolute top-0 right-1 h-2.5 w-2.5 rounded-full bg-red-500 shadow-sm ring-2"
+              title={`${pendingInvitesCount} ventende invitasjon(er)`}
+            />
+          )}
+          <span class="mt-1 text-xs">{item.label}</span>
+        </a>
+      ))
+    }
   </div>
 </nav>

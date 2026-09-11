@@ -1,132 +1,68 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { PlannedMealComponent as PlannedMeal } from "../../components/PlannedMeal";
-import { Icon } from "astro-icon/components";
-import { formatDateRange } from "../../utils/date";
-import { Button } from "../../components/ui/Button";
-import { ui } from "../../utils/icons";
+import Page from "../../components/Page.astro";
+import PageHeader from "../../components/PageHeader.astro";
+import { PlannedMeal } from "../../components/PlannedMeal";
+import { PlanMenu } from "../../components/PlanMenu";
+import { fetchMealPlan } from "../../lib/queries";
+import { requireSession } from "../../lib/session";
+import { formatDateRange, todayISO } from "../../utils/date";
+import { groupMealsByDate } from "../../utils/mealPlans";
 
 const { id } = Astro.params;
+const { supabase } = requireSession(Astro.locals);
 
-// Fetch plan with days and recipes
-const { data: plan, error } = await Astro.locals.supabase
-  .from("meal_plans")
-  .select(
-    `
-    *,
-    planned_meals (
-      *,
-      recipes (*)
-    )
-  `,
-  )
-  .eq("id", id)
-  .single();
-
-if (error || !plan) {
+const plan = id ? await fetchMealPlan(supabase, id) : null;
+if (!plan) {
   return Astro.redirect("/404");
 }
 
-const title =
-  plan.title ||
-  `Meny: ${formatDateRange({ start: plan.start_date, end: plan.end_date })}`;
-
-/** Group planned_meals by date */
-function groupByDate(meals: any[]): {
-  date: string;
-  meals: { recipeId: string; notes?: string; recipe?: any }[];
-}[] {
-  const map = new Map<
-    string,
-    { recipeId: string; notes?: string; recipe?: any }[]
-  >();
-  for (const m of meals || []) {
-    const entries = map.get(m.date) || [];
-    entries.push({
-      recipeId: m.recipe_id,
-      notes: m.notes,
-      recipe: m.recipes
-        ? {
-            title: m.recipes.title,
-            image_url: m.recipes.image_url,
-            cook_time: m.recipes.cook_time,
-          }
-        : undefined,
-    });
-    map.set(m.date, entries);
-  }
-  return Array.from(map.entries())
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([date, meals]) => ({ date, meals }));
-}
-
-const grouped = groupByDate(plan.planned_meals);
-const todayStr = new Date().toISOString().slice(0, 10);
+const dateRange = formatDateRange({
+  start: plan.start_date,
+  end: plan.end_date,
+});
+const title = plan.title || `Meny: ${dateRange}`;
+const days = groupMealsByDate(plan.planned_meals);
+const today = todayISO();
 ---
 
 <BaseLayout title={title}>
-  <div class="flex min-h-dvh flex-col">
-    <main class="container mx-auto max-w-4xl flex-1 px-4 py-12">
-      <div
-        class="mb-10 flex flex-col justify-between gap-2 lg:flex-row lg:items-center"
-      >
-        <div>
-          <h1 class="text-text text-3xl font-bold">{title}</h1>
-          <p class="text-text-muted">
-            Her er menyen deres for {
-              formatDateRange({
-                start: plan.start_date,
-                end: plan.end_date,
-              })
-            }
-          </p>
-        </div>
-        <div class="flex gap-3">
-          <Button
-            as="a"
-            href={`/plans/${id}/edit`}
-            variant="secondary"
-            className="gap-2"
-          >
-            <Icon name={ui.edit} class="h-5 w-5" />
-            Gjør endringer
-          </Button>
-          <Button
-            as="a"
-            href={`/plans/new?copyFrom=${id}`}
-            variant="secondary"
-            className="gap-2"
-          >
-            <Icon name={ui.copy} class="h-5 w-5" />
-            Lag kopi
-          </Button>
-        </div>
-      </div>
+  <Page size="md">
+    <PageHeader
+      title={title}
+      backHref="/plans"
+      description={`Her er menyen deres for ${dateRange}`}
+    >
+      <PlanMenu
+        slot="actions"
+        client:load
+        planId={plan.id}
+        withLinks
+        afterDelete="/plans"
+        className="self-end md:self-auto"
+      />
+    </PageHeader>
 
-      <div
-        id="meal-scroll"
-        class="meal-scroll -mx-4 mt-4 flex gap-4 overflow-x-auto px-4 pt-8 pb-4"
-      >
-        {
-          grouped.map((day) => {
-            const isToday = day.date === todayStr;
-            return (
-              <div class="w-72 shrink-0" data-today={isToday ? "" : undefined}>
-                <PlannedMeal
-                  date={day.date}
-                  meals={day.meals}
-                  isToday={isToday}
-                />
-              </div>
-            );
-          })
-        }
-      </div>
+    <div class="meal-scroll -mx-4 flex gap-4 overflow-x-auto px-4 pt-4 pb-4">
+      {
+        days.map((day) => {
+          const isToday = day.date === today;
+          return (
+            <div class="w-72 shrink-0" data-today={isToday ? "" : undefined}>
+              <PlannedMeal
+                date={day.date}
+                meals={day.meals}
+                isToday={isToday}
+              />
+            </div>
+          );
+        })
+      }
+    </div>
+  </Page>
 
-      <script>
-        import { initScrollToToday } from "../../utils/scrollToToday";
-        initScrollToToday();
-      </script>
-    </main>
-  </div>
+  <script>
+    import { initScrollToToday } from "../../utils/scrollToToday";
+    initScrollToToday();
+  </script>
 </BaseLayout>

@@ -1,8 +1,9 @@
+import { PREF_COOKIE_PREFIX } from "./cookies";
 import { app } from "./icons";
 
-// Preference cookie. The `maten_pref_` prefix marks it as a user preference so
-// it survives the `maten_` cache sweep in SettingsForm.
-export const START_PAGE_COOKIE = "maten_pref_start_page";
+// A cookie rather than localStorage, because "/" redirects on the server and
+// has to know the choice before any JavaScript runs.
+export const START_PAGE_COOKIE = `${PREF_COOKIE_PREFIX}start_page`;
 
 export const startPages = [
   { path: "/recipes", label: "Oppskrifter", icon: app.recipes },

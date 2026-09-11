@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Icon } from "@iconify/react";
+import { Icon } from "../ui/Icon";
 import { ui } from "../../utils/icons";
 
 interface EmojiItem {
@@ -151,10 +151,7 @@ export const EmojiSelect: React.FC<EmojiSelectProps> = ({
       {isOpen && (
         <div className="animate-in fade-in zoom-in border-border bg-surface absolute left-0 z-50 mt-2 w-64 rounded-xl border p-2 duration-200">
           <div className="border-border focus-within:ring-primary mb-2 flex items-center gap-2 rounded-xl border px-2 py-1 focus-within:ring-2">
-            <Icon
-              icon="hugeicons:search-01"
-              className="text-text-muted h-4 w-4"
-            />
+            <Icon icon={ui.search} className="text-text-muted h-4 w-4" />
             <input
               type="text"
               autoFocus
@@ -195,10 +192,7 @@ export const EmojiSelect: React.FC<EmojiSelectProps> = ({
               className="hover:bg-bg flex h-8 w-8 items-center justify-center rounded"
               title="Ingen emoji"
             >
-              <Icon
-                icon="hugeicons:cancel-01"
-                className="text-text-muted h-4 w-4"
-              />
+              <Icon icon={ui.x} className="text-text-muted h-4 w-4" />
             </button>
             {filteredEmojis.map((item) => (
               <button

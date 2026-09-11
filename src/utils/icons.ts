@@ -1,3 +1,8 @@
+/**
+ * Every icon name used in the app. Keeping them here means a renamed or
+ * missing icon is fixed in one place, and the names can be checked against
+ * the installed icon sets.
+ */
 export const ui = {
   add: "hugeicons:plus-sign",
   checked: "hugeicons:tick-01",
@@ -11,7 +16,7 @@ export const ui = {
   link: "hugeicons:link-01",
   sun: "hugeicons:sun-03",
   moon: "hugeicons:moon-02",
-  computer: "hugeicons:computer-01",
+  computer: "hugeicons:computer",
   user: "hugeicons:user",
   favourite: "hugeicons:bookmark-02",
   logout: "hugeicons:logout-01",
@@ -21,7 +26,16 @@ export const ui = {
   x: "hugeicons:cancel-01",
   more: "hugeicons:more-vertical",
   chevronDown: "hugeicons:arrow-down-01",
-};
+  chevronRight: "hugeicons:arrow-right-01",
+  search: "hugeicons:search-01",
+  dragHandle: "hugeicons:drag-drop",
+  image: "hugeicons:image-02",
+  basket: "hugeicons:shopping-basket-01",
+  plate: "hugeicons:plate",
+  bulletList: "hugeicons:left-to-right-list-bullet",
+  numberedList: "hugeicons:left-to-right-list-number",
+  shoppingCartCheck: "hugeicons:shopping-cart-check-02",
+} as const;
 
 export const app = {
   recipes: "streamline-ultimate-color:book-close-bookmark-1",
@@ -30,4 +44,4 @@ export const app = {
   settings: "streamline-ultimate-color:cog",
   library: "streamline-ultimate-color:archive-books",
   image: "streamline-ultimate-color:stamps-image",
-};
+} as const;

@@ -1,0 +1,54 @@
+---
+import { Icon } from "astro-icon/components";
+import { ui } from "../utils/icons";
+
+/**
+ * Page title with an optional icon, back link and description. Buttons go
+ * in the `actions` slot: they sit to the right on wide screens and stack
+ * below the title on narrow ones.
+ */
+interface Props {
+  title: string;
+  icon?: string;
+  description?: string;
+  backHref?: string;
+}
+
+const { title, icon, description, backHref } = Astro.props;
+const hasActions = Astro.slots.has("actions");
+---
+
+<header
+  class:list={[
+    "mb-8 flex flex-col gap-4",
+    hasActions && "md:flex-row md:items-center md:justify-between",
+  ]}
+>
+  <div>
+    <div class="flex items-center gap-3">
+      {
+        backHref && (
+          <a
+            href={backHref}
+            aria-label="Tilbake"
+            class="text-text hover:text-primary transition-colors"
+          >
+            <Icon name={ui.back} class="h-6 w-6" />
+          </a>
+        )
+      }
+      <h1 class="text-text flex items-center gap-3 text-3xl font-bold">
+        {icon && <Icon name={icon} class="h-8 w-8 shrink-0" />}
+        {title}
+      </h1>
+    </div>
+    {description && <p class="text-text-muted mt-2">{description}</p>}
+  </div>
+  {
+    hasActions && (
+      <div class="flex flex-col gap-3 md:flex-row">
+        <slot name="actions" />
+      </div>
+    )
+  }
+</header>

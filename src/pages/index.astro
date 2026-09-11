@@ -1,8 +1,8 @@
 ---
 import { START_PAGE_COOKIE, resolveStartPage } from "../utils/startPage";
 
-// There is no landing page anymore — send people straight to their chosen
-// start page (configurable under Innstillinger).
+// There is no landing page. Send people straight to their chosen start page,
+// which they can pick under Innstillinger.
 return Astro.redirect(
   resolveStartPage(Astro.cookies.get(START_PAGE_COOKIE)?.value),
 );

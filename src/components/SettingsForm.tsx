@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
+import { Icon } from "./ui/Icon";
 import { supabase } from "../lib/supabase";
-import { Icon } from "@iconify/react";
-import { Card } from "./ui/Card";
-import { Button } from "./ui/Button";
-import { Input } from "./forms/Input";
-import { ui } from "../utils/icons";
+import type { HouseholdMember, Theme } from "../types";
+import { clearCachedCookies, readCookie, writeCookie } from "../utils/cookies";
 import { formatDistanceToNow } from "../utils/date";
+import { ui } from "../utils/icons";
 import {
   DEFAULT_START_PAGE,
   START_PAGE_COOKIE,
@@ -13,23 +12,18 @@ import {
   startPages,
   type StartPagePath,
 } from "../utils/startPage";
+import { applyTheme, readTheme, themeOptions } from "../utils/theme";
+import { Input } from "./forms/Input";
+import { Alert } from "./ui/Alert";
+import { Button } from "./ui/Button";
+import { Dialog } from "./ui/Dialog";
+import { Card } from "./ui/Card";
+import { SegmentedControl } from "./ui/SegmentedControl";
 
-const readCookie = (name: string): string | undefined =>
-  document.cookie
-    .split("; ")
-    .find((c) => c.startsWith(`${name}=`))
-    ?.split("=")
-    .slice(1)
-    .join("=");
-
-interface Member {
+interface PendingInvite {
   id: string;
-  user_id: string | null;
-  email: string;
-  role: string;
-  created_at: string;
-  avatar_url: string | null;
-  display_name: string | null;
+  household_id: string;
+  households: { name: string } | null;
 }
 
 interface SettingsFormProps {
@@ -40,98 +34,51 @@ interface SettingsFormProps {
   avatarUrl?: string;
 }
 
-interface PendingInvite {
-  id: string;
-  household_id: string;
-  households: {
-    name: string;
-  };
-}
+const startPageOptions = startPages.map(({ path, label, icon }) => ({
+  value: path,
+  label,
+  icon,
+}));
 
-export const SettingsForm: React.FC<SettingsFormProps> = ({
+export const SettingsForm = ({
   userId,
   userEmail,
   householdId,
-  fullName: initialFullName,
+  fullName,
   avatarUrl: initialAvatarUrl,
-}) => {
-  const [members, setMembers] = useState<Member[]>([]);
+}: SettingsFormProps) => {
+  const [members, setMembers] = useState<HouseholdMember[]>([]);
   const [invites, setInvites] = useState<PendingInvite[]>([]);
   const [householdName, setHouseholdName] = useState("");
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(!!householdId);
   const [error, setError] = useState<string | null>(null);
-  const [nameSubmitting, setNameSubmitting] = useState(false);
-  const [theme, setTheme] = useState<"light" | "dark" | "auto">("auto");
-  const [startPage, setStartPage] = useState<StartPagePath>(DEFAULT_START_PAGE);
-  const [displayName, setDisplayName] = useState(initialFullName || "");
-  const [displayNameSubmitting, setDisplayNameSubmitting] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState(initialAvatarUrl || "");
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
 
+  const [theme, setTheme] = useState<Theme>("auto");
+  const [startPage, setStartPage] = useState<StartPagePath>(DEFAULT_START_PAGE);
+
+  // Preferences live in the browser, so read them after mount
   useEffect(() => {
-    const savedTheme =
-      (localStorage.getItem("theme") as "light" | "dark" | "auto") || "auto";
-    setTheme(savedTheme);
+    setTheme(readTheme());
     setStartPage(resolveStartPage(readCookie(START_PAGE_COOKIE)));
   }, []);
 
-  const handleStartPageChange = (newStartPage: StartPagePath) => {
-    setStartPage(newStartPage);
-    // Stored in a cookie rather than localStorage because "/" redirects
-    // server-side and has to know the choice before any JS runs.
-    document.cookie = `${START_PAGE_COOKIE}=${newStartPage}; path=/; max-age=${
-      60 * 60 * 24 * 365
-    }; SameSite=Lax`;
-  };
-
-  const handleThemeChange = async (newTheme: "light" | "dark" | "auto") => {
-    setTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
-
-    if (newTheme === "auto") {
-      delete document.documentElement.dataset.theme;
-    } else {
-      document.documentElement.dataset.theme = newTheme;
-    }
-
-    // Clear caches to ensure no "cached look" remains
-    if ("caches" in window) {
-      try {
-        const cacheNames = await caches.keys();
-        await Promise.all(cacheNames.map((name) => caches.delete(name)));
-      } catch (err) {
-        console.error("Error clearing caches on theme change:", err);
-      }
-    }
-
-    // Also clear the custom cookie cache used for performance
-    clearHouseholdCache();
-  };
-
-  const fetchInvites = async () => {
+  const fetchInvites = useCallback(async () => {
     if (!userEmail) return;
-    try {
-      const { data, error } = await supabase
-        .from("household_members")
-        .select(`id, household_id, households (name)`)
-        .eq("email", userEmail)
-        .is("user_id", null);
-
-      if (error) throw error;
-      setInvites((data as unknown as PendingInvite[]) || []);
-    } catch (err) {
-      console.error("Error fetching invites:", err);
-    }
-  };
-
-  const fetchMembers = async () => {
-    if (!householdId) {
-      setLoading(false);
+    const { data, error } = await supabase
+      .from("household_members")
+      .select("id, household_id, households (name)")
+      .eq("email", userEmail)
+      .is("user_id", null);
+    if (error) {
+      console.error("Error fetching invites:", error);
       return;
     }
+    setInvites((data as unknown as PendingInvite[]) ?? []);
+  }, [userEmail]);
+
+  const fetchMembers = useCallback(async () => {
+    if (!householdId) return;
     try {
       const [membersRes, householdRes] = await Promise.all([
         supabase
@@ -145,172 +92,96 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
           .eq("id", householdId)
           .single(),
       ]);
-
       if (membersRes.error) throw membersRes.error;
       if (householdRes.error) throw householdRes.error;
 
-      setMembers(membersRes.data || []);
-      setHouseholdName(householdRes.data?.name || "");
-    } catch (err: any) {
+      setMembers((membersRes.data as HouseholdMember[]) ?? []);
+      setHouseholdName(householdRes.data?.name ?? "");
+    } catch (err) {
       console.error("Error fetching members:", err);
       setError("Huff da, vi klarte ikke å hente inn de som bor her.");
     } finally {
-      if (householdId) {
-        // Only finish loading if we were actually loading members
-        setLoading(false);
-      }
+      setLoading(false);
     }
-  };
+  }, [householdId]);
 
   useEffect(() => {
     fetchMembers();
     fetchInvites();
-    if (!householdId) {
-      setLoading(false);
-    }
-  }, [householdId, userEmail]);
+  }, [fetchMembers, fetchInvites]);
 
-  const clearHouseholdCache = () => {
-    const cookies = document.cookie.split(";");
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i];
-      const eqPos = cookie.indexOf("=");
-      const name =
-        eqPos > -1 ? cookie.substring(0, eqPos).trim() : cookie.trim();
-      if (name.startsWith("maten_") && !name.startsWith("maten_pref_")) {
-        document.cookie =
-          name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      }
-    }
-  };
+  const [memberToRemove, setMemberToRemove] = useState<HouseholdMember | null>(
+    null,
+  );
 
-  const handleAcceptInvite = async (inviteId: string) => {
-    try {
-      const { error } = await supabase
-        .from("household_members")
-        .update({ user_id: userId })
-        .eq("id", inviteId);
-
-      if (error) throw error;
-
-      // Clear cache before reload
-      clearHouseholdCache();
-
-      // Reload the page to trigger middleware and update locals
-      window.location.reload();
-    } catch (err: any) {
-      console.error("Error accepting invite:", err);
-      setError("Det oppsto en feil da vi prøvde å godta invitasjonen.");
-    }
-  };
-
-  const handleRefuseInvite = async (inviteId: string) => {
-    try {
-      const { error } = await supabase
-        .from("household_members")
-        .delete()
-        .eq("id", inviteId);
-
-      if (error) throw error;
-      fetchInvites();
-    } catch (err: any) {
-      console.error("Error refusing invite:", err);
-      setError("Vi klarte ikke å fjerne invitasjonen.");
-    }
-  };
-
-  const handleUpdateDisplayName = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!displayName.trim()) return;
-
-    setDisplayNameSubmitting(true);
+  /** Runs an action, showing a message on success or failure */
+  const run = async (
+    action: () => Promise<void>,
+    messages: { success?: string; failure: string },
+  ) => {
     setError(null);
-
+    setNotice(null);
     try {
-      const { error } = await supabase.auth.updateUser({
-        data: { full_name: displayName.trim() },
-      });
-
-      if (error) throw error;
-    } catch (err: any) {
-      console.error("Error updating display name:", err);
-      setError("Ops, vi fikk ikke lagret navnet ditt.");
-    } finally {
-      setDisplayNameSubmitting(false);
+      await action();
+      if (messages.success) setNotice(messages.success);
+    } catch (err) {
+      console.error(messages.failure, err);
+      setError(messages.failure);
     }
   };
 
-  const handleUpdateHouseholdName = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!householdName.trim() || !householdId) return;
-
-    setNameSubmitting(true);
-    setError(null);
-
-    try {
-      const { error } = await supabase
-        .from("households")
-        .update({ name: householdName.trim() })
-        .eq("id", householdId);
-
-      if (error) throw error;
-    } catch (err: any) {
-      console.error("Error updating household name:", err);
-      setError("Ops, vi fikk ikke lagret det nye navnet.");
-    } finally {
-      setNameSubmitting(false);
-    }
+  const handleThemeChange = (next: Theme) => {
+    setTheme(next);
+    applyTheme(next);
   };
 
-  const handleAddMember = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.trim() || !householdId) return;
-
-    setSubmitting(true);
-    setError(null);
-
-    try {
-      const res = await fetch("/api/household/invite", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), householdId }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Ukjent feil");
-
-      setEmail("");
-      fetchMembers();
-    } catch (err: any) {
-      console.error("Error adding member:", err);
-      setError(err.message || "Vi klarte ikke å sende invitasjonen.");
-    } finally {
-      setSubmitting(false);
-    }
+  const handleStartPageChange = (next: StartPagePath) => {
+    setStartPage(next);
+    writeCookie(START_PAGE_COOKIE, next);
   };
 
-  const handleRemoveMember = async (id: string, memberEmail: string) => {
-    if (
-      !confirm(
-        `Er du helt sikker på at du vil fjerne ${memberEmail} fra husstanden?`,
-      )
-    ) {
-      return;
-    }
+  const handleAcceptInvite = (inviteId: string) =>
+    run(
+      async () => {
+        const { error } = await supabase
+          .from("household_members")
+          .update({ user_id: userId })
+          .eq("id", inviteId);
+        if (error) throw error;
+        // The middleware caches household membership in cookies. Forget
+        // them and reload, so it picks up the new household.
+        clearCachedCookies();
+        window.location.reload();
+      },
+      { failure: "Det oppsto en feil da vi prøvde å godta invitasjonen." },
+    );
 
-    try {
-      const { error } = await supabase
-        .from("household_members")
-        .delete()
-        .eq("id", id);
+  const handleRefuseInvite = (inviteId: string) =>
+    run(
+      async () => {
+        const { error } = await supabase
+          .from("household_members")
+          .delete()
+          .eq("id", inviteId);
+        if (error) throw error;
+        clearCachedCookies();
+        await fetchInvites();
+      },
+      { failure: "Vi klarte ikke å fjerne invitasjonen." },
+    );
 
-      if (error) throw error;
-      fetchMembers();
-    } catch (err: any) {
-      console.error("Error removing member:", err);
-      setError("Det gikk ikke å fjerne medlemmet.");
-    }
-  };
+  const removeMember = (member: HouseholdMember) =>
+    run(
+      async () => {
+        const { error } = await supabase
+          .from("household_members")
+          .delete()
+          .eq("id", member.id);
+        if (error) throw error;
+        await fetchMembers();
+      },
+      { failure: "Det gikk ikke å fjerne medlemmet." },
+    );
 
   if (loading) {
     return <div className="text-text-muted">Henter innstillingene dine...</div>;
@@ -318,10 +189,10 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
 
   if (!householdId) {
     return (
-      <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-6 text-red-500">
+      <Alert className="p-6">
         <h2 className="mb-2 text-lg font-bold">Her mangler det noe...</h2>
         <p>Prøv å logge ut og inn igjen, så vi får deg helt på plass.</p>
-      </div>
+      </Alert>
     );
   }
 
@@ -329,142 +200,42 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
 
   return (
     <div className="space-y-8">
-      <Card>
-        <h2 className="text-text mb-4 text-xl font-semibold">Om deg</h2>
-        <p className="text-text-muted mb-6 text-sm">
-          Navnet og bildet ditt vises på oppskrifter du deler i biblioteket.
-        </p>
+      {error && <Alert>{error}</Alert>}
+      {notice && <Alert variant="success">{notice}</Alert>}
 
-        <div className="mb-6 flex items-center gap-5">
-          <div className="relative">
-            {avatarUrl && !avatarFile ? (
-              <img
-                src={avatarUrl}
-                alt="Profilbilde"
-                className="border-border h-20 w-20 rounded-full border-2 object-cover"
-              />
-            ) : avatarFile ? (
-              <div className="border-primary bg-primary/10 flex h-20 w-20 items-center justify-center rounded-full border-2">
-                <Icon
-                  icon="hugeicons:image-02"
-                  className="text-primary h-8 w-8"
-                />
-              </div>
-            ) : (
-              <div className="border-border bg-bg flex h-20 w-20 items-center justify-center rounded-full border-2">
-                <Icon
-                  icon="hugeicons:user"
-                  className="text-text-muted h-8 w-8"
-                />
-              </div>
-            )}
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="cursor-pointer">
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
-              />
-              <span className="text-primary text-sm font-medium hover:underline">
-                {avatarUrl ? "Bytt bilde" : "Last opp bilde"}
-              </span>
-            </label>
-            {avatarFile && (
-              <span className="text-text-muted text-xs">{avatarFile.name}</span>
-            )}
-            {avatarFile && (
-              <Button
-                size="sm"
-                disabled={avatarUploading}
-                onClick={async () => {
-                  setAvatarUploading(true);
-                  setError(null);
-                  try {
-                    const fileExt = avatarFile.name.split(".").pop();
-                    const fileName = `${userId}/avatar.${fileExt}`;
-                    const { error: uploadError } = await supabase.storage
-                      .from("profile-images")
-                      .upload(fileName, avatarFile, { upsert: true });
-                    if (uploadError) throw uploadError;
-
-                    const {
-                      data: { publicUrl },
-                    } = supabase.storage
-                      .from("profile-images")
-                      .getPublicUrl(fileName);
-
-                    const urlWithCacheBust = `${publicUrl}?t=${Date.now()}`;
-                    const { error: updateError } =
-                      await supabase.auth.updateUser({
-                        data: { avatar_url: urlWithCacheBust },
-                      });
-                    if (updateError) throw updateError;
-
-                    setAvatarUrl(urlWithCacheBust);
-                    setAvatarFile(null);
-                  } catch (err: any) {
-                    console.error("Error uploading avatar:", err);
-                    setError("Klarte ikke å laste opp bildet. Prøv igjen.");
-                  } finally {
-                    setAvatarUploading(false);
-                  }
-                }}
-              >
-                {avatarUploading ? "Laster opp..." : "Last opp"}
-              </Button>
-            )}
-          </div>
-        </div>
-
-        <form
-          onSubmit={handleUpdateDisplayName}
-          className="flex flex-col items-end gap-2 sm:flex-row sm:items-start"
-        >
-          <div className="flex w-full flex-1">
-            <Input
-              required
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="f.eks. Ola Nordmann"
-            />
-          </div>
-          <Button
-            type="submit"
-            disabled={displayNameSubmitting}
-            className="mt-2 w-full px-6 sm:mt-0 sm:w-auto"
-          >
-            {displayNameSubmitting ? "Lagrer..." : "Lagre navn"}
-          </Button>
-        </form>
-      </Card>
+      <ProfileCard
+        userId={userId}
+        fullName={fullName}
+        avatarUrl={initialAvatarUrl}
+        run={run}
+      />
 
       {isOwner && (
         <Card>
           <h2 className="text-text mb-4 text-xl font-semibold">
             Hva skal husstanden hete?
           </h2>
-          <form
-            onSubmit={handleUpdateHouseholdName}
-            className="flex flex-col items-end gap-2 sm:flex-row sm:items-start"
-          >
-            <div className="flex w-full flex-1">
-              <Input
-                required
-                value={householdName}
-                onChange={(e) => setHouseholdName(e.target.value)}
-                placeholder="f.eks. Familien Hansen"
-              />
-            </div>
-            <Button
-              type="submit"
-              disabled={nameSubmitting}
-              className="mt-2 w-full px-6 sm:mt-0 sm:w-auto"
-            >
-              {nameSubmitting ? "Lagrer..." : "Lagre nytt navn"}
-            </Button>
-          </form>
+          <InlineForm
+            value={householdName}
+            onChange={setHouseholdName}
+            placeholder="f.eks. Familien Hansen"
+            buttonLabel="Lagre"
+            onSubmit={(name) =>
+              run(
+                async () => {
+                  const { error } = await supabase
+                    .from("households")
+                    .update({ name })
+                    .eq("id", householdId);
+                  if (error) throw error;
+                },
+                {
+                  success: "Husstanden har fått nytt navn.",
+                  failure: "Ops, vi fikk ikke lagret det nye navnet.",
+                },
+              )
+            }
+          />
         </Card>
       )}
 
@@ -472,28 +243,12 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
         <h2 className="text-text mb-4 text-xl font-semibold">
           Hvordan skal appen se ut?
         </h2>
-        <div className="bg-bg border-border flex gap-2 rounded-2xl border p-1">
-          {[
-            { id: "light", label: "Lys", icon: ui.sun },
-            { id: "dark", label: "Mørk", icon: ui.moon },
-            { id: "auto", label: "System", icon: ui.computer },
-          ].map((option) => (
-            <button
-              key={option.id}
-              onClick={() =>
-                handleThemeChange(option.id as "light" | "dark" | "auto")
-              }
-              className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-medium transition-all ${
-                theme === option.id
-                  ? "bg-surface text-primary ring-border shadow-sm ring-1"
-                  : "text-text-muted hover:text-text hover:bg-surface/50"
-              }`}
-            >
-              <Icon icon={option.icon} className="h-4 w-4" />
-              {option.label}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          label="Tema"
+          options={themeOptions}
+          value={theme}
+          onChange={handleThemeChange}
+        />
       </Card>
 
       <Card>
@@ -503,22 +258,12 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
         <p className="text-text-muted mb-6 text-sm">
           Siden du kommer til når du åpner appen.
         </p>
-        <div className="bg-bg border-border flex rounded-2xl border p-1">
-          {startPages.map((option) => (
-            <button
-              key={option.path}
-              onClick={() => handleStartPageChange(option.path)}
-              className={`flex flex-1 items-center justify-center gap-0.5 md:gap-2 rounded-xl py-2.5 px-2 text-xs md:text-base font-medium transition-all ${
-                startPage === option.path
-                  ? "bg-surface text-primary ring-border shadow-sm ring-1"
-                  : "text-text-muted hover:text-text hover:bg-surface/50"
-              }`}
-            >
-              <Icon icon={option.icon} className="h-5 w-5" />
-              {option.label}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          label="Startside"
+          options={startPageOptions}
+          value={startPage}
+          onChange={handleStartPageChange}
+        />
       </Card>
 
       {invites.length > 0 && (
@@ -565,53 +310,29 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
           Alle i husstanden deler de samme oppskriftene, menyene og den samme
           handlelisten. Det du gjør her, ser de andre med en gang!
         </p>
-
-        <form
-          onSubmit={handleAddMember}
-          className="flex flex-col items-end gap-2 sm:flex-row sm:items-start"
-        >
-          <div className="flex w-full flex-1">
-            <Input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="E-postadresse til den du vil invitere"
-            />
-          </div>
-          <Button
-            type="submit"
-            disabled={submitting}
-            className="mt-2 w-full px-6 sm:mt-0 sm:w-auto"
-          >
-            {submitting ? "Sender invitasjon..." : "Send invitasjon"}
-          </Button>
-        </form>
-
-        {error && (
-          <div className="mt-3 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-500">
-            {error}
-          </div>
-        )}
+        <InviteForm
+          householdId={householdId}
+          onInvited={fetchMembers}
+          run={run}
+        />
       </Card>
 
       <Card>
         <h2 className="text-text mb-4 text-xl font-semibold">
           De som er med i {householdName}
         </h2>
-
         <ul className="divide-border divide-y">
           {members.map((member) => (
             <li
               key={member.id}
-              className="flex items-center justify-between py-4"
+              className="flex items-center justify-between gap-4 py-4"
             >
               <div className="flex items-center gap-3">
                 {member.avatar_url ? (
                   <img
                     src={member.avatar_url}
-                    alt={member.display_name || member.email}
-                    className="bg-primary/10 text-primary h-10 w-10 rounded-full object-cover"
+                    alt=""
+                    className="h-10 w-10 rounded-full object-cover"
                   />
                 ) : (
                   <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-full">
@@ -621,11 +342,16 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
                 <div>
                   <div className="flex items-center gap-2">
                     <p className="text-text font-medium">
-                      {member.display_name}
+                      {member.display_name || member.email}
                     </p>
                     {member.role === "owner" && (
                       <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-[10px] font-bold uppercase">
                         Eier
+                      </span>
+                    )}
+                    {!member.user_id && (
+                      <span className="bg-bg text-text-muted rounded-full px-2 py-0.5 text-[10px] font-bold uppercase">
+                        Invitert
                       </span>
                     )}
                   </div>
@@ -637,10 +363,11 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
               </div>
               {member.role !== "owner" && (
                 <Button
-                  onClick={() => handleRemoveMember(member.id, member.email)}
+                  onClick={() => setMemberToRemove(member)}
                   variant="danger"
                   size="sm"
                   title="Fjern fra husstand"
+                  aria-label={`Fjern ${member.email}`}
                 >
                   <Icon icon={ui.delete} className="h-5 w-5" />
                 </Button>
@@ -649,6 +376,248 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({
           ))}
         </ul>
       </Card>
+
+      <Dialog
+        open={!!memberToRemove}
+        onClose={() => setMemberToRemove(null)}
+        onConfirm={() => {
+          if (memberToRemove) removeMember(memberToRemove);
+          setMemberToRemove(null);
+        }}
+        confirmLabel="Fjern"
+        confirmVariant="danger"
+      >
+        {memberToRemove &&
+          `Er du helt sikker på at du vil fjerne ${memberToRemove.email} fra husstanden?`}
+      </Dialog>
     </div>
+  );
+};
+
+// --- Pieces ---
+
+type Run = (
+  action: () => Promise<void>,
+  messages: { success?: string; failure: string },
+) => Promise<void>;
+
+/** A single text field with a submit button beside it */
+const InlineForm = ({
+  value,
+  onChange,
+  placeholder,
+  buttonLabel,
+  onSubmit,
+  type = "text",
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  buttonLabel: string;
+  onSubmit: (value: string) => Promise<void>;
+  type?: "text" | "email";
+}) => {
+  const [submitting, setSubmitting] = useState(false);
+
+  return (
+    <form
+      onSubmit={async (event) => {
+        event.preventDefault();
+        const trimmed = value.trim();
+        if (!trimmed) return;
+        setSubmitting(true);
+        try {
+          await onSubmit(trimmed);
+        } finally {
+          setSubmitting(false);
+        }
+      }}
+      className="flex flex-col gap-2 sm:flex-row sm:items-start"
+    >
+      <Input
+        type={type}
+        required
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+      />
+      <Button
+        type="submit"
+        disabled={submitting}
+        className="w-full px-6 sm:w-auto"
+      >
+        {submitting ? "Lagrer..." : buttonLabel}
+      </Button>
+    </form>
+  );
+};
+
+const InviteForm = ({
+  householdId,
+  onInvited,
+  run,
+}: {
+  householdId: string;
+  onInvited: () => Promise<void>;
+  run: Run;
+}) => {
+  const [email, setEmail] = useState("");
+
+  return (
+    <InlineForm
+      type="email"
+      value={email}
+      onChange={setEmail}
+      placeholder="E-postadresse til den du vil invitere"
+      buttonLabel="Inviter"
+      onSubmit={(address) =>
+        run(
+          async () => {
+            const res = await fetch("/api/household/invite", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email: address, householdId }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+              throw new Error(
+                data.error || "Vi klarte ikke å sende invitasjonen.",
+              );
+            }
+            setEmail("");
+            await onInvited();
+          },
+          {
+            success: "Invitasjonen er sendt.",
+            failure: "Vi klarte ikke å sende invitasjonen.",
+          },
+        ).catch(() => undefined)
+      }
+    />
+  );
+};
+
+const ProfileCard = ({
+  userId,
+  fullName,
+  avatarUrl: initialAvatarUrl,
+  run,
+}: {
+  userId: string;
+  fullName?: string;
+  avatarUrl?: string;
+  run: Run;
+}) => {
+  const [displayName, setDisplayName] = useState(fullName ?? "");
+  const [avatarUrl, setAvatarUrl] = useState(initialAvatarUrl ?? "");
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const uploadAvatar = async () => {
+    if (!avatarFile) return;
+    setUploading(true);
+    try {
+      await run(
+        async () => {
+          const extension = avatarFile.name.split(".").pop() || "jpg";
+          const path = `${userId}/avatar.${extension}`;
+          const { error: uploadError } = await supabase.storage
+            .from("profile-images")
+            .upload(path, avatarFile, { upsert: true });
+          if (uploadError) throw uploadError;
+
+          const { publicUrl } = supabase.storage
+            .from("profile-images")
+            .getPublicUrl(path).data;
+          // The path is reused, so bust caches to show the new picture
+          const url = `${publicUrl}?t=${Date.now()}`;
+
+          const { error } = await supabase.auth.updateUser({
+            data: { avatar_url: url },
+          });
+          if (error) throw error;
+
+          setAvatarUrl(url);
+          setAvatarFile(null);
+        },
+        {
+          success: "Bildet er lastet opp.",
+          failure: "Klarte ikke å laste opp bildet. Prøv igjen.",
+        },
+      );
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <Card>
+      <h2 className="text-text mb-4 text-xl font-semibold">Om deg</h2>
+      <p className="text-text-muted mb-6 text-sm">
+        Navnet og bildet ditt vises på oppskrifter du deler i biblioteket.
+      </p>
+
+      <div className="mb-6 flex items-center gap-5">
+        {avatarUrl && !avatarFile ? (
+          <img
+            src={avatarUrl}
+            alt="Profilbilde"
+            className="border-border h-20 w-20 rounded-full border-2 object-cover"
+          />
+        ) : (
+          <div
+            className={`flex h-20 w-20 items-center justify-center rounded-full border-2 ${
+              avatarFile
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border bg-bg text-text-muted"
+            }`}
+          >
+            <Icon icon={avatarFile ? ui.image : ui.user} className="h-8 w-8" />
+          </div>
+        )}
+        <div className="flex flex-col gap-2">
+          <label className="cursor-pointer">
+            <input
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              onChange={(e) => setAvatarFile(e.target.files?.[0] ?? null)}
+            />
+            <span className="text-primary text-sm font-medium hover:underline">
+              {avatarUrl ? "Bytt bilde" : "Last opp bilde"}
+            </span>
+          </label>
+          {avatarFile && (
+            <>
+              <span className="text-text-muted text-xs">{avatarFile.name}</span>
+              <Button size="sm" disabled={uploading} onClick={uploadAvatar}>
+                {uploading ? "Laster opp..." : "Last opp"}
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
+
+      <InlineForm
+        value={displayName}
+        onChange={setDisplayName}
+        placeholder="f.eks. Ola Nordmann"
+        buttonLabel="Lagre"
+        onSubmit={(name) =>
+          run(
+            async () => {
+              const { error } = await supabase.auth.updateUser({
+                data: { full_name: name },
+              });
+              if (error) throw error;
+            },
+            {
+              success: "Navnet ditt er lagret.",
+              failure: "Ops, vi fikk ikke lagret navnet ditt.",
+            },
+          )
+        }
+      />
+    </Card>
   );
 };

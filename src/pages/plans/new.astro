@@ -1,23 +1,35 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import Page from "../../components/Page.astro";
+import PageHeader from "../../components/PageHeader.astro";
 import { MealPlanningWizard } from "../../components/MealPlanningWizard";
+import { fetchMealPlan, fetchWizardRecipes } from "../../lib/queries";
+import { requireSession } from "../../lib/session";
 
-const title = "Ny meny";
+const { supabase, user, householdId } = requireSession(Astro.locals);
+
+// ?copyFrom=<plan id> starts the wizard with another plan's meals
+const copyFrom = Astro.url.searchParams.get("copyFrom");
+
+const [recipes, sourcePlan] = await Promise.all([
+  fetchWizardRecipes(supabase),
+  copyFrom ? fetchMealPlan(supabase, copyFrom) : null,
+]);
 ---
 
-<BaseLayout title={title}>
-  <div class="bg-bg flex min-h-dvh flex-col">
-    <main class="container mx-auto max-w-4xl flex-1 px-4 py-12">
-      <div class="mb-10 text-center">
-        <h1 class="text-text mb-2 text-3xl font-bold">Ny meny</h1>
-        <p class="text-text-muted">Velg datoer og legg til oppskrifter</p>
-      </div>
+<BaseLayout title="Ny meny">
+  <Page size="md">
+    <PageHeader
+      title="Ny meny"
+      description="Velg datoer og legg til oppskrifter"
+    />
 
-      <MealPlanningWizard
-        client:load
-        userId={Astro.locals.user.id}
-        householdId={Astro.locals.householdId}
-      />
-    </main>
-  </div>
+    <MealPlanningWizard
+      client:load
+      userId={user.id}
+      householdId={householdId}
+      recipes={recipes}
+      sourcePlan={sourcePlan}
+    />
+  </Page>
 </BaseLayout>

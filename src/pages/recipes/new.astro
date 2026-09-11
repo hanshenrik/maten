@@ -1,28 +1,25 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import Page from "../../components/Page.astro";
+import PageHeader from "../../components/PageHeader.astro";
 import { RecipeForm } from "../../components/RecipeForm";
+import { displayNameFor, requireSession } from "../../lib/session";
 
-const title = "Ny godbit";
+const { user, householdId } = requireSession(Astro.locals);
 ---
 
-<BaseLayout title={title}>
-  <div class="bg-bg flex min-h-dvh flex-col">
-    <main class="container mx-auto max-w-2xl flex-1 px-4 py-12">
-      <div class="mb-10 text-center">
-        <h1 class="text-text mb-2 text-3xl font-bold">Lagre en ny godbit</h1>
-        <p class="text-text-muted">
-          Fyll på med gode smaker og nye favoritter.
-        </p>
-      </div>
+<BaseLayout title="Ny godbit">
+  <Page size="sm">
+    <PageHeader
+      title="Lagre en ny godbit"
+      description="Fyll på med gode smaker og nye favoritter."
+    />
 
-      <RecipeForm
-        client:load
-        userId={Astro.locals.user.id}
-        householdId={Astro.locals.householdId}
-        authorName={Astro.locals.user.user_metadata?.full_name ||
-          Astro.locals.user.email?.split("@")[0] ||
-          "En kokk"}
-      />
-    </main>
-  </div>
+    <RecipeForm
+      client:load
+      userId={user.id}
+      householdId={householdId}
+      authorName={displayNameFor(user)}
+    />
+  </Page>
 </BaseLayout>

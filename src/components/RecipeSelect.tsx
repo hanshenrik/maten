@@ -1,4 +1,4 @@
-import { Icon } from "@iconify/react";
+import { Icon } from "./ui/Icon";
 import { duration } from "../utils/time";
 import { ui, app } from "../utils/icons";
 import { SearchableSelect } from "./ui/SearchableSelect";
@@ -30,6 +30,7 @@ export function RecipeSelect({ recipes, value, onChange }: RecipeSelectProps) {
       placeholder="Søk etter oppskrift …"
       emptyLabel="(Ingenting valgt ennå)"
       noResultsLabel="Fant ingen oppskrifter"
+      className="w-full"
     />
   );
 }
