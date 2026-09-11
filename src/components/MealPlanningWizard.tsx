@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "../lib/supabase";
 import { ui } from "../utils/icons";
 import { Icon } from "@iconify/react";
@@ -83,6 +83,17 @@ export const MealPlanningWizard: React.FC<{
   const [planTitle, setPlanTitle] = useState(initialData?.title || "");
   const [sourcePlan, setSourcePlan] = useState<any>(null);
   const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]);
+
+  // Scroll to top when moving between wizard steps, so we don't land
+  // mid-page (or at the bottom) after a long step
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [step]);
 
   useEffect(() => {
     // Default to next week Mon-Sun
