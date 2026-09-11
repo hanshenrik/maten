@@ -45,19 +45,15 @@ export const PlanMenu = ({
   };
 
   const items: DotMenuEntry[] = [
-    ...(withLinks
-      ? [
-          { label: "Endre", icon: ui.edit, href: `/plans/${planId}/edit` },
-          {
-            label: "Lag kopi",
-            icon: ui.copy,
-            href: `/plans/new?copyFrom=${planId}`,
-          },
-          dotMenuSeparator,
-        ]
-      : []),
+    { label: "Endre", icon: ui.edit, href: `/plans/${planId}/edit` },
     {
-      label: deleting ? "Sletter …" : "Slett meny",
+      label: "Lag kopi",
+      icon: ui.copy,
+      href: `/plans/new?copyFrom=${planId}`,
+    },
+    dotMenuSeparator,
+    {
+      label: deleting ? "Sletter …" : "Slett",
       icon: ui.delete,
       onClick: () => setConfirmingDelete(true),
       variant: "danger",
