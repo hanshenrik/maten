@@ -45,7 +45,7 @@
     "@iconify/utils": "^3.1.7",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "prettier": "3.8.3",
+    "prettier": "3.9.6",
     "prettier-plugin-astro": "0.14.1",
     "prettier-plugin-tailwindcss": "0.7.2",
     "typescript": "^6.0.3"
