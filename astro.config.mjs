@@ -3,6 +3,7 @@ import react from "@astrojs/react";
 import tailwindcss from "@tailwindcss/vite";
 import vercel from "@astrojs/vercel";
 import icon from "astro-icon";
+import appIcons from "./plugins/app-icons.mjs";
 
 const site = "https://maten.hanshenrik.com";
 
@@ -24,6 +25,6 @@ export default defineConfig({
     define: {
       "import.meta.env.PUBLIC_SITE_URL": JSON.stringify(site),
     },
-    plugins: [tailwindcss()],
+    plugins: [tailwindcss(), appIcons()],
   },
 });

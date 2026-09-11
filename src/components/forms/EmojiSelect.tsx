@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Icon } from "@iconify/react";
+import { Icon } from "../ui/Icon";
 import { ui } from "../../utils/icons";
 
 interface EmojiItem {

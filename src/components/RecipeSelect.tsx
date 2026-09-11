@@ -1,4 +1,4 @@
-import { Icon } from "@iconify/react";
+import { Icon } from "./ui/Icon";
 import { duration } from "../utils/time";
 import { ui, app } from "../utils/icons";
 import { SearchableSelect } from "./ui/SearchableSelect";

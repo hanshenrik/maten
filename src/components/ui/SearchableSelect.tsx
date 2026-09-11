@@ -6,7 +6,7 @@ import {
   ComboboxOption,
   ComboboxOptions,
 } from "@headlessui/react";
-import { Icon } from "@iconify/react";
+import { Icon } from "./Icon";
 import { ui } from "../../utils/icons";
 
 export interface SearchableSelectProps<T> {

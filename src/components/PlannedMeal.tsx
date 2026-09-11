@@ -1,5 +1,5 @@
 import React from "react";
-import { Icon } from "@iconify/react";
+import { Icon } from "./ui/Icon";
 import { formatLongDay, formatMonthDay } from "../utils/date";
 import { duration } from "../utils/time";
 import { cn } from "../utils/cn";

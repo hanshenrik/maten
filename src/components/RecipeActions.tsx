@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Icon } from "@iconify/react";
+import { Icon } from "./ui/Icon";
 import { Button } from "./ui/Button";
 import { ui } from "../utils/icons";
 

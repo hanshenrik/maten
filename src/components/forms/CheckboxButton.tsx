@@ -1,5 +1,5 @@
 import React from "react";
-import { Icon } from "@iconify/react";
+import { Icon } from "../ui/Icon";
 import { cn } from "../../utils/cn";
 import { ui } from "../../utils/icons";
 

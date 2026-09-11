@@ -16,3 +16,8 @@ declare namespace App {
     pendingInvitesCount: number;
   }
 }
+
+declare module "virtual:app-icons" {
+  const icons: Record<string, import("@iconify/react/offline").IconifyIcon>;
+  export default icons;
+}

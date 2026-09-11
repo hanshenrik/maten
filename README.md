@@ -43,4 +43,8 @@ Node version is pinned in `.tool-versions`.
 - Streamline Ultimate Colors: https://www.streamlinehq.com/icons/ultimate-colos-free
 - Huge Icons: https://hugeicons.com/icons/stroke-rounded
 
-Icon names are kept in `src/utils/icons.ts`.
+Icon names are kept in `src/utils/icons.ts`. Astro components render them with
+`astro-icon`; React components use `src/components/ui/Icon.tsx`, which gets
+the SVG data for exactly those names bundled at build time by
+`plugins/app-icons.mjs`, so nothing is fetched from Iconify at runtime. To use
+a new icon, add it to `icons.ts`; an unknown name fails the build.

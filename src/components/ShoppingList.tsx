@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState } from "react";
-import { Icon } from "@iconify/react";
+import { Icon } from "./ui/Icon";
 import { supabase } from "../lib/supabase";
 import type { ShoppingItem } from "../types";
 import { combineEmojiAndName } from "../utils/emoji";

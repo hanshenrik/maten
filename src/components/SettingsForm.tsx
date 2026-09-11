@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Icon } from "@iconify/react";
+import { Icon } from "./ui/Icon";
 import { supabase } from "../lib/supabase";
 import type { HouseholdMember, Theme } from "../types";
 import { clearCachedCookies, readCookie, writeCookie } from "../utils/cookies";

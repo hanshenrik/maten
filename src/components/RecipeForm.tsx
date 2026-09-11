@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Icon } from "@iconify/react";
+import { Icon } from "./ui/Icon";
 import { Reorder, useDragControls } from "motion/react";
 import { supabase } from "../lib/supabase";
 import type { RecipeWithIngredients } from "../types";

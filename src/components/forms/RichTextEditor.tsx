@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useId } from "react";
 import { useEditor, EditorContent, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Markdown } from "tiptap-markdown";
-import { Icon } from "@iconify/react";
+import { Icon } from "../ui/Icon";
 import { cn } from "../../utils/cn";
 import { ui } from "../../utils/icons";
 import { Field, fieldClassName } from "./Field";

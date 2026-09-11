@@ -1,5 +1,5 @@
 import React from "react";
-import { Icon } from "@iconify/react";
+import { Icon } from "./ui/Icon";
 import { Card } from "./ui/Card";
 import { ui } from "../utils/icons";
 import { duration } from "../utils/time";

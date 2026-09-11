@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Icon } from "@iconify/react";
+import { Icon } from "./ui/Icon";
 import { supabase } from "../lib/supabase";
 import type { MealPlanWithMeals, RecipeSummary } from "../types";
 import { formatDateRange, formatMonthDay, formatShortDay } from "../utils/date";
