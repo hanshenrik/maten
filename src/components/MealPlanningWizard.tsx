@@ -61,7 +61,12 @@ function groupIntoDays(meals: MealPlanWithMeals["planned_meals"]): DayPlan[] {
 const MAX_DAYS = 60;
 
 /** Pick dates, pick recipes, check the shopping list */
-const TOTAL_STEPS = 3;
+const STEP_NAMES = [
+  "Velg datoer",
+  "Hva har dere lyst på?",
+  "Sjekk hva som mangler",
+];
+const TOTAL_STEPS = STEP_NAMES.length;
 
 interface MealPlanningWizardProps {
   userId: string;
@@ -83,6 +88,10 @@ export const MealPlanningWizard = ({
   const isEditing = !!initialData;
 
   const [step, setStep] = useState<1 | 2 | 3>(isEditing ? 2 : 1);
+  // The plan this wizard writes to. A new plan gets one the first time it is
+  // saved, so that stepping back and saving again edits that plan instead of
+  // leaving a second copy behind.
+  const [planId, setPlanId] = useState<string | null>(initialData?.id ?? null);
   const [planTitle, setPlanTitle] = useState(
     initialData?.title ??
       (sourcePlan ? `${sourcePlan.title || "Meny"} (kopi)` : ""),
@@ -204,19 +213,19 @@ export const MealPlanningWizard = ({
       const title =
         planTitle.trim() ||
         `Plan for ${formatDateRange({ start: startDate, end: endDate })}`;
-      let planId = initialData?.id;
+      let id = planId;
 
-      if (initialData) {
+      if (id) {
         const { error } = await supabase
           .from("meal_plans")
           .update({ start_date: startDate, end_date: endDate, title })
-          .eq("id", initialData.id);
+          .eq("id", id);
         if (error) throw error;
 
         const { error: deleteError } = await supabase
           .from("planned_meals")
           .delete()
-          .eq("meal_plan_id", initialData.id);
+          .eq("meal_plan_id", id);
         if (deleteError) throw deleteError;
       } else {
         const { data, error } = await supabase
@@ -231,12 +240,13 @@ export const MealPlanningWizard = ({
           .select("id")
           .single();
         if (error) throw error;
-        planId = data.id;
+        id = data.id;
+        setPlanId(id);
       }
 
       const rows = dayPlans.flatMap((day) =>
         day.slots.map((slot) => ({
-          meal_plan_id: planId,
+          meal_plan_id: id,
           date: day.date,
           recipe_id: slot.recipe_id || null,
           notes: slot.notes,
@@ -251,7 +261,7 @@ export const MealPlanningWizard = ({
         setDraftItems(buildShoppingDraft());
         setStep(3);
       } else {
-        window.location.href = `/plans/${planId}`;
+        window.location.href = `/plans/${id}`;
       }
     } catch (err) {
       setAlertMessage(`Feil ved lagring av menyen: ${errorMessage(err)}`);
@@ -318,6 +328,17 @@ export const MealPlanningWizard = ({
     }
   };
 
+  // Only backwards: getting to a later step means picking dates or saving
+  // the plan first, which the buttons on each step take care of.
+  const stepProgress = (
+    <StepProgress
+      current={step}
+      total={TOTAL_STEPS}
+      stepNames={STEP_NAMES}
+      onStepSelect={(target) => setStep(target as 1 | 2 | 3)}
+    />
+  );
+
   const alertDialog = (
     <Dialog alert open={!!alertMessage} onClose={() => setAlertMessage(null)}>
       {alertMessage}
@@ -332,7 +353,7 @@ export const MealPlanningWizard = ({
             <h2 className="text-text text-2xl font-bold">
               Steg 1: Velg datoer
             </h2>
-            <StepProgress current={1} total={TOTAL_STEPS} />
+            {stepProgress}
           </div>
           <div className="space-y-6">
             <Input
@@ -388,7 +409,7 @@ export const MealPlanningWizard = ({
               Steg 2: Hva har dere lyst på?
             </h2>
           </div>
-          <StepProgress current={2} total={TOTAL_STEPS} />
+          {stepProgress}
         </Card>
 
         <div className="space-y-4">
@@ -495,7 +516,7 @@ export const MealPlanningWizard = ({
             Steg 3: Sjekk hva som mangler
           </h2>
         </div>
-        <StepProgress current={3} total={TOTAL_STEPS} />
+        {stepProgress}
       </Card>
 
       <Card>

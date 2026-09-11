@@ -191,8 +191,8 @@ export const ShoppingList = ({
         <Card className="overflow-visible">
           <h3 className="text-text mb-3 font-medium">Noe mer du mangler?</h3>
           <form onSubmit={handleAddItem}>
-            <div className="grid grid-cols-1 items-end gap-2 md:grid-cols-3">
-              <div className="flex items-end gap-2">
+            <div className="flex flex-col gap-2 md:flex-row md:items-end">
+              <div className="flex min-w-0 flex-1 items-end gap-2">
                 <Field label="Ikon" htmlFor="new-item-emoji">
                   <EmojiSelect
                     id="new-item-emoji"
@@ -211,20 +211,26 @@ export const ShoppingList = ({
                   placeholder="f.eks. Epler"
                 />
               </div>
-              <Input
-                type="number"
-                label="Antall"
-                enterKeyHint="done"
-                min="1"
-                step="any"
-                value={draft.amount}
-                onChange={(e) => setDraft({ ...draft, amount: e.target.value })}
-              />
-              <UnitSelect
-                label="Enhet"
-                value={draft.unit}
-                onChange={(unit) => setDraft({ ...draft, unit })}
-              />
+              <div className="flex items-end gap-2">
+                <Input
+                  type="number"
+                  label="Antall"
+                  enterKeyHint="done"
+                  min="1"
+                  step="any"
+                  value={draft.amount}
+                  onChange={(e) =>
+                    setDraft({ ...draft, amount: e.target.value })
+                  }
+                  className="md:w-24"
+                />
+                <UnitSelect
+                  label="Enhet"
+                  value={draft.unit}
+                  onChange={(unit) => setDraft({ ...draft, unit })}
+                  className="md:w-24"
+                />
+              </div>
             </div>
             <div className="mt-4 flex w-full gap-2">
               <Button
@@ -271,7 +277,7 @@ export const ShoppingList = ({
             <Details
               open
               summaryClassName="text-sm font-medium"
-              title={`Dette har dere lagt i kurven (${completedItems.length})`}
+              title={`Dette har du lagt i kurven (${completedItems.length})`}
             >
               {renderItems(completedItems)}
             </Details>
