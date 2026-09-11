@@ -48,36 +48,38 @@ const hasAnything = meals.some((m) => (m.recipeId && m.recipe) || m.notes);
       meals.map((meal) =>
         meal.recipeId && meal.recipe ? (
           <a href={`/recipes/${meal.recipeId}`} class="block">
-            <div class="bg-bg hover:bg-bg/80 flex items-center gap-3 rounded-lg p-2 transition-colors">
-              {meal.recipe.image_url ? (
-                <Image
-                  src={meal.recipe.image_url}
-                  alt=""
-                  width={48}
-                  height={48}
-                  layout="constrained"
-                  class="h-12 w-12 shrink-0 rounded-lg object-cover"
-                />
-              ) : (
-                <div class="bg-surface-elevated border-border flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border">
-                  <Icon name={app.recipes} class="h-6 w-6 opacity-60" />
-                </div>
-              )}
-              <div class="min-w-0 flex-1">
-                <div class="text-text truncate text-sm font-medium">
-                  {meal.recipe.title}
-                </div>
-                {meal.notes && (
-                  <span class="text-text-muted text-xs">{meal.notes}</span>
-                )}
-                {meal.recipe.cook_time ? (
-                  <div class="text-text-muted flex items-center gap-1 text-[10px] tracking-wider opacity-70">
-                    <Icon name={ui.clock} class="h-3 w-3" />
-                    <span>{duration(meal.recipe.cook_time)}</span>
+            <Card className="bg-bg" noPadding isClickable>
+              <div class="flex items-center gap-3 p-2">
+                {meal.recipe.image_url ? (
+                  <Image
+                    src={meal.recipe.image_url}
+                    alt=""
+                    width={48}
+                    height={48}
+                    layout="constrained"
+                    class="h-12 w-12 shrink-0 rounded-lg object-cover"
+                  />
+                ) : (
+                  <div class="bg-surface-elevated flex h-12 w-12 shrink-0 items-center justify-center">
+                    <Icon name={app.recipes} class="h-6 w-6 opacity-60" />
                   </div>
-                ) : null}
+                )}
+                <div class="min-w-0 flex-1">
+                  <div class="text-text truncate text-sm font-medium">
+                    {meal.recipe.title}
+                  </div>
+                  {meal.notes && (
+                    <span class="text-text-muted text-xs">{meal.notes}</span>
+                  )}
+                  {meal.recipe.cook_time ? (
+                    <div class="text-text-muted flex items-center gap-1 text-[10px] tracking-wider opacity-70">
+                      <Icon name={ui.clock} class="h-3 w-3" />
+                      <span>{duration(meal.recipe.cook_time)}</span>
+                    </div>
+                  ) : null}
+                </div>
               </div>
-            </div>
+            </Card>
           </a>
         ) : meal.notes ? (
           <div class="bg-bg rounded p-2">
