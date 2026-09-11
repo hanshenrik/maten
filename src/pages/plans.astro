@@ -33,9 +33,9 @@ const activePlans = plans.filter((p) => p.end_date >= today);
 const outdatedPlans = plans.filter((p) => p.end_date < today);
 ---
 
-<BaseLayout title="Hva skal vi ha til middag?">
+<BaseLayout title="Menyer">
   <Page>
-    <PageHeader title="Mine menyer" icon={app.plans}>
+    <PageHeader title="Menyer" icon={app.plans}>
       <Button slot="actions" as="a" href="/plans/new" className="gap-2">
         <Icon name={ui.add} class="h-5 w-5" />
         Ny meny

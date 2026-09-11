@@ -321,7 +321,7 @@ export const MealPlanningWizard = ({
       window.location.href = "/plans";
     } catch (err) {
       setAlertMessage(
-        `Feil ved ferdigstilling av handlelisten: ${errorMessage(err)}`,
+        `Feil ved ferdigstilling av handlelista: ${errorMessage(err)}`,
       );
     } finally {
       setSaving(false);

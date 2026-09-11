@@ -296,7 +296,7 @@ export const ShoppingList = ({
           ? renderItems(activeItems)
           : completedItems.length === 0 && (
               <p className="text-text-muted py-8 text-center">
-                Handlelisten er tom. Kanskje dere har alt dere trenger?
+                Handlelista er tom. Kanskje dere har alt dere trenger?
               </p>
             )}
 

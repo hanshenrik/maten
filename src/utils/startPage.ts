@@ -8,7 +8,7 @@ export const START_PAGE_COOKIE = `${PREF_COOKIE_PREFIX}start_page`;
 export const startPages = [
   { path: "/recipes", label: "Oppskrifter", icon: app.recipes },
   { path: "/plans", label: "Menyer", icon: app.plans },
-  { path: "/shopping", label: "Handleliste", icon: app.shopping },
+  { path: "/shopping", label: "Handlelista", icon: app.shopping },
 ] as const;
 
 export type StartPagePath = (typeof startPages)[number]["path"];
