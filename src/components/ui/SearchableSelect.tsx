@@ -108,6 +108,9 @@ export function SearchableSelect<T>({
 
         <ComboboxOptions
           anchor={{ to: "bottom start", gap: 4, padding: 8 }}
+          // Kept in the DOM (hidden) when closed, so the combobox input always
+          // has the `aria-controls` its role requires
+          unmount={false}
           className="border-border bg-surface z-50 max-h-72 w-(--input-width) overflow-auto rounded-xl border shadow-lg outline-none"
         >
           {emptyLabel && !query && (

@@ -103,12 +103,15 @@ interface EmojiSelectProps {
   value: string;
   onChange: (emoji: string) => void;
   className?: string;
+  /** The id of the button, so a label can point at it */
+  id?: string;
 }
 
 export const EmojiSelect: React.FC<EmojiSelectProps> = ({
   value,
   onChange,
   className = "",
+  id,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -137,6 +140,7 @@ export const EmojiSelect: React.FC<EmojiSelectProps> = ({
     <div className={`relative ${className}`} ref={dropdownRef}>
       <button
         type="button"
+        id={id}
         onClick={() => setIsOpen(!isOpen)}
         className="border-border bg-surface text-text hover:border-primary focus:ring-primary flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl border transition-all outline-none focus:border-transparent focus:ring-2"
         title="Velg emoji"

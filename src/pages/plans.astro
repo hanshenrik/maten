@@ -1,10 +1,11 @@
 ---
+import { Image } from "astro:assets";
 import { Icon } from "astro-icon/components";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Page from "../components/Page.astro";
 import PageHeader from "../components/PageHeader.astro";
 import { PlanMenu } from "../components/PlanMenu";
-import { PlannedMeal } from "../components/PlannedMeal";
+import PlannedMeal from "../components/PlannedMeal.astro";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { Details } from "../components/ui/Details";
@@ -122,10 +123,12 @@ const outdatedPlans = plans.filter((p) => p.end_date < today);
                             </td>
                             <td class="overflow-hidden rounded-xl p-1">
                               {meal.recipe?.image_url ? (
-                                <img
+                                <Image
                                   src={meal.recipe.image_url}
                                   alt=""
-                                  loading="lazy"
+                                  width={24}
+                                  height={24}
+                                  layout="constrained"
                                   class="h-6 w-6 rounded object-cover"
                                 />
                               ) : (

@@ -194,8 +194,9 @@ export const ShoppingList = ({
           <form onSubmit={handleAddItem}>
             <div className="grid grid-cols-1 items-end gap-2 md:grid-cols-3">
               <div className="flex items-end gap-2">
-                <Field label="Ikon">
+                <Field label="Ikon" htmlFor="new-item-emoji">
                   <EmojiSelect
+                    id="new-item-emoji"
                     value={draft.emoji}
                     onChange={(emoji) => setDraft({ ...draft, emoji })}
                   />
@@ -242,9 +243,10 @@ export const ShoppingList = ({
           </form>
         </Card>
       ) : (
-        <Field label="Legg til noe">
+        <Field label="Legg til noe" htmlFor="add-shopping-item">
           <button
             type="button"
+            id="add-shopping-item"
             className="bg-surface text-text-muted border-border h-11 cursor-text rounded-xl border px-3 text-left transition-all outline-none"
             onClick={() => setIsAdding(true)}
           >

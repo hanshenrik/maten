@@ -14,6 +14,18 @@ export default defineConfig({
   prefetch: true,
   site,
 
+  image: {
+    // Recipe photos live in Supabase storage, and the optimiser only touches
+    // hosts it has been told to trust
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**.supabase.co",
+        pathname: "/storage/v1/object/public/**",
+      },
+    ],
+  },
+
   security: {
     // Disabled since 2026-03 because the forwarded URL on Vercel didn't match
     // the Origin header and broke login. Cookies are SameSite=Lax instead,

@@ -436,6 +436,7 @@ export const RecipeForm = ({
           </div>
           <Toggle
             id="publicly-shared-recipe"
+            label="Del oppskriften i biblioteket"
             checked={isPublic}
             disabled={saveCount > 0}
             onChange={setIsPublic}

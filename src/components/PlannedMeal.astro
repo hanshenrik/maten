@@ -1,0 +1,90 @@
+---
+import { Image } from "astro:assets";
+import { Icon } from "astro-icon/components";
+import { Card } from "./ui/Card";
+import { cn } from "../utils/cn";
+import { formatLongDay, formatMonthDay } from "../utils/date";
+import { ui, app } from "../utils/icons";
+import type { MealEntry } from "../utils/mealPlans";
+import { duration } from "../utils/time";
+
+/** One day in a meal plan: the date and what's for dinner. */
+interface Props {
+  date: string;
+  meals: MealEntry[];
+  isToday?: boolean;
+}
+
+const { date, meals, isToday } = Astro.props;
+
+const hasAnything = meals.some((m) => (m.recipeId && m.recipe) || m.notes);
+---
+
+<Card className={cn("flex h-full flex-col", isToday && "ring-primary ring-2")}>
+  <div class="mb-4 flex items-center justify-between gap-2">
+    <div>
+      <h3 class="text-lg font-semibold capitalize">{formatLongDay(date)}</h3>
+      <p class="text-text-muted text-sm">{formatMonthDay(date)}</p>
+    </div>
+    {
+      isToday && (
+        <span class="bg-primary/10 text-primary shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold">
+          I dag
+        </span>
+      )
+    }
+  </div>
+
+  <div class="space-y-2">
+    {
+      !hasAnything && (
+        <div class="bg-bg flex items-center gap-2 rounded p-2">
+          <Icon name={ui.plate} class="text-text-muted h-4 w-4 opacity-50" />
+          <span class="text-text-muted text-sm">Ingen middag planlagt</span>
+        </div>
+      )
+    }
+    {
+      meals.map((meal) =>
+        meal.recipeId && meal.recipe ? (
+          <a href={`/recipes/${meal.recipeId}`} class="block">
+            <div class="bg-bg hover:bg-bg/80 flex items-center gap-3 rounded-lg p-2 transition-colors">
+              {meal.recipe.image_url ? (
+                <Image
+                  src={meal.recipe.image_url}
+                  alt=""
+                  width={48}
+                  height={48}
+                  layout="constrained"
+                  class="h-12 w-12 shrink-0 rounded-lg object-cover"
+                />
+              ) : (
+                <div class="bg-surface-elevated border-border flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border">
+                  <Icon name={app.recipes} class="h-6 w-6 opacity-60" />
+                </div>
+              )}
+              <div class="min-w-0 flex-1">
+                <div class="text-text truncate text-sm font-medium">
+                  {meal.recipe.title}
+                </div>
+                {meal.notes && (
+                  <span class="text-text-muted text-xs">{meal.notes}</span>
+                )}
+                {meal.recipe.cook_time ? (
+                  <div class="text-text-muted flex items-center gap-1 text-[10px] tracking-wider opacity-70">
+                    <Icon name={ui.clock} class="h-3 w-3" />
+                    <span>{duration(meal.recipe.cook_time)}</span>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </a>
+        ) : meal.notes ? (
+          <div class="bg-bg rounded p-2">
+            <span class="text-text-muted text-xs">{meal.notes}</span>
+          </div>
+        ) : null,
+      )
+    }
+  </div>
+</Card>

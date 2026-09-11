@@ -5,13 +5,22 @@ type ToggleProps = {
   onChange: (checked: boolean) => void;
   disabled?: boolean;
   id: string;
+  /** Names the switch for screen readers, since the track shows no text */
+  label: string;
 };
 
-export const Toggle = ({ checked, onChange, disabled, id }: ToggleProps) => (
+export const Toggle = ({
+  checked,
+  onChange,
+  disabled,
+  id,
+  label,
+}: ToggleProps) => (
   <label
     htmlFor={id}
     className="items-top relative inline-flex h-fit cursor-pointer"
   >
+    <span className="sr-only">{label}</span>
     <input
       id={id}
       type="checkbox"
