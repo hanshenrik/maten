@@ -12,6 +12,7 @@ import { inputClassName } from "./forms/Field";
 import { FileInput } from "./forms/FileInput";
 import { Input } from "./forms/Input";
 import { RichTextEditor } from "./forms/RichTextEditor";
+import { Textarea } from "./forms/Textarea";
 import { Toggle } from "./forms/Toggle";
 import { UnitSelect } from "./forms/UnitSelect";
 import { Button } from "./ui/Button";
@@ -343,11 +344,12 @@ export const RecipeForm = ({
           placeholder="f.eks. Klassisk Margherita Pizza"
         />
 
-        <RichTextEditor
+        <Textarea
           label="Hva gjør denne retten god?"
           value={description}
-          onChange={setDescription}
+          onChange={(e) => setDescription(e.target.value)}
           placeholder="En kort og fristende forklaring..."
+          rows={4}
         />
 
         <RichTextEditor
