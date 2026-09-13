@@ -240,10 +240,10 @@ export const ShoppingList = ({
                   placeholder="f.eks. Epler"
                 />
               </div>
-              <div className="flex items-end gap-2">
+              <div className="grid w-full grid-cols-2 gap-2 md:w-fit">
                 <Input
                   type="number"
-                  label="Antall"
+                  label="Mengde"
                   enterKeyHint="done"
                   min="1"
                   step="any"

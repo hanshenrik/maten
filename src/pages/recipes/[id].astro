@@ -47,7 +47,6 @@ if (recipe.is_public) {
 }
 
 // Recipes are shared between households, so the markdown is sanitised
-const descriptionHtml = renderMarkdown(recipe.description);
 const instructionsHtml = renderMarkdown(recipe.instructions);
 const description = markdownToPlainText(recipe.description).slice(0, 160);
 ---
@@ -132,11 +131,10 @@ const description = markdownToPlainText(recipe.description).slice(0, 160);
         </div>
 
         {
-          descriptionHtml && (
-            <div
-              class="prose prose-emerald prose-lg text-text-muted mb-4 max-w-none"
-              set:html={descriptionHtml}
-            />
+          recipe.description?.trim() && (
+            <p class="prose-lg text-text-muted whitespace-pre-line mb-4 max-w-none">
+              {recipe.description}
+            </p>
           )
         }
 
