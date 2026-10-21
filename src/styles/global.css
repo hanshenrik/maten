@@ -53,11 +53,16 @@ input {
 }
 
 /*
- * Tapping or clicking a link or button should not leave the browser's blue
- * default focus ring behind; keyboard navigation still gets a clear one.
+ * Focus rings only for keyboard users. Browsers disagree on whether a tap
+ * counts as focus-visible (WebKit says yes on links), so instead of guessing
+ * we suppress rings until the first Tab/Shift+Tab press marks keyboard use.
  */
-:focus:not(:focus-visible) {
+html:not([data-keyboard-user]) :focus {
   outline: none;
+}
+
+html[data-keyboard-user] :focus-visible {
+  outline: auto;
 }
 
 /*
