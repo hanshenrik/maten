@@ -31,7 +31,7 @@ const avatarUrl =
     <PageHeader title="Handlelista" icon={app.shopping}>
       <Fragment slot="menu">
         <ActiveMembers
-          client:load
+          client:idle
           householdId={householdId}
           user={{ id: user.id, name, avatarUrl }}
         />

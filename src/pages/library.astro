@@ -6,16 +6,26 @@ import PageHeader from "../components/PageHeader.astro";
 import RecipeCard from "../components/RecipeCard.astro";
 import { EmptyState } from "../components/ui/EmptyState";
 import { requireSession } from "../lib/session";
-import type { Recipe } from "../types";
 import { ui, app } from "../utils/icons";
 
 const { supabase } = requireSession(Astro.locals);
 
-type LibraryRecipe = Recipe & { saved_recipes: { count: number }[] };
+type LibraryRecipe = {
+  id: string;
+  title: string;
+  description: string | null;
+  image_url: string | null;
+  cook_time: number | null;
+  created_at: string;
+  author_name: string | null;
+  saved_recipes: { count: number }[];
+};
 
 const { data, error } = await supabase
   .from("recipes")
-  .select("*, saved_recipes(count)")
+  .select(
+    "id, title, description, image_url, cook_time, created_at, author_name, saved_recipes(count)",
+  )
   .eq("is_public", true);
 
 if (error) console.error("Error fetching library recipes:", error);

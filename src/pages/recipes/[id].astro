@@ -17,34 +17,36 @@ import { duration } from "../../utils/time";
 const { id } = Astro.params;
 const { supabase, householdId } = requireSession(Astro.locals);
 
-const recipe = id ? await fetchRecipeWithIngredients(supabase, id) : null;
+// The save state and count only depend on the recipe id, so they are fetched
+// alongside the recipe itself instead of waiting for it first. RLS hides
+// other households' saves, so the extra queries are safe even for a
+// private recipe (they just come back empty).
+const [recipe, savedRes, countRes] = await Promise.all([
+  id ? fetchRecipeWithIngredients(supabase, id) : null,
+  id
+    ? supabase
+        .from("saved_recipes")
+        .select("id")
+        .eq("household_id", householdId)
+        .eq("recipe_id", id)
+        .maybeSingle()
+    : Promise.resolve({ data: null }),
+  id
+    ? supabase
+        .from("saved_recipes")
+        .select("*", { count: "exact", head: true })
+        .eq("recipe_id", id)
+    : Promise.resolve({ count: 0 }),
+]);
+
 if (!recipe) {
   return Astro.redirect("/404");
 }
 
 const isOwner = recipe.household_id === householdId;
 
-let isSaved = false;
-let saveCount = 0;
-
-if (recipe.is_public) {
-  const [savedRes, countRes] = await Promise.all([
-    isOwner
-      ? Promise.resolve({ data: null })
-      : supabase
-          .from("saved_recipes")
-          .select("id")
-          .eq("household_id", householdId)
-          .eq("recipe_id", recipe.id)
-          .maybeSingle(),
-    supabase
-      .from("saved_recipes")
-      .select("*", { count: "exact", head: true })
-      .eq("recipe_id", recipe.id),
-  ]);
-  isSaved = !!savedRes.data;
-  saveCount = countRes.count ?? 0;
-}
+const isSaved = !isOwner && recipe.is_public && !!savedRes.data;
+const saveCount = recipe.is_public ? (countRes.count ?? 0) : 0;
 
 // Recipes are shared between households, so the markdown is sanitised
 const instructionsHtml = renderMarkdown(recipe.instructions);
@@ -55,7 +57,7 @@ const description = markdownToPlainText(recipe.description).slice(0, 160);
   <Page size="md">
     <div class="mb-8 flex items-center justify-between">
       <IconButton id="back-btn" icon={ui.back} label="Tilbake" />
-      <RecipeMenu client:load recipeId={recipe.id} isOwner={isOwner} />
+      <RecipeMenu client:idle recipeId={recipe.id} isOwner={isOwner} />
     </div>
 
     <article
@@ -139,7 +141,7 @@ const description = markdownToPlainText(recipe.description).slice(0, 160);
         }
 
         <RecipeActions
-          client:load
+          client:idle
           recipeId={recipe.id}
           isOwner={isOwner}
           isPublic={recipe.is_public}
@@ -150,7 +152,7 @@ const description = markdownToPlainText(recipe.description).slice(0, 160);
           <div class="md:col-span-1">
             <h2 class="text-text mb-4 text-xl font-bold">Dette trenger du</h2>
             <RecipeScaler
-              client:load
+              client:idle
               ingredients={recipe.ingredients}
               baseServings={recipe.servings}
             />
