@@ -87,3 +87,13 @@ main[data-navigation-skeleton] {
     opacity: 0.25;
   }
 }
+
+/*
+ * The router wraps every navigation in a View Transition whose default is a
+ * slow cross-fade of the whole page, which reads as lag and as elements
+ * "transitioning in". Cut hard instead: the new page appears at once.
+ */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}

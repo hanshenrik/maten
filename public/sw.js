@@ -1,5 +1,5 @@
 // Bump when the caching strategy changes; old caches are dropped on activate.
-const CACHE_NAME = "maten-v9";
+const CACHE_NAME = "maten-v10";
 
 self.addEventListener("install", () => {
   self.skipWaiting();
@@ -98,8 +98,10 @@ async function cacheFirst(request) {
  * the network request continues in the background via event.waitUntil, so
  * it finishes even if the service worker would otherwise be idle.
  *
- * With `notify`, a page that was shown from the cache tells the client once
- * a fresh copy has been stored, so it can reload the newer content.
+ * With `notify`, a page that was shown from the cache is told once a fresh
+ * copy has been stored *and actually differs* from the one it is showing,
+ * so the client can swap in the newer content. A byte-identical page (the
+ * common case) never interrupts the user.
  */
 async function staleWhileRevalidate(event, request, notify = false) {
   const cache = await caches.open(CACHE_NAME);
@@ -109,8 +111,10 @@ async function staleWhileRevalidate(event, request, notify = false) {
     const refresh = fetch(request)
       .then(async (response) => {
         if (response.ok) {
+          const previous = await cached.clone().text();
+          const fresh = await response.clone().text();
           await cache.put(request, response.clone());
-          if (notify) {
+          if (notify && fresh !== previous) {
             const clients = await self.clients.matchAll();
             for (const client of clients) {
               client.postMessage({ type: "page-refreshed", url: request.url });
