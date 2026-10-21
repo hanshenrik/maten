@@ -109,7 +109,50 @@ const showNavigation = !!Astro.locals.user;
         document.addEventListener("astro:after-preparation", () => {
           if (bar) bar.style.width = "100%";
         });
-        document.addEventListener("astro:before-swap", hideSkeleton);
+        // The router copies the next page's stylesheets into the document as
+        // it swaps, but a link that is still downloading leaves the new
+        // content unstyled for a moment (blue focus rings, wrong colors).
+        // Replace the swap with one that first waits for those stylesheets.
+        document.addEventListener("astro:before-swap", (event) => {
+          hideSkeleton();
+          const doc = event.newDocument;
+          const hrefs = doc
+            ? [
+                ...doc.querySelectorAll<HTMLLinkElement>(
+                  'link[rel="stylesheet"]',
+                ),
+              ]
+                .map((link) => link.getAttribute("href"))
+                .filter(
+                  (href): href is string =>
+                    !!href &&
+                    !document.querySelector(
+                      `link[rel="stylesheet"][href="${href}"]`,
+                    ),
+                )
+            : [];
+          if (hrefs.length === 0) return;
+
+          const doSwap = event.swap.bind(event);
+          event.swap = () => {};
+          void Promise.allSettled(
+            hrefs.map(
+              (href) =>
+                new Promise<void>((resolve) => {
+                  const el = document.createElement("link");
+                  el.rel = "stylesheet";
+                  el.href = href;
+                  el.addEventListener("load", () => resolve(), { once: true });
+                  el.addEventListener("error", () => resolve(), { once: true });
+                  document.head.append(el);
+                }),
+            ),
+          ).then(() => {
+            // A newer navigation may have started while we waited; only
+            // this one's swap should still run.
+            if (!event.signal.aborted) doSwap();
+          });
+        });
         document.addEventListener("astro:after-swap", hideSkeleton);
         document.addEventListener("astro:page-load", () => {
           hideSkeleton();

@@ -53,6 +53,14 @@ input {
 }
 
 /*
+ * Tapping or clicking a link or button should not leave the browser's blue
+ * default focus ring behind; keyboard navigation still gets a clear one.
+ */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/*
  * Skeleton shown while a view transition is still fetching the next page:
  * the page you are leaving fades and pulses, saying "loading" instead of
  * looking stuck. Triggered by the router script in BaseLayout.
