@@ -1,5 +1,5 @@
 // Bump when the caching strategy changes; old caches are dropped on activate.
-const CACHE_NAME = "maten-v8";
+const CACHE_NAME = "maten-v9";
 
 self.addEventListener("install", () => {
   self.skipWaiting();
@@ -27,24 +27,59 @@ const isImmutableAsset = (url) => url.pathname.startsWith("/_astro/");
 const isStaticAsset = (url) =>
   /\.(png|svg|jpg|jpeg|webp|ico|woff2?|json|js|css)$/.test(url.pathname);
 
+/**
+ * The pages behind the login wall. Their HTML is cached so the router can show
+ * something instantly, and refreshed in the background. Paths under /login,
+ * /signup and /auth are never cached.
+ */
+const isNavPage = (url) =>
+  url.pathname === "/recipes" ||
+  url.pathname === "/recipes/new" ||
+  url.pathname.startsWith("/recipes/") ||
+  url.pathname === "/plans" ||
+  url.pathname === "/plans/new" ||
+  url.pathname.startsWith("/plans/") ||
+  url.pathname === "/shopping" ||
+  url.pathname === "/library" ||
+  url.pathname === "/settings";
+
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Pages are rendered on the server and depend on who is logged in, so they
-  // always go to the network. Same for anything that isn't a same-origin GET.
-  if (
-    request.method !== "GET" ||
-    url.origin !== self.location.origin ||
-    request.mode === "navigate"
-  ) {
+  if (request.method !== "GET" || url.origin !== self.location.origin) {
+    return;
+  }
+
+  // A real navigation always goes to the network: it is the moment a login or
+  // logout must take effect, so nothing stale may be shown. The page cache is
+  // dropped too, since the user the cached pages were built for may have
+  // changed.
+  if (request.mode === "navigate") {
+    event.waitUntil(
+      caches.open(CACHE_NAME).then((cache) => cache.delete(request)),
+    );
     return;
   }
 
   if (isImmutableAsset(url)) {
     event.respondWith(cacheFirst(request));
-  } else if (isStaticAsset(url)) {
-    event.respondWith(staleWhileRevalidate(request));
+    return;
+  }
+
+  if (isStaticAsset(url)) {
+    event.respondWith(staleWhileRevalidate(event, request));
+    return;
+  }
+
+  // What is left is either an API call or the router's page fetch. Only HTML
+  // for one of the main pages is served from the cache; APIs always hit the
+  // network so data changes are never delayed.
+  if (
+    isNavPage(url) &&
+    (request.headers.get("accept") ?? "").includes("text/html")
+  ) {
+    event.respondWith(staleWhileRevalidate(event, request, true));
   }
 });
 
@@ -58,16 +93,37 @@ async function cacheFirst(request) {
   return response;
 }
 
-async function staleWhileRevalidate(request) {
+/**
+ * Stale-while-revalidate. The cached copy is returned the moment it exists;
+ * the network request continues in the background via event.waitUntil, so
+ * it finishes even if the service worker would otherwise be idle.
+ *
+ * With `notify`, a page that was shown from the cache tells the client once
+ * a fresh copy has been stored, so it can reload the newer content.
+ */
+async function staleWhileRevalidate(event, request, notify = false) {
   const cache = await caches.open(CACHE_NAME);
   const cached = await cache.match(request);
 
-  const network = fetch(request)
-    .then((response) => {
-      if (response.ok) cache.put(request, response.clone());
-      return response;
-    })
-    .catch(() => cached);
+  if (cached) {
+    const refresh = fetch(request)
+      .then(async (response) => {
+        if (response.ok) {
+          await cache.put(request, response.clone());
+          if (notify) {
+            const clients = await self.clients.matchAll();
+            for (const client of clients) {
+              client.postMessage({ type: "page-refreshed", url: request.url });
+            }
+          }
+        }
+      })
+      .catch(() => {});
+    event.waitUntil(refresh);
+    return cached;
+  }
 
-  return cached || network;
+  const response = await fetch(request);
+  if (response.ok) cache.put(request, response.clone());
+  return response;
 }
