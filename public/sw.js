@@ -1,5 +1,5 @@
 // Bump when the caching strategy changes; old caches are dropped on activate.
-const CACHE_NAME = "maten-v9";
+const CACHE_NAME = "maten-v10";
 
 self.addEventListener("install", () => {
   self.skipWaiting();
