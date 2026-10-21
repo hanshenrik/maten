@@ -30,33 +30,21 @@ interface IngredientDraft {
   unit: string;
   is_basic: boolean;
   optional: boolean;
-  focus?: boolean;
 }
 
 const IngredientRow = ({
   ingredient,
-  focusOnMount,
   onChange,
   onRemove,
 }: {
   ingredient: IngredientDraft;
-  focusOnMount?: boolean;
   onChange: (change: Partial<IngredientDraft>) => void;
   onRemove: () => void;
 }) => {
   const dragControls = useDragControls();
-  const rowRef = useRef<HTMLLIElement | null>(null);
-  const nameRef = useRef<HTMLInputElement | null>(null);
-
-  useEffect(() => {
-    if (!focusOnMount) return;
-    rowRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    nameRef.current?.focus({ preventScroll: true });
-  }, [focusOnMount]);
 
   return (
     <Reorder.Item
-      ref={rowRef}
       value={ingredient}
       dragListener={false}
       dragControls={dragControls}
@@ -76,7 +64,6 @@ const IngredientRow = ({
             onChange={(emoji) => onChange({ emoji })}
           />
           <input
-            ref={nameRef}
             type="text"
             required
             aria-label="Ingrediens"
@@ -247,7 +234,7 @@ export const RecipeForm = ({
     setIngredients((current) => current.filter((ing) => ing.key !== key));
 
   const addIngredient = () =>
-    setIngredients((current) => [...current, { ...newDraft(), focus: true }]);
+    setIngredients((current) => [...current, newDraft()]);
 
   // The picture is uploaded as soon as it is picked, so the form only ever
   // holds the url of something that is already in storage
@@ -420,7 +407,6 @@ export const RecipeForm = ({
             <IngredientRow
               key={ingredient.key}
               ingredient={ingredient}
-              focusOnMount={ingredient.focus}
               onChange={(change) => changeIngredient(ingredient.key, change)}
               onRemove={() => removeIngredient(ingredient.key)}
             />
