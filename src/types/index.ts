@@ -37,6 +37,18 @@ export type RecipeSummary = Pick<
   "id" | "title" | "image_url" | "cook_time"
 >;
 
+/** The columns a recipe card in a list needs; the heavy instructions stay behind */
+export type RecipeListItem = Pick<
+  Recipe,
+  | "id"
+  | "household_id"
+  | "title"
+  | "description"
+  | "image_url"
+  | "cook_time"
+  | "created_at"
+>;
+
 export interface MealPlan {
   id: string;
   title: string | null;

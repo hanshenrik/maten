@@ -11,7 +11,12 @@ export default defineConfig({
   output: "server",
   adapter: vercel(),
   integrations: [react(), icon()],
-  prefetch: true,
+  // Links are prefetched once they enter the viewport, so tapping a nav item
+  // usually serves the page from the browser cache instead of the network.
+  prefetch: {
+    prefetchAll: true,
+    defaultStrategy: "viewport",
+  },
   site,
 
   image: {

@@ -7,16 +7,23 @@ import RecipeCard from "../components/RecipeCard.astro";
 import { Button } from "../components/ui/Button";
 import { EmptyState } from "../components/ui/EmptyState";
 import { requireSession } from "../lib/session";
-import type { Recipe } from "../types";
+import type { RecipeListItem } from "../types";
 import { app, ui } from "../utils/icons";
 
 const { supabase, householdId } = requireSession(Astro.locals);
 
 const [myRecipesRes, savedRecipesRes] = await Promise.all([
-  supabase.from("recipes").select("*").eq("household_id", householdId),
+  supabase
+    .from("recipes")
+    .select(
+      "id, household_id, title, description, image_url, cook_time, created_at",
+    )
+    .eq("household_id", householdId),
   supabase
     .from("saved_recipes")
-    .select("recipes(*)")
+    .select(
+      "recipes(id, household_id, title, description, image_url, cook_time, created_at)",
+    )
     .eq("household_id", householdId),
 ]);
 
@@ -27,12 +34,14 @@ if (savedRecipesRes.error) {
   console.error("Error fetching saved recipes:", savedRecipesRes.error);
 }
 
-const myRecipes = (myRecipesRes.data ?? []) as Recipe[];
+const myRecipes = (myRecipesRes.data ?? []) as RecipeListItem[];
 const savedRecipes = (
-  (savedRecipesRes.data ?? []) as unknown as { recipes: Recipe | null }[]
+  (savedRecipesRes.data ?? []) as unknown as {
+    recipes: RecipeListItem | null;
+  }[]
 )
   .map((saved) => saved.recipes)
-  .filter((recipe): recipe is Recipe => recipe !== null);
+  .filter((recipe): recipe is RecipeListItem => recipe !== null);
 
 // Newest first
 const recipes = [...myRecipes, ...savedRecipes].sort(
