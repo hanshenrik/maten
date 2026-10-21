@@ -45,6 +45,21 @@ const showNavigation = !!Astro.locals.user;
         }
       })();
     </script>
+    <!--
+      Marks the user as a keyboard user on the first Tab, so focus rings stay
+      hidden for taps and mouse clicks. WebKit shows a ring around tapped
+      links, and the router refocuses elements during navigation; we can't
+      tell those apart from keyboard focus any other reliable way.
+    -->
+    <script is:inline>
+      const markKeyboardUser = (event) => {
+        if (event.key === "Tab") {
+          document.documentElement.dataset.keyboardUser = "";
+          document.removeEventListener("keydown", markKeyboardUser);
+        }
+      };
+      document.addEventListener("keydown", markKeyboardUser);
+    </script>
 
     <Analytics />
     <SpeedInsights />
@@ -71,6 +86,9 @@ const showNavigation = !!Astro.locals.user;
       // looking stuck on the page you are leaving.
       {
         const bar = document.getElementById("nav-progress");
+        // Mirrors the keyboard-user flag on <html> so it survives swaps
+        let keyboardUser =
+          document.documentElement.dataset.keyboardUser !== undefined;
         let barTimer: number | undefined;
         let skeletonTimer: number | undefined;
 
@@ -153,7 +171,17 @@ const showNavigation = !!Astro.locals.user;
             if (!event.signal.aborted) doSwap();
           });
         });
-        document.addEventListener("astro:after-swap", hideSkeleton);
+        // The swap copies the incoming page's root attributes, which drops
+        // the keyboard-user flag the head script set; restore it.
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Tab") keyboardUser = true;
+        });
+        document.addEventListener("astro:after-swap", () => {
+          hideSkeleton();
+          if (keyboardUser) {
+            document.documentElement.dataset.keyboardUser = "";
+          }
+        });
         document.addEventListener("astro:page-load", () => {
           hideSkeleton();
           window.clearTimeout(skeletonTimer);
