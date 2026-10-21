@@ -2,15 +2,17 @@ import React, { useId } from "react";
 import { cn } from "../../utils/cn";
 import { Field, fieldClassName } from "./Field";
 
-export interface TextareaProps
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
   error?: string;
   fullWidth?: boolean;
 }
 
 export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ className, label, error, fullWidth = true, id, rows = 4, ...props }, ref) => {
+  (
+    { className, label, error, fullWidth = true, id, rows = 4, ...props },
+    ref,
+  ) => {
     const generatedId = useId();
     const textareaId = id ?? generatedId;
     return (
