@@ -36,8 +36,8 @@ const hasMenu = Astro.slots.has("menu");
       {
         backHref && (
           <IconButton
-            as="a"
-            href={backHref}
+            data-back
+            data-back-fallback={backHref}
             icon={ui.back}
             label="Tilbake"
             className="-ml-2"
