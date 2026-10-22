@@ -243,7 +243,7 @@ export const TipTapEditor = ({
       attributes: {
         id: editorId,
         class:
-          "prose prose-sm prose-emerald text-text max-w-none px-4 py-3 min-h-32 outline-none",
+          "prose prose-emerald text-text max-w-none px-4 py-3 min-h-32 outline-none",
       },
     },
   });
@@ -283,7 +283,7 @@ export const TipTapEditor = ({
           {editor && editor.isEmpty && placeholder && (
             <div
               aria-hidden
-              className="text-text-muted pointer-events-none absolute top-0 left-0 px-4 py-3 text-sm"
+              className="text-text-muted pointer-events-none absolute top-0 left-0 px-4 py-3 text-base"
             >
               {placeholder}
             </div>

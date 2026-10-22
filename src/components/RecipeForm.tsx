@@ -70,7 +70,7 @@ const IngredientRow = ({
             placeholder="Hva trengs?"
             value={ingredient.name}
             onChange={(e) => onChange({ name: e.target.value })}
-            className={cn(inputClassName, "bg-bg w-full text-sm")}
+            className={cn(inputClassName, "bg-bg w-full text-base")}
           />
         </div>
         <div className="flex flex-col gap-2 md:flex-row">

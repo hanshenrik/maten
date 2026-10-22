@@ -47,9 +47,19 @@ body {
   line-height: 1.6;
 }
 
-/* Ensure native components follow the theme */
-input {
+/*
+ * Ensure native components follow the theme.
+ */
+input,
+select,
+textarea {
   color-scheme: inherit;
+  /*
+   * iOS zooms the viewport when an input with a font size under 16px gets
+   * focus. Clamp form controls to at least 16px (never shrinking larger
+   * ones) so that zoom never triggers, while pinch-to-zoom stays allowed.
+   */
+  font-size: max(1rem, 1em);
 }
 
 /*

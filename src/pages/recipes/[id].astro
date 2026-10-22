@@ -8,6 +8,7 @@ import { Button } from "../../components/ui/Button";
 import { RecipeActions } from "../../components/RecipeActions";
 import { RecipeMenu } from "../../components/RecipeMenu";
 import { RecipeScaler } from "../../components/RecipeScaler";
+import { WakeLockToggle } from "../../components/WakeLockToggle";
 import { renderMarkdown, markdownToPlainText } from "../../lib/markdown";
 import { fetchRecipeWithIngredients } from "../../lib/queries";
 import { requireSession } from "../../lib/session";
@@ -161,6 +162,7 @@ const description = markdownToPlainText(recipe.description).slice(0, 160);
 
           <div class="md:col-span-2">
             <h2 class="text-text mb-4 text-xl font-bold">Slik gjør du det</h2>
+            <WakeLockToggle client:idle />
             <div
               class="prose prose-emerald prose-lg text-text-muted max-w-none"
               set:html={instructionsHtml}
