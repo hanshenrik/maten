@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "./ui/Icon";
 import { supabase } from "../lib/supabase";
 import type { ShoppingItem } from "../types";
-import { combineEmojiAndName } from "../utils/emoji";
+import { combineEmojiAndName, splitEmojiFromName } from "../utils/emoji";
 import { errorMessage } from "../utils/errors";
 import { ui } from "../utils/icons";
 import { subscribeShoppingChanges } from "../utils/realtime";
@@ -45,6 +45,13 @@ export const ShoppingList = ({
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [draft, setDraft] = useState(emptyDraft);
+  const [editing, setEditing] = useState<{
+    id: string;
+    emoji: string;
+    name: string;
+    amount: string;
+    unit: string;
+  } | null>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
   // Things bought before are what you're most likely to buy again
@@ -66,6 +73,9 @@ export const ShoppingList = ({
     return subscribeShoppingChanges(householdId, (change) => {
       setItems((current) => {
         if (change.type === "DELETE") {
+          setEditing((current) =>
+            current && current.id === change.id ? null : current,
+          );
           return current.filter((item) => item.id !== change.id);
         }
         const row = change.row;
@@ -170,6 +180,50 @@ export const ShoppingList = ({
     }
   };
 
+  const startEditing = (item: ShoppingItem) => {
+    const { emoji, name } = splitEmojiFromName(item.name);
+    setEditing({
+      id: item.id,
+      emoji,
+      name,
+      amount: item.amount != null ? String(item.amount) : "",
+      unit: item.unit,
+    });
+    setIsAdding(false);
+  };
+
+  const handleUpdateItem = async (
+    event: React.SubmitEvent<HTMLFormElement>,
+  ) => {
+    if (!editing) return;
+    event.preventDefault();
+    if (!editing.name.trim() || saving) return;
+    setSaving(true);
+
+    const name = combineEmojiAndName(editing.emoji, editing.name);
+    const amount = editing.amount ? Number(editing.amount) : null;
+    const unit = editing.unit;
+
+    try {
+      const { error } = await supabase
+        .from("shopping_items")
+        .update({ name, amount, unit })
+        .eq("id", editing.id);
+      if (error) throw error;
+
+      setItems((current) =>
+        current.map((i) =>
+          i.id === editing.id ? { ...i, name, amount, unit } : i,
+        ),
+      );
+      setEditing(null);
+    } catch (err) {
+      setAlertMessage(`Fikk ikke oppdatert varen: ${errorMessage(err)}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleDelete = async (item: ShoppingItem) => {
     try {
       const { error } = await supabase
@@ -186,25 +240,97 @@ export const ShoppingList = ({
 
   const renderItems = (list: ShoppingItem[]) => (
     <ul className="space-y-2">
-      {list.map((item) => (
-        <li key={item.id} className="relative">
-          <CheckboxButton
-            checked={item.completed}
-            onChange={() => handleToggle(item)}
-            label={item.name}
-            subLabel={itemSubLabel(item)}
-            className="pr-16"
-          />
-          <IconButton
-            onClick={() => handleDelete(item)}
-            variant="danger"
-            icon={ui.x}
-            label={`Fjern ${item.name}`}
-            title="Fjern vare"
-            className="absolute top-1/2 right-4 -translate-y-1/2"
-          />
-        </li>
-      ))}
+      {list.map((item) =>
+        editing?.id === item.id ? (
+          <li key={item.id}>
+            <Card className="overflow-visible">
+              <form onSubmit={handleUpdateItem}>
+                <div className="flex flex-col gap-2 md:flex-row md:items-end">
+                  <div className="flex min-w-0 flex-1 items-end gap-2">
+                    <Field label="Ikon" htmlFor="edit-item-emoji">
+                      <EmojiSelect
+                        id="edit-item-emoji"
+                        value={editing.emoji}
+                        onChange={(emoji) => setEditing({ ...editing, emoji })}
+                      />
+                    </Field>
+                    <Input
+                      label="Navn"
+                      list="shopping-suggestions"
+                      value={editing.name}
+                      autoFocus
+                      autoComplete="off"
+                      enterKeyHint="done"
+                      onChange={(e) =>
+                        setEditing({ ...editing, name: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="grid w-full grid-cols-2 gap-2 md:w-fit">
+                    <Input
+                      type="number"
+                      label="Mengde"
+                      enterKeyHint="done"
+                      min="1"
+                      step="any"
+                      value={editing.amount}
+                      onChange={(e) =>
+                        setEditing({ ...editing, amount: e.target.value })
+                      }
+                      className="md:w-24"
+                    />
+                    <UnitSelect
+                      label="Enhet"
+                      value={editing.unit}
+                      onChange={(unit) => setEditing({ ...editing, unit })}
+                      className="md:w-24"
+                    />
+                  </div>
+                </div>
+                <div className="mt-4 flex w-full gap-2">
+                  <Button
+                    type="submit"
+                    disabled={saving}
+                    className="w-full gap-2 md:w-fit"
+                  >
+                    <Icon icon={ui.checked} className="h-5 w-5" />
+                    {saving ? "Lagrer..." : "Lagre"}
+                  </Button>
+                  <Button onClick={() => setEditing(null)} variant="secondary">
+                    Avbryt
+                  </Button>
+                </div>
+              </form>
+            </Card>
+          </li>
+        ) : (
+          <li key={item.id} className="relative">
+            <CheckboxButton
+              checked={item.completed}
+              onChange={() => handleToggle(item)}
+              label={item.name}
+              subLabel={itemSubLabel(item)}
+              className="pr-28"
+            />
+            <IconButton
+              onClick={() => startEditing(item)}
+              variant="secondary"
+              icon={ui.edit}
+              label={`Rediger ${item.name}`}
+              title="Rediger vare"
+              className="absolute top-1/2 right-16 -translate-y-1/2"
+            />
+            <IconButton
+              onClick={() => handleDelete(item)}
+              variant="danger"
+              icon={ui.x}
+              label={`Fjern ${item.name}`}
+              title="Fjern vare"
+              className="absolute top-1/2 right-4 -translate-y-1/2"
+            />
+          </li>
+        ),
+      )}
     </ul>
   );
 
