@@ -6,7 +6,7 @@ import PageHeader from "../components/PageHeader.astro";
 import RecipeCard from "../components/RecipeCard.astro";
 import { EmptyState } from "../components/ui/EmptyState";
 import { requireSession } from "../lib/session";
-import { ui, app } from "../utils/icons";
+import { ui } from "../utils/icons";
 
 const { supabase } = requireSession(Astro.locals);
 
@@ -47,7 +47,6 @@ const recipes = ((data ?? []) as LibraryRecipe[])
   <Page>
     <PageHeader
       title="Biblioteket"
-      icon={app.library}
       backHref="/recipes"
       description="Gå på oppdagelsesferd i oppskrifter delt av andre brukere. Lagre dine favoritter i din egen samling!"
     />

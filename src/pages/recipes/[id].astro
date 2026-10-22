@@ -3,8 +3,8 @@ import { Image } from "astro:assets";
 import { Icon } from "astro-icon/components";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import Page from "../../components/Page.astro";
+import PageHeader from "../../components/PageHeader.astro";
 import { Button } from "../../components/ui/Button";
-import { IconButton } from "../../components/ui/IconButton";
 import { RecipeActions } from "../../components/RecipeActions";
 import { RecipeMenu } from "../../components/RecipeMenu";
 import { RecipeScaler } from "../../components/RecipeScaler";
@@ -55,15 +55,14 @@ const description = markdownToPlainText(recipe.description).slice(0, 160);
 
 <BaseLayout title={recipe.title} description={description || undefined}>
   <Page size="md">
-    <div class="mb-8 flex items-center justify-between">
-      <IconButton
-        data-back
-        data-back-fallback="/recipes"
-        icon={ui.back}
-        label="Tilbake"
+    <PageHeader title={recipe.title} backHref="/recipes">
+      <RecipeMenu
+        slot="menu"
+        client:idle
+        recipeId={recipe.id}
+        isOwner={isOwner}
       />
-      <RecipeMenu client:idle recipeId={recipe.id} isOwner={isOwner} />
-    </div>
+    </PageHeader>
 
     <article
       class="border-border bg-surface overflow-hidden rounded-3xl border"
@@ -86,10 +85,7 @@ const description = markdownToPlainText(recipe.description).slice(0, 160);
         <div
           class="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center"
         >
-          <h1
-            class="text-text mb-4 flex items-center gap-3 text-left text-2xl font-bold md:text-4xl"
-          >
-            <Icon name={app.recipes} class="h-6 w-6 shrink-0 md:h-10 md:w-10" />
+          <h1 class="text-text mb-4 text-left text-2xl font-bold md:text-4xl">
             {recipe.title}
           </h1>
           {

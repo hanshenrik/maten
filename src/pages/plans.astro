@@ -12,7 +12,7 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { requireSession } from "../lib/session";
 import type { MealPlanWithMeals } from "../types";
 import { formatDateRange, formatLongDay, todayISO } from "../utils/date";
-import { app, ui } from "../utils/icons";
+import { ui } from "../utils/icons";
 import { groupMealsByDate, planTitle } from "../utils/mealPlans";
 
 const { supabase, householdId } = requireSession(Astro.locals);
@@ -37,7 +37,7 @@ const outdatedPlans = plans.filter((p) => p.end_date < today);
 
 <BaseLayout title="Menyer">
   <Page>
-    <PageHeader title="Menyer" icon={app.plans}>
+    <PageHeader title="Menyer">
       <Button slot="actions" as="a" href="/plans/new" className="gap-2">
         <Icon name={ui.add} class="h-5 w-5" />
         Ny meny
