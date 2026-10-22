@@ -1,5 +1,5 @@
 // Bump when the caching strategy changes; old caches are dropped on activate.
-const CACHE_NAME = "maten-v10";
+const CACHE_NAME = "maten-v11";
 
 self.addEventListener("install", () => {
   self.skipWaiting();
@@ -72,16 +72,26 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // What is left is either an API call or the router's page fetch. Only HTML
-  // for one of the main pages is served from the cache; APIs always hit the
-  // network so data changes are never delayed.
-  if (
-    isNavPage(url) &&
-    (request.headers.get("accept") ?? "").includes("text/html")
-  ) {
-    event.respondWith(staleWhileRevalidate(event, request, true));
+  // What is left is either an API call or the router's page fetch. The
+  // router's fetch carries no Accept: text/html marker (it is a plain
+  // fetch() with Accept: */*), so match by path instead and confirm HTML
+  // by the response's content type. APIs always hit the network so data
+  // changes are never delayed.
+  if (isNavPage(url)) {
+    event.respondWith(
+      staleWhileRevalidate(event, request, true).then(async (response) => {
+        if (isHtmlResponse(response)) return response;
+        // Not HTML after all (an API hit on the same path); don't serve or
+        // keep it, fetch the real thing from the network.
+        await (await caches.open(CACHE_NAME)).delete(request);
+        return fetch(request);
+      }),
+    );
   }
 });
+
+const isHtmlResponse = (response) =>
+  (response.headers.get("content-type") ?? "").includes("text/html");
 
 async function cacheFirst(request) {
   const cache = await caches.open(CACHE_NAME);
