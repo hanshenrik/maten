@@ -81,19 +81,13 @@ const showNavigation = !!Astro.locals.user;
     </div>
     <script>
       // Loading feedback for view transition navigations: a slim progress bar
-      // right away, and after a short delay the old page fades into a
-      // skeleton, so slow navigations clearly say "loading" instead of
-      // looking stuck on the page you are leaving.
+      // at the top of the screen while the next page is being fetched.
       {
         const bar = document.getElementById("nav-progress");
         // Mirrors the keyboard-user flag on <html> so it survives swaps
         let keyboardUser =
           document.documentElement.dataset.keyboardUser !== undefined;
         let barTimer: number | undefined;
-        let skeletonTimer: number | undefined;
-
-        // Queried at call time: the router replaces <main> on every swap.
-        const page = () => document.querySelector("main");
 
         const hideBar = () => {
           if (!bar) return;
@@ -107,23 +101,7 @@ const showNavigation = !!Astro.locals.user;
           bar.style.width = "70%";
         };
 
-        const SKELETON_DELAY_MS = 600;
-        const showSkeleton = () => {
-          page()?.setAttribute("data-navigation-skeleton", "");
-        };
-        const hideSkeleton = () => {
-          page()?.removeAttribute("data-navigation-skeleton");
-        };
-
-        document.addEventListener("astro:before-preparation", (event) => {
-          showBar();
-          // Only skeleton once it's clear the fetch is not instant
-          window.clearTimeout(skeletonTimer);
-          skeletonTimer = window.setTimeout(showSkeleton, SKELETON_DELAY_MS);
-          // If the navigation is aborted (another one wins, the tab is
-          // hidden, the network dies), stop pulsing on the old page.
-          event.signal?.addEventListener("abort", hideSkeleton);
-        });
+        document.addEventListener("astro:before-preparation", showBar);
         document.addEventListener("astro:after-preparation", () => {
           if (bar) bar.style.width = "100%";
         });
@@ -132,7 +110,6 @@ const showNavigation = !!Astro.locals.user;
         // content unstyled for a moment (blue focus rings, wrong colors).
         // Replace the swap with one that first waits for those stylesheets.
         document.addEventListener("astro:before-swap", (event) => {
-          hideSkeleton();
           const doc = event.newDocument;
           const hrefs = doc
             ? [
@@ -177,14 +154,11 @@ const showNavigation = !!Astro.locals.user;
           if (event.key === "Tab") keyboardUser = true;
         });
         document.addEventListener("astro:after-swap", () => {
-          hideSkeleton();
           if (keyboardUser) {
             document.documentElement.dataset.keyboardUser = "";
           }
         });
         document.addEventListener("astro:page-load", () => {
-          hideSkeleton();
-          window.clearTimeout(skeletonTimer);
           if (bar) bar.style.width = "100%";
           barTimer = window.setTimeout(hideBar, 100);
         });
