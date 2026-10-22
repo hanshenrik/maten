@@ -172,7 +172,17 @@ const description = markdownToPlainText(recipe.description).slice(0, 160);
 </BaseLayout>
 
 <script>
-  document
-    .getElementById("back-btn")
-    ?.addEventListener("click", () => history.back());
+  // Go back when the visit came from inside the app; otherwise the history
+  // has nowhere useful to go (direct link, bookmark, PWA start) and the
+  // recipes list is the sensible destination.
+  document.getElementById("back-btn")?.addEventListener("click", () => {
+    const referrer = document.referrer
+      ? new URL(document.referrer, location.href)
+      : null;
+    if (referrer && referrer.origin === location.origin) {
+      history.back();
+    } else {
+      location.href = "/recipes";
+    }
+  });
 </script>
