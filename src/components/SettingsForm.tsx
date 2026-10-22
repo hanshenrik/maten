@@ -13,6 +13,7 @@ import {
   type StartPagePath,
 } from "../utils/startPage";
 import { applyTheme, readTheme, themeOptions } from "../utils/theme";
+import { readWakeLockPref, writeWakeLockPref } from "../utils/wakeLockPref";
 import { Input } from "./forms/Input";
 import { Alert } from "./ui/Alert";
 import { Button } from "./ui/Button";
@@ -20,6 +21,7 @@ import { Dialog } from "./ui/Dialog";
 import { Card } from "./ui/Card";
 import { IconButton } from "./ui/IconButton";
 import { SegmentedControl } from "./ui/SegmentedControl";
+import { Toggle } from "./forms/Toggle";
 
 interface PendingInvite {
   id: string;
@@ -57,11 +59,13 @@ export const SettingsForm = ({
 
   const [theme, setTheme] = useState<Theme>("auto");
   const [startPage, setStartPage] = useState<StartPagePath>(DEFAULT_START_PAGE);
+  const [wakeLock, setWakeLock] = useState(false);
 
   // Preferences live in the browser, so read them after mount
   useEffect(() => {
     setTheme(readTheme());
     setStartPage(resolveStartPage(readCookie(START_PAGE_COOKIE)));
+    setWakeLock(readWakeLockPref());
   }, []);
 
   const fetchInvites = useCallback(async () => {
@@ -139,6 +143,11 @@ export const SettingsForm = ({
   const handleStartPageChange = (next: StartPagePath) => {
     setStartPage(next);
     writeCookie(START_PAGE_COOKIE, next);
+  };
+
+  const handleWakeLockChange = (next: boolean) => {
+    setWakeLock(next);
+    writeWakeLockPref(next);
   };
 
   const handleAcceptInvite = (inviteId: string) =>
@@ -250,6 +259,31 @@ export const SettingsForm = ({
           value={theme}
           onChange={handleThemeChange}
         />
+      </Card>
+
+      <Card>
+        <h2 className="text-text mb-4 text-xl font-semibold">
+          Hold skjermen på når jeg leser oppskrifter
+        </h2>
+        <p className="text-text-muted mb-6 text-sm">
+          Skjermen slår seg ikke av mens du står på en oppskrift. Den våkner
+          igjen hver gang du åpner en oppskrift, og slår seg av som normalt når
+          du forlater siden.
+        </p>
+        <div className="flex items-center gap-3">
+          <Toggle
+            id="wake-lock-pref"
+            checked={wakeLock}
+            onChange={handleWakeLockChange}
+            label="Hold skjermen på når jeg leser oppskrifter"
+          />
+          <label
+            htmlFor="wake-lock-pref"
+            className="text-text-muted cursor-pointer text-sm font-medium"
+          >
+            {wakeLock ? "På" : "Av"}
+          </label>
+        </div>
       </Card>
 
       <Card>

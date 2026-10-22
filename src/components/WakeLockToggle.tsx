@@ -1,17 +1,25 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Toggle } from "./forms/Toggle";
+import { readWakeLockPref } from "../utils/wakeLockPref";
 
 /**
  * A "keep the screen awake while I cook" switch for the recipe page, backed
- * by the Screen Wake Lock API. The browser releases the lock whenever the
- * page is hidden, so it is requested again each time the tab becomes
- * visible while the switch is on.
+ * by the Screen Wake Lock API. Starts from the saved preference and only
+ * holds the lock while this page is open: the browser releases it whenever
+ * the page is hidden or closed, and it is requested again each time the tab
+ * becomes visible while the switch is on.
  */
 export const WakeLockToggle = () => {
   const supported = typeof navigator !== "undefined" && "wakeLock" in navigator;
   const [checked, setChecked] = useState(false);
   const [active, setActive] = useState(false);
   const lockRef = useRef<WakeLockSentinel | null>(null);
+
+  // The preference cookie is only readable in the browser, so start from it
+  // after mount rather than initialising state directly.
+  useEffect(() => {
+    if (readWakeLockPref()) setChecked(true);
+  }, []);
 
   useEffect(() => {
     if (!checked) {
