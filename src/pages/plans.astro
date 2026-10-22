@@ -12,7 +12,7 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { requireSession } from "../lib/session";
 import type { MealPlanWithMeals } from "../types";
 import { formatDateRange, formatLongDay, todayISO } from "../utils/date";
-import { app, ui } from "../utils/icons";
+import { ui } from "../utils/icons";
 import { groupMealsByDate, planTitle } from "../utils/mealPlans";
 
 const { supabase, householdId } = requireSession(Astro.locals);

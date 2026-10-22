@@ -6,7 +6,6 @@ import { ShoppingList } from "../components/ShoppingList";
 import { ActiveMembers } from "../components/ActiveMembers";
 import { requireSession, displayNameFor } from "../lib/session";
 import type { ShoppingItem } from "../types";
-import { app } from "../utils/icons";
 
 const { supabase, householdId, user } = requireSession(Astro.locals);
 
