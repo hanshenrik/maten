@@ -1,10 +1,11 @@
 ---
-import { Icon } from "astro-icon/components";
 import { IconButton } from "./ui/IconButton";
 import { ui } from "../utils/icons";
 
 /**
- * Page title with an optional icon, back link and description.
+ * Standard page heading: optional title, back link, description, dot menu
+ * and actions. Every page uses this so the back button, title and menu end
+ * up in the same place everywhere.
  *
  * There are two ways to put controls next to the title:
  * - `actions` for buttons: to the right on wide screens, stacked below the
@@ -13,13 +14,12 @@ import { ui } from "../utils/icons";
  *   enough to share the line even on a phone.
  */
 interface Props {
-  title: string;
-  icon?: string;
+  title?: string;
   description?: string;
   backHref?: string;
 }
 
-const { title, icon, description, backHref } = Astro.props;
+const { title, description, backHref } = Astro.props;
 const hasActions = Astro.slots.has("actions");
 const hasMenu = Astro.slots.has("menu");
 ---
@@ -44,10 +44,7 @@ const hasMenu = Astro.slots.has("menu");
           />
         )
       }
-      <h1 class="text-text flex items-center gap-3 text-3xl font-bold">
-        {icon && <Icon name={icon} class="h-8 w-8 shrink-0" />}
-        {title}
-      </h1>
+      {title && <h1 class="text-text text-3xl font-bold">{title}</h1>}
     </div>
     {description && <p class="text-text-muted mt-2">{description}</p>}
   </div>
