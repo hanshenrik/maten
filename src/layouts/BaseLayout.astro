@@ -162,33 +162,57 @@ const showNavigation = !!Astro.locals.user;
           if (bar) bar.style.width = "100%";
           barTimer = window.setTimeout(hideBar, 100);
         });
-
-        // The service worker served this page from its cache; a fresh copy
-        // has now been fetched. Swap it in, unless the user is in the middle
-        // of a navigation or typing (keeps focus and forms intact).
-        navigator.serviceWorker?.addEventListener("message", (event) => {
-          if (
-            event.data?.type !== "page-refreshed" ||
-            event.data.url !== window.location.href
-          ) {
-            return;
-          }
-          const active =
-            document.activeElement instanceof HTMLElement &&
-            (document.activeElement.closest("input, textarea") !== null ||
-              document.activeElement.isContentEditable);
-          if (!active) {
-            window.location.reload();
-          }
-        });
       }
     </script>
     <script>
-      if ("serviceWorker" in navigator && import.meta.env.PROD) {
-        window.addEventListener("load", () => {
-          navigator.serviceWorker.register("/sw.js").catch((error) => {
-            console.error("Service worker registration failed:", error);
-          });
+      // Generic "back" handling. Any element with `data-back` goes to the
+      // previous in-app page, tracked in a small sessionStorage history for
+      // this tab; `data-back-fallback` says where to go when there is none
+      // (fresh visit, direct link). Pages can then be reached from anywhere
+      // without wiring each back button to a specific route, and it can't
+      // dead-end the way history.back() does when the browser stack has no
+      // in-app entry to return to.
+      {
+        const KEY = "maten:history";
+        const read = (): string[] => {
+          try {
+            return JSON.parse(sessionStorage.getItem(KEY) ?? "[]");
+          } catch {
+            return [];
+          }
+        };
+        const here = () => location.href.split("#")[0];
+
+        const record = () => {
+          const stack = read();
+          const url = here();
+          if (stack.at(-1) === url) return;
+          // Returning to an earlier page: drop the pages in between, so
+          // "back" from there keeps pointing forwards, not in circles.
+          const seen = stack.lastIndexOf(url);
+          if (seen === -1) stack.push(url);
+          else stack.length = seen + 1;
+          sessionStorage.setItem(KEY, JSON.stringify(stack));
+        };
+
+        record();
+        document.addEventListener("astro:page-load", record);
+
+        document.addEventListener("click", (event) => {
+          const target = (event.target as HTMLElement).closest<HTMLElement>(
+            "[data-back]",
+          );
+          if (!target) return;
+          const current = here();
+          const stack = read();
+          let back: string | undefined;
+          for (let i = stack.length - 2; i >= 0; i--) {
+            if (stack[i] !== current) {
+              back = stack[i];
+              break;
+            }
+          }
+          location.href = back ?? target.dataset.backFallback ?? "/";
         });
       }
     </script>
