@@ -266,16 +266,16 @@ export const SettingsForm = ({
           Hold skjermen på når jeg leser oppskrifter
         </h2>
         <p className="text-text-muted mb-6 text-sm">
-          Skjermen slår seg ikke av mens du står på en oppskrift. Den våkner
-          igjen hver gang du åpner en oppskrift, og slår seg av som normalt når
-          du forlater siden.
+          Skjermen slår seg ikke av mens du leser en oppskrift. Den holdes våken
+          hver gang du åpner en oppskrift, og slår seg av som normalt når du
+          forlater siden.
         </p>
         <div className="flex items-center gap-3">
           <Toggle
             id="wake-lock-pref"
             checked={wakeLock}
             onChange={handleWakeLockChange}
-            label="Hold skjermen på når jeg leser oppskrifter"
+            label="Hold skjermen på"
           />
           <label
             htmlFor="wake-lock-pref"
