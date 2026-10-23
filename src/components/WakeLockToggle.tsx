@@ -61,7 +61,7 @@ export const WakeLockToggle = () => {
         id="wake-lock"
         checked={checked}
         onChange={onChange}
-        label="Hold skjermen våken"
+        label="Hold skjermen på"
       />
       <label
         htmlFor="wake-lock"
@@ -70,7 +70,7 @@ export const WakeLockToggle = () => {
           active ? "Skjermen holdes våken" : "Skjermen kan fortsatt slå seg av"
         }
       >
-        Hold skjermen våken
+        Hold skjermen på
       </label>
     </div>
   );
