@@ -70,7 +70,7 @@ export const WakeLockToggle = () => {
           active ? "Skjermen holdes våken" : "Skjermen kan fortsatt slå seg av"
         }
       >
-        Hold skjermen våken{active ? "" : " under tilberedning"}
+        Hold skjermen våken
       </label>
     </div>
   );

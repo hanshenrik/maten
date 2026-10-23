@@ -263,11 +263,11 @@ export const SettingsForm = ({
 
       <Card>
         <h2 className="text-text mb-4 text-xl font-semibold">
-          Hold skjermen på når jeg leser oppskrifter
+          Hold skjermen våken
         </h2>
         <p className="text-text-muted mb-6 text-sm">
-          Skjermen slår seg ikke av mens du står på en oppskrift. Den våkner
-          igjen hver gang du åpner en oppskrift, og slår seg av som normalt når
+          Skjermen slår seg ikke av mens du står på en oppskrift. Den holdes
+          våken hver gang du åpner en oppskrift, og slår seg av som normalt når
           du forlater siden.
         </p>
         <div className="flex items-center gap-3">
@@ -275,7 +275,7 @@ export const SettingsForm = ({
             id="wake-lock-pref"
             checked={wakeLock}
             onChange={handleWakeLockChange}
-            label="Hold skjermen på når jeg leser oppskrifter"
+            label="Hold skjermen våken"
           />
           <label
             htmlFor="wake-lock-pref"
