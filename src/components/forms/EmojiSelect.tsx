@@ -173,7 +173,7 @@ export const EmojiSelect: React.FC<EmojiSelectProps> = ({
                 setIsOpen(false);
                 setSearchTerm("");
               }}
-              className="text-text w-full bg-transparent text-sm outline-none"
+              className="text-text w-full bg-transparent text-base outline-none"
             />
             {searchTerm && (
               <IconButton
