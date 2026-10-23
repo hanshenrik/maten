@@ -281,7 +281,7 @@ export const SettingsForm = ({
             htmlFor="wake-lock-pref"
             className="text-text-muted cursor-pointer text-sm font-medium"
           >
-            {wakeLock ? "På" : "Av"}
+            Hold skjermen på
           </label>
         </div>
       </Card>
