@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import { getIconData } from "@iconify/utils";
@@ -23,6 +23,24 @@ const ICON_NAME = /"([a-z0-9-]+):([a-z0-9-]+)"/g;
 
 const require = createRequire(import.meta.url);
 
+/**
+ * The names in src/utils/icons.ts grouped by icon set, e.g.
+ * `{ hugeicons: ["plus-sign", …] }`. Also the `include` list for astro-icon,
+ * which otherwise bundles every icon in each installed set into the server.
+ */
+export function iconNamesBySet() {
+  const sets = {};
+  for (const [, prefix, name] of readFileSync(ICONS_FILE, "utf8").matchAll(
+    ICON_NAME,
+  )) {
+    if (!sets[prefix]) {
+      sets[prefix] = [];
+    }
+    sets[prefix].push(name);
+  }
+  return sets;
+}
+
 export default function appIcons() {
   return {
     name: "app-icons",
@@ -31,28 +49,23 @@ export default function appIcons() {
       if (id === VIRTUAL_ID) return RESOLVED_ID;
     },
 
-    async load(id) {
+    load(id) {
       if (id !== RESOLVED_ID) return;
       this.addWatchFile(ICONS_FILE);
 
-      const source = await readFile(ICONS_FILE, "utf8");
-      const collections = new Map();
       const icons = {};
 
-      for (const [, prefix, name] of source.matchAll(ICON_NAME)) {
-        if (!collections.has(prefix)) {
-          collections.set(
-            prefix,
-            require(`@iconify-json/${prefix}/icons.json`),
-          );
+      for (const [prefix, names] of Object.entries(iconNamesBySet())) {
+        const collection = require(`@iconify-json/${prefix}/icons.json`);
+        for (const name of names) {
+          const data = getIconData(collection, name);
+          if (!data) {
+            throw new Error(
+              `Unknown icon "${prefix}:${name}" in src/utils/icons.ts`,
+            );
+          }
+          icons[`${prefix}:${name}`] = data;
         }
-        const data = getIconData(collections.get(prefix), name);
-        if (!data) {
-          throw new Error(
-            `Unknown icon "${prefix}:${name}" in src/utils/icons.ts`,
-          );
-        }
-        icons[`${prefix}:${name}`] = data;
       }
 
       return `export default ${JSON.stringify(icons)};`;
