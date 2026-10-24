@@ -19,6 +19,8 @@ export interface DotMenuItem {
   href?: string;
   variant?: "default" | "danger";
   disabled?: boolean;
+  /** Hover tooltip, e.g. what the action also does */
+  title?: string;
 }
 
 /** Insert between items to draw a dividing line */
@@ -66,13 +68,18 @@ export const DotMenu: React.FC<DotMenuProps> = ({
           // its focus props and ref on it — don't wrap it in a component.
           <MenuItem key={item.label} disabled={item.disabled}>
             {item.href ? (
-              <a href={item.href} className={rowClassName(item)}>
+              <a
+                href={item.href}
+                title={item.title}
+                className={rowClassName(item)}
+              >
                 <RowContent item={item} />
               </a>
             ) : (
               <button
                 type="button"
                 onClick={item.onClick}
+                title={item.title}
                 className={rowClassName(item)}
               >
                 <RowContent item={item} />

@@ -442,7 +442,7 @@ export const ShoppingList = ({
                   onClick: () => startEditing(item),
                 },
                 {
-                  label: "Fjern fra lista",
+                  label: "Fjern",
                   icon: ui.x,
                   onClick: () => handleDelete(item),
                 },
@@ -451,6 +451,7 @@ export const ShoppingList = ({
                   label: "Slett fra logg",
                   icon: ui.delete,
                   variant: "danger",
+                  title: "Fjernes også fra forslag",
                   onClick: () => setPendingLogDelete(item),
                 },
               ]}
