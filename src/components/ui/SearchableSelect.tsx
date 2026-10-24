@@ -26,6 +26,8 @@ export interface SearchableSelectProps<T> {
   emptyLabel?: string;
   placeholder?: string;
   noResultsLabel?: string;
+  /** Offer the search query as a new value when it matches nothing */
+  creatable?: boolean;
   ariaLabel?: string;
   /** The id of the input, so a label can point at it */
   id?: string;
@@ -56,6 +58,7 @@ export function SearchableSelect<T>({
   emptyLabel,
   placeholder = "Søk …",
   noResultsLabel = "Ingen treff",
+  creatable,
   ariaLabel,
   id,
   className,
@@ -68,6 +71,13 @@ export function SearchableSelect<T>({
     ? items.filter((item) => matches(getLabel(item), query))
     : items;
   const leading = selected && renderLeading ? renderLeading(selected) : null;
+  const newOption = query.trim();
+  const isNewOption =
+    !!creatable &&
+    newOption !== "" &&
+    !items.some(
+      (item) => getLabel(item).toLowerCase() === newOption.toLowerCase(),
+    );
 
   return (
     <Combobox
@@ -130,7 +140,15 @@ export function SearchableSelect<T>({
               {renderItem ? renderItem(item) : getLabel(item)}
             </ComboboxOption>
           ))}
-          {filtered.length === 0 && (
+          {isNewOption && (
+            <ComboboxOption
+              value={newOption}
+              className="data-focus:bg-primary/5 data-selected:text-primary cursor-pointer px-3 py-2 outline-none"
+            >
+              Bruk «{newOption}»
+            </ComboboxOption>
+          )}
+          {filtered.length === 0 && !isNewOption && (
             <div className="text-text-muted px-3 py-2 text-sm">
               {noResultsLabel}
             </div>

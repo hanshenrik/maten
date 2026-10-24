@@ -10,8 +10,9 @@ import {
   planShoppingListAdditions,
 } from "../utils/shoppingList";
 import { CheckboxButton } from "./forms/CheckboxButton";
-import { Field, inputClassName } from "./forms/Field";
+import { Field } from "./forms/Field";
 import { Input } from "./forms/Input";
+import { ShopSelect } from "./forms/ShopSelect";
 import { UnitSelect } from "./forms/UnitSelect";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
@@ -19,6 +20,7 @@ import { Details } from "./ui/Details";
 import { Dialog } from "./ui/Dialog";
 import { Hr } from "./ui/Hr";
 import { IconButton } from "./ui/IconButton";
+import { SearchableSelect } from "./ui/SearchableSelect";
 
 interface ShoppingListProps {
   initialItems: ShoppingItem[];
@@ -297,15 +299,9 @@ export const ShoppingList = ({
                         setEditing({ ...editing, name: e.target.value })
                       }
                     />
-                    <Input
-                      label="Butikk"
+                    <ShopSelect
                       value={editing.shop}
-                      autoComplete="off"
-                      enterKeyHint="done"
-                      placeholder="f.eks. Rema 1000"
-                      onChange={(e) =>
-                        setEditing({ ...editing, shop: e.target.value })
-                      }
+                      onChange={(shop) => setEditing({ ...editing, shop })}
                       className="sm:w-44"
                     />
                   </div>
@@ -422,13 +418,9 @@ export const ShoppingList = ({
                   onChange={(e) => setDraft({ ...draft, name: e.target.value })}
                   placeholder="f.eks. Epler"
                 />
-                <Input
-                  label="Butikk"
+                <ShopSelect
                   value={draft.shop}
-                  autoComplete="off"
-                  enterKeyHint="done"
-                  placeholder="f.eks. Rema 1000"
-                  onChange={(e) => setDraft({ ...draft, shop: e.target.value })}
+                  onChange={(shop) => setDraft({ ...draft, shop })}
                   className="sm:w-44"
                 />
               </div>
@@ -484,18 +476,16 @@ export const ShoppingList = ({
       <Hr />
 
       <Field label="Sorter" htmlFor="shopping-sort" className="w-fit">
-        <select
-          id="shopping-sort"
+        <SearchableSelect
+          items={SORT_OPTIONS}
           value={sortMode}
-          onChange={(e) => setSortMode(e.target.value as SortMode)}
-          className={inputClassName}
-        >
-          {SORT_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+          onChange={(value) => setSortMode(value as SortMode)}
+          getKey={(option) => option.value}
+          getLabel={(option) => option.label}
+          id="shopping-sort"
+          placeholder="Sorter"
+          className="w-44"
+        />
       </Field>
 
       <div className="space-y-4">
