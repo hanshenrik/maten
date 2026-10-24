@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@astrojs/react": "^7.1.1",
-    "@astrojs/vercel": "^11.0.3",
+    "@astrojs/vercel": "^11.0.16",
     "@headlessui/react": "^2.2.10",
     "@iconify-json/hugeicons": "^1.2.34",
     "@iconify-json/streamline-ultimate-color": "^1.2.2",
