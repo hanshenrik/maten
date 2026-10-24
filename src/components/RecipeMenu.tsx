@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { navigate } from "astro:transitions/client";
 import { DotMenu, dotMenuSeparator, type DotMenuEntry } from "./ui/DotMenu";
 import { Dialog } from "./ui/Dialog";
 import { supabase } from "../lib/supabase";
@@ -43,7 +44,7 @@ export const RecipeMenu = ({ recipeId, isOwner }: RecipeMenuProps) => {
       });
       if (!res.ok) throw new Error(GENERIC_ERROR);
       const { id } = await res.json();
-      window.location.href = `/recipes/${id}`;
+      await navigate(`/recipes/${id}`);
     } catch {
       setAlertMessage(GENERIC_ERROR);
       setCloning(false);
@@ -67,7 +68,7 @@ export const RecipeMenu = ({ recipeId, isOwner }: RecipeMenuProps) => {
         .eq("id", recipeId);
       if (error) throw error;
 
-      window.location.href = "/recipes";
+      await navigate("/recipes");
     } catch (err) {
       console.error("Feil ved sletting av oppskrift:", err);
       setAlertMessage(

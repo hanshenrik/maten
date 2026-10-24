@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { navigate } from "astro:transitions/client";
 import { supabase } from "../lib/supabase";
 import { errorMessage } from "../utils/errors";
 import { ui } from "../utils/icons";
@@ -35,8 +36,8 @@ export const PlanMenu = ({
       if (error) throw error;
 
       // The pages are rendered on the server, so ask again without the plan
-      if (afterDelete) window.location.href = afterDelete;
-      else window.location.reload();
+      if (afterDelete) await navigate(afterDelete);
+      else await navigate(window.location.href, { history: "replace" });
     } catch (err) {
       console.error("Feil ved sletting av meny:", err);
       setAlertMessage(`Feil ved sletting: ${errorMessage(err)}`);

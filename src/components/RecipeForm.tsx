@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { navigate } from "astro:transitions/client";
 import { Icon } from "./ui/Icon";
 import { Reorder, useDragControls } from "motion/react";
 import { supabase } from "../lib/supabase";
@@ -320,7 +321,7 @@ export const RecipeForm = ({
         if (error) throw error;
       }
 
-      window.location.href = isEditing ? `/recipes/${recipeId}` : "/recipes";
+      await navigate(isEditing ? `/recipes/${recipeId}` : "/recipes");
     } catch (err) {
       console.error("Feil ved lagring av oppskrift:", err);
       setAlertMessage(

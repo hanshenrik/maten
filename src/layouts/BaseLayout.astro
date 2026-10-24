@@ -61,8 +61,6 @@ const showNavigation = !!Astro.locals.user;
       document.addEventListener("keydown", markKeyboardUser);
     </script>
 
-    <Analytics />
-    <SpeedInsights />
     <ClientRouter />
   </head>
   <body
@@ -84,9 +82,6 @@ const showNavigation = !!Astro.locals.user;
       // at the top of the screen while the next page is being fetched.
       {
         const bar = document.getElementById("nav-progress");
-        // Mirrors the keyboard-user flag on <html> so it survives swaps
-        let keyboardUser =
-          document.documentElement.dataset.keyboardUser !== undefined;
         let barTimer: number | undefined;
 
         const hideBar = () => {
@@ -105,58 +100,60 @@ const showNavigation = !!Astro.locals.user;
         document.addEventListener("astro:after-preparation", () => {
           if (bar) bar.style.width = "100%";
         });
-        // The router copies the next page's stylesheets into the document as
-        // it swaps, but a link that is still downloading leaves the new
-        // content unstyled for a moment (blue focus rings, wrong colors).
-        // Replace the swap with one that first waits for those stylesheets.
-        document.addEventListener("astro:before-swap", (event) => {
-          const doc = event.newDocument;
-          const hrefs = doc
-            ? [
-                ...doc.querySelectorAll<HTMLLinkElement>(
+        // After a deploy the next page links a stylesheet this one lacks. The
+        // router inserts it during the swap, and an inserted stylesheet only
+        // applies once loaded, so the new page could paint unstyled. Load it
+        // before the swap, switched off, and switch it on in the swap itself.
+        document.addEventListener("astro:before-preparation", (event) => {
+          const load = event.loader;
+          event.loader = async () => {
+            await load();
+            const present = new Set(
+              [
+                ...document.querySelectorAll<HTMLLinkElement>(
                   'link[rel="stylesheet"]',
                 ),
-              ]
-                .map((link) => link.getAttribute("href"))
-                .filter(
-                  (href): href is string =>
-                    !!href &&
-                    !document.querySelector(
-                      `link[rel="stylesheet"][href="${href}"]`,
-                    ),
-                )
-            : [];
-          if (hrefs.length === 0) return;
-
-          const doSwap = event.swap.bind(event);
-          event.swap = () => {};
-          void Promise.allSettled(
-            hrefs.map(
-              (href) =>
-                new Promise<void>((resolve) => {
-                  const el = document.createElement("link");
-                  el.rel = "stylesheet";
-                  el.href = href;
-                  el.addEventListener("load", () => resolve(), { once: true });
-                  el.addEventListener("error", () => resolve(), { once: true });
-                  document.head.append(el);
-                }),
-            ),
-          ).then(() => {
-            // A newer navigation may have started while we waited; only
-            // this one's swap should still run.
-            if (!event.signal.aborted) doSwap();
-          });
+              ].map((link) => link.getAttribute("href")),
+            );
+            const missing = [
+              ...event.newDocument.querySelectorAll<HTMLLinkElement>(
+                'head link[rel="stylesheet"]',
+              ),
+            ]
+              .map((link) => link.getAttribute("href"))
+              .filter((href): href is string => !!href && !present.has(href));
+            await Promise.all(
+              missing.map(
+                (href) =>
+                  new Promise<void>((resolve) => {
+                    const link = document.createElement("link");
+                    link.rel = "stylesheet";
+                    link.href = href;
+                    link.media = "not all";
+                    link.dataset.pendingStyle = "";
+                    link.onload = link.onerror = () => resolve();
+                    document.head.append(link);
+                  }),
+              ),
+            );
+          };
         });
-        // The swap copies the incoming page's root attributes, which drops
-        // the keyboard-user flag the head script set; restore it.
-        document.addEventListener("keydown", (event) => {
-          if (event.key === "Tab") keyboardUser = true;
-        });
-        document.addEventListener("astro:after-swap", () => {
-          if (keyboardUser) {
-            document.documentElement.dataset.keyboardUser = "";
+        // The swap also replaces <html>'s attributes with the incoming page's,
+        // which lack the theme and keyboard-user flag the head scripts set
+        // (those don't run again). Carry both over, or a chosen theme falls
+        // back to the system one on every navigation.
+        document.addEventListener("astro:before-swap", (event) => {
+          for (const link of document.querySelectorAll<HTMLLinkElement>(
+            "link[data-pending-style]",
+          )) {
+            link.removeAttribute("media");
+            delete link.dataset.pendingStyle;
           }
+
+          const current = document.documentElement.dataset;
+          const next = event.newDocument.documentElement.dataset;
+          if (current.theme) next.theme = current.theme;
+          if (current.keyboardUser !== undefined) next.keyboardUser = "";
         });
         document.addEventListener("astro:page-load", () => {
           if (bar) bar.style.width = "100%";
@@ -165,6 +162,8 @@ const showNavigation = !!Astro.locals.user;
       }
     </script>
     <script>
+      import { navigate } from "astro:transitions/client";
+
       // Generic "back" handling. Any element with `data-back` goes to the
       // previous in-app page, tracked in a small sessionStorage history for
       // this tab; `data-back-fallback` says where to go when there is none
@@ -212,9 +211,16 @@ const showNavigation = !!Astro.locals.user;
               break;
             }
           }
-          location.href = back ?? target.dataset.backFallback ?? "/";
+          void navigate(back ?? target.dataset.backFallback ?? "/");
         });
       }
     </script>
+    <!--
+      Not in <head>: they render custom elements, which make the parser close
+      <head> early and move the stylesheet into <body>. The router replaces
+      <body> on every navigation, so each page painted before its CSS loaded.
+    -->
+    <Analytics />
+    <SpeedInsights />
   </body>
 </html>
