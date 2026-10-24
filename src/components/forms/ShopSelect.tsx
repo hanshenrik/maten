@@ -46,7 +46,6 @@ export const ShopSelect = ({
         getLabel={(shop) => shop}
         id={selectId}
         ariaLabel={label ? undefined : "Butikk"}
-        placeholder="Butikk"
         emptyLabel="Uten butikk"
         creatable
         className={className}

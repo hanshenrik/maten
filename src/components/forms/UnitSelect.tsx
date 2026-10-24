@@ -35,7 +35,6 @@ export const UnitSelect = ({
         getLabel={(unit) => unit}
         id={selectId}
         ariaLabel={label ? undefined : "Enhet"}
-        placeholder="Enhet"
         emptyLabel="Ingen"
         className={className}
         inputClassName={inputClassName}
