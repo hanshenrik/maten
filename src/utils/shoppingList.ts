@@ -1,6 +1,6 @@
-import { combineEmojiAndName, splitEmojiFromName } from "./emoji";
-
-/** The minimum an item needs to take part in merging. */
+/**
+ * The minimum an item needs to take part in merging.
+ */
 export interface MergeableItem {
   name: string;
   amount: number | null;
@@ -12,17 +12,22 @@ export interface ExistingItem extends MergeableItem {
   id: string;
 }
 
+// Names in the database can still start with an emoji prefix from before the
+// emoji picker was removed, so that prefix is ignored when matching.
+const bareName = (name: string): string =>
+  (name || "")
+    .replace(/^(\p{Emoji_Presentation}|\p{Emoji}\uFE0F)\s*/u, "")
+    .trim();
+
 /**
- * The key two items have to share to be merged: the name without its emoji
- * (case- and whitespace-insensitive) plus the unit.
+ * The key two items have to share to be merged: the name (case- and
+ * whitespace-insensitive) plus the unit.
  *
  * Units are never converted, so "500 g" and "0.5 kg" stay apart — only an
  * exact unit match merges.
  */
-export const shoppingItemKey = (name: string, unit?: string | null): string => {
-  const { name: bareName } = splitEmojiFromName(name || "");
-  return `${bareName.toLowerCase()}|${(unit || "").trim().toLowerCase()}`;
-};
+export const shoppingItemKey = (name: string, unit?: string | null): string =>
+  `${bareName(name).toLowerCase()}|${(unit || "").trim().toLowerCase()}`;
 
 /**
  * The "2 kg" line under an item's name. Missing pieces are left out instead of
@@ -53,18 +58,6 @@ const addAmounts = (
 };
 
 /**
- * Keeps the first name we saw, but adopts an emoji from a later duplicate if
- * the first one didn't have one — so "Agurk" + "🥒 Agurk" becomes "🥒 Agurk".
- */
-const preferNameWithEmoji = (kept: string, incoming: string): string => {
-  const keptParts = splitEmojiFromName(kept);
-  if (keptParts.emoji) return kept;
-
-  const { emoji } = splitEmojiFromName(incoming);
-  return emoji ? combineEmojiAndName(emoji, keptParts.name) : kept;
-};
-
-/**
  * Collapses duplicates in a list of items, summing their amounts.
  * Order follows the first occurrence of each item.
  */
@@ -85,7 +78,6 @@ export const mergeShoppingItems = <T extends MergeableItem>(
       const existing = merged[index];
       merged[index] = {
         ...existing,
-        name: preferNameWithEmoji(existing.name, item.name),
         amount: addAmounts(existing.amount, item.amount),
       } as T;
     }
@@ -128,7 +120,6 @@ export const planShoppingListAdditions = (
     const target = byKey.get(key);
 
     if (target) {
-      target.name = preferNameWithEmoji(target.name, item.name);
       target.amount = addAmounts(target.amount, item.amount);
       target.touched = true;
     } else {

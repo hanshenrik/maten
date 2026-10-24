@@ -5,10 +5,8 @@ import { Reorder, useDragControls } from "motion/react";
 import { supabase } from "../lib/supabase";
 import type { RecipeWithIngredients } from "../types";
 import { cn } from "../utils/cn";
-import { combineEmojiAndName, splitEmojiFromName } from "../utils/emoji";
 import { errorMessage } from "../utils/errors";
 import { ui } from "../utils/icons";
-import { EmojiSelect } from "./forms/EmojiSelect";
 import { inputClassName } from "./forms/Field";
 import { FileInput } from "./forms/FileInput";
 import { Input } from "./forms/Input";
@@ -22,10 +20,9 @@ import { IconButton } from "./ui/IconButton";
 import { Dialog } from "./ui/Dialog";
 import { BasicTag, OptionalTag } from "./ui/Tag";
 
-/** An ingredient as it's being edited: strings, and an emoji of its own */
+/** An ingredient as it's being edited */
 interface IngredientDraft {
   key: string;
-  emoji: string;
   name: string;
   amount: string;
   unit: string;
@@ -60,10 +57,6 @@ const IngredientRow = ({
       </div>
       <div className="flex-1 space-y-2">
         <div className="flex gap-2">
-          <EmojiSelect
-            value={ingredient.emoji}
-            onChange={(emoji) => onChange({ emoji })}
-          />
           <input
             type="text"
             required
@@ -137,11 +130,9 @@ interface RecipeFormProps {
 const toDraft = (
   ingredient: RecipeWithIngredients["ingredients"][number],
 ): IngredientDraft => {
-  const { emoji, name } = splitEmojiFromName(ingredient.name);
   return {
     key: ingredient.id,
-    emoji,
-    name,
+    name: ingredient.name,
     amount: ingredient.amount?.toString() ?? "",
     unit: ingredient.unit ?? "",
     is_basic: !!ingredient.is_basic,
@@ -190,7 +181,6 @@ export const RecipeForm = ({
   const nextKey = useRef(1);
   const newDraft = (): IngredientDraft => ({
     key: `new-${nextKey.current++}`,
-    emoji: "",
     name: "",
     amount: "",
     unit: "",
@@ -204,7 +194,6 @@ export const RecipeForm = ({
       : [
           {
             key: "new-0",
-            emoji: "",
             name: "",
             amount: "",
             unit: "",
@@ -309,7 +298,7 @@ export const RecipeForm = ({
         .filter((ing) => ing.name.trim())
         .map((ing) => ({
           recipe_id: recipeId,
-          name: combineEmojiAndName(ing.emoji, ing.name),
+          name: ing.name.trim(),
           amount: ing.amount ? parseFloat(ing.amount) : null,
           unit: ing.unit,
           is_basic: ing.is_basic,

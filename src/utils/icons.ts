@@ -6,7 +6,6 @@
 export const ui = {
   add: "hugeicons:plus-sign",
   checked: "hugeicons:tick-01",
-  emojis: "hugeicons:smile",
   cancel: "hugeicons:cancel-circle",
   next: "hugeicons:arrow-right-01",
   back: "hugeicons:arrow-left-01",
