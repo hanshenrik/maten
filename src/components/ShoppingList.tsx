@@ -408,6 +408,9 @@ export const ShoppingList = ({
                   </div>
                 </div>
                 <div className="mt-4 flex w-full gap-2">
+                  <Button onClick={() => setEditing(null)} variant="secondary">
+                    Avbryt
+                  </Button>
                   <Button
                     type="submit"
                     disabled={saving}
@@ -415,9 +418,6 @@ export const ShoppingList = ({
                   >
                     <Icon icon={ui.checked} className="h-5 w-5" />
                     {saving ? "Lagrer..." : "Lagre"}
-                  </Button>
-                  <Button onClick={() => setEditing(null)} variant="secondary">
-                    Avbryt
                   </Button>
                 </div>
               </form>
@@ -524,6 +524,9 @@ export const ShoppingList = ({
               </div>
             </div>
             <div className="mt-4 flex w-full gap-2">
+              <Button onClick={() => setIsAdding(false)} variant="secondary">
+                Avbryt
+              </Button>
               <Button
                 type="submit"
                 disabled={saving}
@@ -531,9 +534,6 @@ export const ShoppingList = ({
               >
                 <Icon icon={ui.add} className="h-5 w-5" />
                 {saving ? "Legger til..." : "Legg til"}
-              </Button>
-              <Button onClick={() => setIsAdding(false)} variant="secondary">
-                Avbryt
               </Button>
             </div>
           </form>

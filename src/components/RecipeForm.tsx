@@ -409,7 +409,7 @@ export const RecipeForm = ({
       </Card>
 
       <Card className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
           <div>
             <h3 className="text-text font-medium">
               Del oppskriften i biblioteket
@@ -437,14 +437,6 @@ export const RecipeForm = ({
 
       <div className="flex gap-4">
         <Button
-          type="submit"
-          disabled={saving || uploadingImage}
-          size="lg"
-          className="flex-1"
-        >
-          {saving ? "Lagrer..." : "Lagre"}
-        </Button>
-        <Button
           as="a"
           href={isEditing ? `/recipes/${initialData.id}` : "/recipes"}
           variant="secondary"
@@ -452,6 +444,14 @@ export const RecipeForm = ({
           className="px-8"
         >
           Avbryt
+        </Button>
+        <Button
+          type="submit"
+          disabled={saving || uploadingImage}
+          size="lg"
+          className="flex-1"
+        >
+          {saving ? "Lagrer..." : "Lagre"}
         </Button>
       </div>
 
