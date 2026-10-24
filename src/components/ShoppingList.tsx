@@ -1,10 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "./ui/Icon";
 import { supabase } from "../lib/supabase";
-import type { ShoppingItem } from "../types";
+import type { ShoppingItem, ShoppingItemLog } from "../types";
 import { errorMessage } from "../utils/errors";
 import { ui } from "../utils/icons";
-import { subscribeShoppingChanges } from "../utils/realtime";
+import {
+  subscribeShoppingChanges,
+  subscribeShoppingLogChanges,
+} from "../utils/realtime";
 import {
   formatItemAmount,
   planShoppingListAdditions,
@@ -19,17 +22,22 @@ import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
 import { Details } from "./ui/Details";
 import { Dialog } from "./ui/Dialog";
+import { DotMenu, dotMenuSeparator } from "./ui/DotMenu";
 import { Hr } from "./ui/Hr";
-import { IconButton } from "./ui/IconButton";
 import { SearchableSelect } from "./ui/SearchableSelect";
 
 interface ShoppingListProps {
   initialItems: ShoppingItem[];
+  /** Every name the household has ever had on the list */
+  initialLog: ShoppingItemLog[];
   userId: string;
   householdId: string;
 }
 
 const emptyDraft = { name: "", amount: "", unit: "", shop: "" };
+
+/** How the log matches names: case- and padding-insensitive. */
+const nameKey = (name: string) => (name || "").trim().toLowerCase();
 
 /** How the list can be ordered. */
 type SortMode = "alpha" | "shop" | "added";
@@ -47,10 +55,16 @@ const itemSubLabel = (item: ShoppingItem) =>
 
 export const ShoppingList = ({
   initialItems,
+  initialLog,
   userId,
   householdId,
 }: ShoppingListProps) => {
   const [items, setItems] = useState(initialItems);
+  // Only the id and name are needed to suggest; rows from other clients
+  // arrive without the rest anyway.
+  const [log, setLog] = useState(() =>
+    initialLog.map(({ id, name }) => ({ id, name })),
+  );
   const [saving, setSaving] = useState(false);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
@@ -63,13 +77,26 @@ export const ShoppingList = ({
     shop: string;
   } | null>(null);
   const [sortMode, setSortMode] = useState<SortMode>("added");
+  // The item waiting for "Slett fra logg" to be confirmed in the dialog
+  const [pendingLogDelete, setPendingLogDelete] = useState<ShoppingItem | null>(
+    null,
+  );
   const nameInputRef = useRef<HTMLInputElement>(null);
 
-  // Anything already on the list, in case you're buying it again
-  const suggestions = useMemo(
-    () => Array.from(new Set(items.map((i) => i.name))).sort(),
-    [items],
-  );
+  // Names to offer while typing: everything ever logged, plus whatever is on
+  // the list now — an item added before the log existed, or while its row is
+  // being written, should still suggest itself.
+  const suggestions = useMemo(() => {
+    const byKey = new Map<string, string>();
+    for (const name of [
+      ...log.map((row) => row.name),
+      ...items.map((i) => i.name),
+    ]) {
+      const key = nameKey(name);
+      if (key && !byKey.has(key)) byKey.set(key, name);
+    }
+    return Array.from(byKey.values()).sort((a, b) => a.localeCompare(b, "nb"));
+  }, [log, items]);
 
   const activeItems = items.filter((i) => !i.completed);
   const completedItems = items.filter((i) => i.completed);
@@ -82,6 +109,9 @@ export const ShoppingList = ({
       setItems((current) => {
         if (change.type === "DELETE") {
           setEditing((current) =>
+            current && current.id === change.id ? null : current,
+          );
+          setPendingLogDelete((current) =>
             current && current.id === change.id ? null : current,
           );
           return current.filter((item) => item.id !== change.id);
@@ -101,6 +131,23 @@ export const ShoppingList = ({
         // An update for a row we don't have: ignore it rather than resurrect a
         // phantom item.
         return current;
+      });
+    });
+  }, [householdId]);
+
+  // The log is written by a database trigger, so it grows from every client.
+  // Reconcile the same way the list does: by id, except inserts are keyed by
+  // name, which is what the log is unique on per household.
+  useEffect(() => {
+    return subscribeShoppingLogChanges(householdId, (change) => {
+      setLog((current) => {
+        if (change.type === "DELETE")
+          return current.filter((row) => row.id !== change.id);
+        const row = change.row;
+        const kept = current.filter(
+          (existing) => nameKey(existing.name) !== nameKey(row.name),
+        );
+        return [...kept, row];
       });
     });
   }, [householdId]);
@@ -160,6 +207,15 @@ export const ShoppingList = ({
         if (error) throw error;
 
         setItems((current) => [data as ShoppingItem, ...current]);
+
+        // The trigger on the server logs the name; this keeps the suggestion
+        // alive before that row arrives over realtime, which then replaces
+        // this one by name.
+        setLog((current) => {
+          if (current.some((row) => nameKey(row.name) === nameKey(data.name)))
+            return current;
+          return [...current, { id: data.id, name: data.name }];
+        });
       }
 
       setDraft(emptyDraft);
@@ -244,6 +300,40 @@ export const ShoppingList = ({
       setItems((current) => current.filter((i) => i.id !== item.id));
     } catch (err) {
       setAlertMessage(`Fikk ikke fjernet varen: ${errorMessage(err)}`);
+    }
+  };
+
+  /**
+   * "Slett fra logg": the name stops suggesting itself ever again, and the
+   * item goes with it — unlike a plain delete, which leaves the name logged
+   * for next time. If the household buys the name again later, it is logged
+   * again by the trigger.
+   */
+  const removeFromLog = async (item: ShoppingItem) => {
+    try {
+      // `%` and `_` are wildcards in SQL LIKE patterns, so they are escaped
+      const pattern = item.name.trim().replace(/[\\%_]/g, "\\$&");
+      const { error: logError } = await supabase
+        .from("shopping_item_log")
+        .delete()
+        .eq("household_id", householdId)
+        .ilike("name", pattern);
+      if (logError) throw logError;
+
+      const { error } = await supabase
+        .from("shopping_items")
+        .delete()
+        .eq("id", item.id);
+      if (error) throw error;
+
+      setItems((current) => current.filter((i) => i.id !== item.id));
+      setLog((current) =>
+        current.filter((row) => nameKey(row.name) !== nameKey(item.name)),
+      );
+    } catch (err) {
+      setAlertMessage(
+        `Fikk ikke slettet varen fra loggen: ${errorMessage(err)}`,
+      );
     }
   };
 
@@ -342,22 +432,29 @@ export const ShoppingList = ({
               onChange={() => handleToggle(item)}
               label={item.name}
               subLabel={itemSubLabel(item)}
-              className="pr-28"
+              className="pr-12"
             />
-            <IconButton
-              onClick={() => startEditing(item)}
-              variant="secondary"
-              icon={ui.edit}
-              label={`Rediger ${item.name}`}
-              title="Rediger vare"
-              className="absolute top-1/2 right-16 -translate-y-1/2"
-            />
-            <IconButton
-              onClick={() => handleDelete(item)}
-              variant="danger"
-              icon={ui.x}
-              label={`Fjern ${item.name}`}
-              title="Fjern vare"
+            <DotMenu
+              items={[
+                {
+                  label: "Rediger",
+                  icon: ui.edit,
+                  onClick: () => startEditing(item),
+                },
+                {
+                  label: "Fjern fra lista",
+                  icon: ui.x,
+                  onClick: () => handleDelete(item),
+                },
+                dotMenuSeparator,
+                {
+                  label: "Slett fra logg",
+                  icon: ui.delete,
+                  variant: "danger",
+                  onClick: () => setPendingLogDelete(item),
+                },
+              ]}
+              label={`Flere valg for ${item.name}`}
               className="absolute top-1/2 right-4 -translate-y-1/2"
             />
           </li>
@@ -495,6 +592,22 @@ export const ShoppingList = ({
           </div>
         )}
       </div>
+
+      <Dialog
+        open={!!pendingLogDelete}
+        onClose={() => setPendingLogDelete(null)}
+        onConfirm={() => {
+          const item = pendingLogDelete;
+          setPendingLogDelete(null);
+          if (item) void removeFromLog(item);
+        }}
+        confirmLabel="Slett"
+        confirmVariant="danger"
+      >
+        {pendingLogDelete
+          ? `«${pendingLogDelete.name}» fjernes fra handlelista, og navnet slettes fra loggen for godt — det slutter å dukke opp som forslag.`
+          : null}
+      </Dialog>
 
       <Dialog alert open={!!alertMessage} onClose={() => setAlertMessage(null)}>
         {alertMessage}

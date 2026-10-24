@@ -5,7 +5,7 @@ import PageHeader from "../components/PageHeader.astro";
 import { ShoppingList } from "../components/ShoppingList";
 import { ActiveMembers } from "../components/ActiveMembers";
 import { requireSession, displayNameFor } from "../lib/session";
-import type { ShoppingItem } from "../types";
+import type { ShoppingItem, ShoppingItemLog } from "../types";
 
 const { supabase, householdId, user } = requireSession(Astro.locals);
 
@@ -19,6 +19,19 @@ const { data, error } = await supabase
 if (error) console.error("Error fetching shopping items:", error);
 
 const items = (data ?? []) as ShoppingItem[];
+
+// Every name the household has ever had on the list, for the name
+// suggestions. A missing table (migration not run yet) degrades to the
+// old behaviour of suggesting only what's on the list.
+const { data: logData, error: logError } = await supabase
+  .from("shopping_item_log")
+  .select("id, name")
+  .eq("household_id", householdId);
+
+if (logError && logError.code !== "42P01")
+  console.error("Error fetching shopping item log:", logError);
+
+const log = (logData ?? []) as ShoppingItemLog[];
 
 const name = displayNameFor(user);
 const avatarUrl =
@@ -40,6 +53,7 @@ const avatarUrl =
     <ShoppingList
       client:load
       initialItems={items}
+      initialLog={log}
       userId={user.id}
       householdId={householdId}
     />

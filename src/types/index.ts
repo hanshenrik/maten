@@ -85,6 +85,17 @@ export interface ShoppingItem {
   created_at: string;
 }
 
+/**
+ * One row per name a household has ever had on their list, kept as a log so
+ * the name field can suggest names that are no longer on the list.
+ */
+export interface ShoppingItemLog {
+  id: string;
+  household_id: string;
+  name: string;
+  created_at: string;
+}
+
 export interface HouseholdMember {
   id: string;
   household_id: string;

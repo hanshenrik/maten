@@ -24,6 +24,10 @@ export const shoppingChannelName = (householdId: string) =>
 export const presenceChannelName = (householdId: string) =>
   `presence:${householdId}`;
 
+/** What the channel name for a household's shopping item log is built from. */
+export const shoppingLogChannelName = (householdId: string) =>
+  `shopping-log:${householdId}`;
+
 /**
  * Tracks this user on a household presence channel and reports everyone
  * currently online. Cleans the channel up on unmount.
@@ -133,6 +137,58 @@ export function subscribeShoppingChanges(
       },
       (payload) => {
         // Deletes only carry the old row's primary key.
+        const id = payload.old.id;
+        if (id) apply({ type: "DELETE", id });
+      },
+    )
+    .subscribe();
+
+  return () => {
+    void supabase.removeChannel(channel);
+  };
+}
+
+/** The pieces of a `shopping_item_log` row the suggestions need. */
+export interface ShoppingLogRow {
+  id: string;
+  name: string;
+}
+
+/** What `subscribeShoppingLogChanges` reports for each change. */
+export type ShoppingLogChange =
+  { type: "INSERT"; row: ShoppingLogRow } | { type: "DELETE"; id: string };
+
+/**
+ * Listens to inserts and deletes on `shopping_item_log` for one household,
+ * so the name suggestions stay in sync when another member buys or bans a
+ * name. Deletes only carry the primary key, so callers track rows by id.
+ * Returns a teardown that leaves the channel.
+ */
+export function subscribeShoppingLogChanges(
+  householdId: string,
+  apply: (change: ShoppingLogChange) => void,
+): () => void {
+  const channel = supabase
+    .channel(shoppingLogChannelName(householdId))
+    .on<ShoppingLogRow>(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "shopping_item_log",
+        filter: `household_id=eq.${householdId}`,
+      },
+      (payload) => apply({ type: "INSERT", row: payload.new }),
+    )
+    .on(
+      "postgres_changes",
+      {
+        event: "DELETE",
+        schema: "public",
+        table: "shopping_item_log",
+        filter: `household_id=eq.${householdId}`,
+      },
+      (payload) => {
         const id = payload.old.id;
         if (id) apply({ type: "DELETE", id });
       },
