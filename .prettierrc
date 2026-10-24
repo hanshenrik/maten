@@ -1,10 +1,20 @@
 {
-  "plugins": ["prettier-plugin-astro", "prettier-plugin-tailwindcss"],
+  "plugins": [
+    "prettier-plugin-astro",
+    "prettier-plugin-tailwindcss",
+    "prettier-plugin-sql"
+  ],
   "overrides": [
     {
       "files": "*.astro",
       "options": {
         "parser": "astro"
+      }
+    },
+    {
+      "files": "*.sql",
+      "options": {
+        "language": "postgresql"
       }
     }
   ]
