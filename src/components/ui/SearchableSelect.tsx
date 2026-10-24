@@ -28,9 +28,6 @@ export interface SearchableSelectProps<T> {
   noResultsLabel?: string;
   /** Offer the search query as a new value when it matches nothing */
   creatable?: boolean;
-  /** Visual size: "default" matches the other form fields, "simple" is a more
-   *  compact variant with smaller text and padding */
-  look?: "default" | "simple";
   ariaLabel?: string;
   /** The id of the input, so a label can point at it */
   id?: string;
@@ -62,7 +59,6 @@ export function SearchableSelect<T>({
   placeholder = "Søk …",
   noResultsLabel = "Ingen treff",
   creatable,
-  look = "default",
   ariaLabel,
   id,
   className,
@@ -70,16 +66,11 @@ export function SearchableSelect<T>({
 }: SearchableSelectProps<T>) {
   const [query, setQuery] = useState("");
 
-  const compact = look === "simple";
-  const optionClassName = compact
-    ? "data-focus:bg-primary/5 data-selected:text-primary cursor-pointer px-2.5 py-1.5 text-sm outline-none"
-    : "data-focus:bg-primary/5 data-selected:text-primary cursor-pointer px-3 py-2 outline-none";
-  const emptyOptionClassName = compact
-    ? "text-text-muted data-focus:bg-primary/5 cursor-pointer px-2.5 py-1.5 text-sm outline-none"
-    : "text-text-muted data-focus:bg-primary/5 cursor-pointer px-3 py-2 text-sm outline-none";
-  const noResultsClassName = compact
-    ? "text-text-muted px-2.5 py-1.5 text-sm"
-    : "text-text-muted px-3 py-2 text-sm";
+  const optionClassName =
+    "data-focus:bg-primary/5 data-selected:text-primary cursor-pointer px-2.5 py-1.5 text-sm outline-none";
+  const emptyOptionClassName =
+    "text-text-muted data-focus:bg-primary/5 cursor-pointer px-2.5 py-1.5 text-sm outline-none";
+  const noResultsClassName = "text-text-muted px-2.5 py-1.5 text-sm";
 
   const selected = items.find((item) => getKey(item) === value) ?? null;
   const leading = selected && renderLeading ? renderLeading(selected) : null;
@@ -116,33 +107,19 @@ export function SearchableSelect<T>({
           // Select the current title so typing starts a fresh search
           onFocus={(event) => event.target.select()}
           className={cn(
-            "border-border bg-surface text-text focus:ring-primary w-full border transition-all outline-none focus:border-transparent focus:ring-2",
-            compact
-              ? "h-9 rounded-lg py-1 pr-8 text-sm"
-              : "h-11 rounded-xl py-2 pr-10",
-            leading
-              ? compact
-                ? "pl-10"
-                : "pl-12"
-              : compact
-                ? "pl-2.5"
-                : "pl-3",
+            // 16px font: smaller text makes iOS Safari auto-zoom on focus
+            "border-border bg-surface text-text focus:ring-primary h-9 w-full rounded-lg border py-1 pr-8 text-base transition-all outline-none focus:border-transparent focus:ring-2",
+            leading ? "pl-10" : "pl-2.5",
             inputClassName,
           )}
         />
         <ComboboxButton
           aria-label="Vis alternativer"
-          className={cn(
-            "text-text-muted hover:text-text group absolute inset-y-0 right-0 flex cursor-pointer items-center justify-center outline-none",
-            compact ? "w-8" : "w-10",
-          )}
+          className="text-text-muted hover:text-text group absolute inset-y-0 right-0 flex w-8 cursor-pointer items-center justify-center outline-none"
         >
           <Icon
             icon={ui.chevronDown}
-            className={cn(
-              "transition-transform group-data-open:rotate-180",
-              compact ? "h-3.5 w-3.5" : "h-4 w-4",
-            )}
+            className="h-3.5 w-3.5 transition-transform group-data-open:rotate-180"
           />
         </ComboboxButton>
 

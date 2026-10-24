@@ -67,6 +67,9 @@ export const IconButton = React.forwardRef<
     ref,
   ) => {
     const combinedClassName = cn(
+      // The invisible square behind the icon grows the touch target to at
+      // least 44px without changing how big the button looks
+      "relative before:absolute before:top-1/2 before:left-1/2 before:h-11 before:w-11 before:-translate-x-1/2 before:-translate-y-1/2 before:content-['']",
       "inline-flex shrink-0 cursor-pointer items-center justify-center rounded-xl transition-all focus:ring-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50",
       variants[variant],
       sizes[size].button,

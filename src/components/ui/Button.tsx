@@ -29,9 +29,9 @@ const variants = {
 };
 
 const sizes = {
-  sm: "h-9 px-3 text-sm",
-  md: "h-11 px-4 text-base",
-  lg: "h-14 px-6 text-lg",
+  sm: "h-8 px-2.5 text-sm",
+  md: "h-9 px-3 text-sm",
+  lg: "h-11 px-4 text-base",
 };
 
 export const Button = React.forwardRef<
@@ -51,6 +51,9 @@ export const Button = React.forwardRef<
     ref,
   ) => {
     const combinedClassName = cn(
+      // The invisible square behind the button grows the touch target to at
+      // least 44px without changing how big the button looks
+      "relative before:absolute before:top-1/2 before:left-1/2 before:h-11 before:w-11 before:-translate-x-1/2 before:-translate-y-1/2 before:content-['']",
       "inline-flex cursor-pointer items-center justify-center rounded-xl font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
       variants[variant],
       sizes[size],

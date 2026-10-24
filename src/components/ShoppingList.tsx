@@ -547,7 +547,7 @@ export const ShoppingList = ({
           <button
             type="button"
             id="add-shopping-item"
-            className="bg-surface text-text-muted border-border h-11 cursor-text rounded-xl border px-3 text-left transition-all outline-none"
+            className="bg-surface text-text-muted border-border h-9 cursor-text rounded-lg border px-2.5 text-left text-base transition-all outline-none"
             onClick={() => setIsAdding(true)}
           >
             f.eks. Epler
@@ -567,7 +567,6 @@ export const ShoppingList = ({
           id="shopping-sort"
           placeholder="Sorter"
           className="w-32"
-          look="simple"
         />
       </Field>
 

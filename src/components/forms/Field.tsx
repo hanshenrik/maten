@@ -3,10 +3,11 @@ import { cn } from "../../utils/cn";
 
 /** The look shared by every text-like form control. */
 export const fieldClassName =
-  "border-border bg-surface text-text focus:ring-primary rounded-xl border transition-all outline-none focus:border-transparent focus:ring-2";
+  "border-border bg-surface text-text focus:ring-primary rounded-lg border transition-all outline-none focus:border-transparent focus:ring-2";
 
-/** `fieldClassName` at the standard single-line height. */
-export const inputClassName = cn(fieldClassName, "h-11 px-3");
+/** `fieldClassName` at the standard single-line height. The font size stays at
+ *  16px: anything smaller makes iOS Safari auto-zoom on focus. */
+export const inputClassName = cn(fieldClassName, "h-9 px-2.5 text-base");
 
 export const labelClassName = "text-text-muted text-sm";
 

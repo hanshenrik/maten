@@ -28,7 +28,8 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           rows={rows}
           className={cn(
             fieldClassName,
-            "px-3 py-2.5",
+            // 16px font: smaller text makes iOS Safari auto-zoom on focus
+            "px-2.5 py-1.5 text-base",
             error && "border-red-500",
             className,
           )}
