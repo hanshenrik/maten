@@ -6,8 +6,9 @@ export const fieldClassName =
   "border-border bg-surface text-text focus:ring-primary rounded-lg border transition-all outline-none focus:border-transparent focus:ring-2";
 
 /** `fieldClassName` at the standard single-line height. The font size stays at
- *  16px: anything smaller makes iOS Safari auto-zoom on focus. */
-export const inputClassName = cn(fieldClassName, "h-9 px-2.5 text-base");
+ *  16px: anything smaller makes iOS Safari auto-zoom on focus. `w-full` keeps
+ *  the input inside its field no matter how narrow the layout gets. */
+export const inputClassName = cn(fieldClassName, "h-9 w-full px-2.5 text-base");
 
 export const labelClassName = "text-text-muted text-sm";
 

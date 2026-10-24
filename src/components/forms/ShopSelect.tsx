@@ -9,6 +9,7 @@ export const DEFAULT_SHOPS = [
   "Rema",
   "Bunnpris",
   "Clas",
+  "Apotek 1",
 ] as const;
 
 interface ShopSelectProps {
@@ -37,7 +38,7 @@ export const ShopSelect = ({
       : [...DEFAULT_SHOPS];
 
   return (
-    <Field htmlFor={selectId} label={label}>
+    <Field htmlFor={selectId} label={label} className={className}>
       <SearchableSelect
         items={shops}
         value={value}
@@ -46,9 +47,9 @@ export const ShopSelect = ({
         getLabel={(shop) => shop}
         id={selectId}
         ariaLabel={label ? undefined : "Butikk"}
+        placeholder=""
         emptyLabel="Uten butikk"
         creatable
-        className={className}
       />
     </Field>
   );

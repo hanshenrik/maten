@@ -374,20 +374,20 @@ export const ShoppingList = ({
           <li key={item.id}>
             <Card className="overflow-visible">
               <form onSubmit={handleUpdateItem}>
-                <div className="flex flex-col gap-2 md:flex-row md:items-end">
+                <div className="grid gap-2 md:grid-cols-2">
                   <SuggestInput
                     label="Navn"
                     value={editing.name}
                     onChange={(name) => setEditing({ ...editing, name })}
                     suggestions={suggestions}
                     autoFocus
-                    className="min-w-0 flex-1"
+                    className="w-full"
                   />
-                  <div className="flex w-full gap-2 md:w-fit md:items-end">
+                  <div className="grid w-full grid-cols-4 gap-2">
                     <ShopSelect
                       value={editing.shop}
                       onChange={(shop) => setEditing({ ...editing, shop })}
-                      className="min-w-0 flex-1 md:w-56"
+                      className="col-span-2"
                     />
                     <Input
                       type="number"
@@ -399,13 +399,11 @@ export const ShoppingList = ({
                       onChange={(e) =>
                         setEditing({ ...editing, amount: e.target.value })
                       }
-                      className="w-20 md:w-24"
                     />
                     <UnitSelect
                       label="Enhet"
                       value={editing.unit}
                       onChange={(unit) => setEditing({ ...editing, unit })}
-                      className="w-20 md:w-24"
                     />
                   </div>
                 </div>
@@ -490,7 +488,7 @@ export const ShoppingList = ({
       {isAdding ? (
         <Card className="overflow-visible">
           <form onSubmit={handleAddItem}>
-            <div className="flex flex-col gap-2 md:flex-row md:items-end">
+            <div className="grid gap-2 md:grid-cols-2">
               <SuggestInput
                 label="Navn"
                 value={draft.name}
@@ -499,13 +497,13 @@ export const ShoppingList = ({
                 inputRef={nameInputRef}
                 autoFocus
                 placeholder="f.eks. Epler"
-                className="min-w-0 flex-1"
+                className="w-full"
               />
-              <div className="flex w-full gap-2 md:w-fit md:items-end">
+              <div className="grid w-full grid-cols-4 gap-2">
                 <ShopSelect
                   value={draft.shop}
                   onChange={(shop) => setDraft({ ...draft, shop })}
-                  className="min-w-0 flex-1 md:w-56"
+                  className="col-span-2"
                 />
                 <Input
                   type="number"
@@ -517,13 +515,11 @@ export const ShoppingList = ({
                   onChange={(e) =>
                     setDraft({ ...draft, amount: e.target.value })
                   }
-                  className="w-20 md:w-24"
                 />
                 <UnitSelect
                   label="Enhet"
                   value={draft.unit}
                   onChange={(unit) => setDraft({ ...draft, unit })}
-                  className="w-20 md:w-24"
                 />
               </div>
             </div>
