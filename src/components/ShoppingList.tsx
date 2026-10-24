@@ -285,22 +285,20 @@ export const ShoppingList = ({
             <Card className="overflow-visible">
               <form onSubmit={handleUpdateItem}>
                 <div className="flex flex-col gap-2 md:flex-row md:items-end">
-                  <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-end">
-                    <SuggestInput
-                      label="Navn"
-                      value={editing.name}
-                      onChange={(name) => setEditing({ ...editing, name })}
-                      suggestions={suggestions}
-                      autoFocus
-                      className="min-w-0 flex-1"
-                    />
+                  <SuggestInput
+                    label="Navn"
+                    value={editing.name}
+                    onChange={(name) => setEditing({ ...editing, name })}
+                    suggestions={suggestions}
+                    autoFocus
+                    className="min-w-0 flex-1"
+                  />
+                  <div className="flex w-full gap-2 md:w-fit md:items-end">
                     <ShopSelect
                       value={editing.shop}
                       onChange={(shop) => setEditing({ ...editing, shop })}
-                      className="sm:w-44"
+                      className="min-w-0 flex-1 md:w-56"
                     />
-                  </div>
-                  <div className="grid w-full grid-cols-2 gap-2 md:w-fit">
                     <Input
                       type="number"
                       label="Mengde"
@@ -311,13 +309,13 @@ export const ShoppingList = ({
                       onChange={(e) =>
                         setEditing({ ...editing, amount: e.target.value })
                       }
-                      className="md:w-24"
+                      className="w-20 md:w-24"
                     />
                     <UnitSelect
                       label="Enhet"
                       value={editing.unit}
                       onChange={(unit) => setEditing({ ...editing, unit })}
-                      className="md:w-24"
+                      className="w-20 md:w-24"
                     />
                   </div>
                 </div>
@@ -395,24 +393,22 @@ export const ShoppingList = ({
         <Card className="overflow-visible">
           <form onSubmit={handleAddItem}>
             <div className="flex flex-col gap-2 md:flex-row md:items-end">
-              <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-end">
-                <SuggestInput
-                  label="Navn"
-                  value={draft.name}
-                  onChange={(name) => setDraft({ ...draft, name })}
-                  suggestions={suggestions}
-                  inputRef={nameInputRef}
-                  autoFocus
-                  placeholder="f.eks. Epler"
-                  className="min-w-0 flex-1"
-                />
+              <SuggestInput
+                label="Navn"
+                value={draft.name}
+                onChange={(name) => setDraft({ ...draft, name })}
+                suggestions={suggestions}
+                inputRef={nameInputRef}
+                autoFocus
+                placeholder="f.eks. Epler"
+                className="min-w-0 flex-1"
+              />
+              <div className="flex w-full gap-2 md:w-fit md:items-end">
                 <ShopSelect
                   value={draft.shop}
                   onChange={(shop) => setDraft({ ...draft, shop })}
-                  className="sm:w-44"
+                  className="min-w-0 flex-1 md:w-56"
                 />
-              </div>
-              <div className="grid w-full grid-cols-2 gap-2 md:w-fit">
                 <Input
                   type="number"
                   label="Mengde"
@@ -423,13 +419,13 @@ export const ShoppingList = ({
                   onChange={(e) =>
                     setDraft({ ...draft, amount: e.target.value })
                   }
-                  className="md:w-24"
+                  className="w-20 md:w-24"
                 />
                 <UnitSelect
                   label="Enhet"
                   value={draft.unit}
                   onChange={(unit) => setDraft({ ...draft, unit })}
-                  className="md:w-24"
+                  className="w-20 md:w-24"
                 />
               </div>
             </div>
