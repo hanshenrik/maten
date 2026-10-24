@@ -79,6 +79,8 @@ export interface ShoppingItem {
   amount: number | null;
   unit: string;
   completed: boolean;
+  /** The grocery shop an item belongs to, if any */
+  shop: string | null;
   notes?: string | null;
   created_at: string;
 }

@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "./ui/Icon";
 import { supabase } from "../lib/supabase";
 import type { ShoppingItem } from "../types";
-import { combineEmojiAndName, splitEmojiFromName } from "../utils/emoji";
 import { errorMessage } from "../utils/errors";
 import { ui } from "../utils/icons";
 import { subscribeShoppingChanges } from "../utils/realtime";
@@ -11,8 +10,7 @@ import {
   planShoppingListAdditions,
 } from "../utils/shoppingList";
 import { CheckboxButton } from "./forms/CheckboxButton";
-import { EmojiSelect } from "./forms/EmojiSelect";
-import { Field } from "./forms/Field";
+import { Field, inputClassName } from "./forms/Field";
 import { Input } from "./forms/Input";
 import { UnitSelect } from "./forms/UnitSelect";
 import { Button } from "./ui/Button";
@@ -28,7 +26,16 @@ interface ShoppingListProps {
   householdId: string;
 }
 
-const emptyDraft = { emoji: "", name: "", amount: "", unit: "" };
+const emptyDraft = { name: "", amount: "", unit: "", shop: "" };
+
+/** How the list can be ordered. */
+type SortMode = "alpha" | "shop" | "added";
+
+const SORT_OPTIONS: { value: SortMode; label: string }[] = [
+  { value: "alpha", label: "Alfabetisk" },
+  { value: "shop", label: "Butikk" },
+  { value: "added", label: "Lagt til" },
+];
 
 const itemSubLabel = (item: ShoppingItem) =>
   [formatItemAmount(item.amount, item.unit), item.notes]
@@ -47,11 +54,12 @@ export const ShoppingList = ({
   const [draft, setDraft] = useState(emptyDraft);
   const [editing, setEditing] = useState<{
     id: string;
-    emoji: string;
     name: string;
     amount: string;
     unit: string;
+    shop: string;
   } | null>(null);
+  const [sortMode, setSortMode] = useState<SortMode>("added");
   const nameInputRef = useRef<HTMLInputElement>(null);
 
   // Things bought before are what you're most likely to buy again
@@ -109,7 +117,7 @@ export const ShoppingList = ({
         activeItems.map((item) => ({ ...item, amount: item.amount ?? 1 })),
         [
           {
-            name: combineEmojiAndName(draft.emoji, draft.name),
+            name: draft.name.trim(),
             amount: draft.amount ? Number(draft.amount) : 1,
             unit: draft.unit,
           },
@@ -144,6 +152,7 @@ export const ShoppingList = ({
             name: insert.name,
             amount: insert.amount,
             unit: insert.unit,
+            shop: draft.shop.trim() || null,
             completed: false,
           })
           .select()
@@ -181,13 +190,12 @@ export const ShoppingList = ({
   };
 
   const startEditing = (item: ShoppingItem) => {
-    const { emoji, name } = splitEmojiFromName(item.name);
     setEditing({
       id: item.id,
-      emoji,
-      name,
+      name: item.name,
       amount: item.amount != null ? String(item.amount) : "",
       unit: item.unit,
+      shop: item.shop ?? "",
     });
     setIsAdding(false);
   };
@@ -200,20 +208,21 @@ export const ShoppingList = ({
     if (!editing.name.trim() || saving) return;
     setSaving(true);
 
-    const name = combineEmojiAndName(editing.emoji, editing.name);
+    const name = editing.name.trim();
     const amount = editing.amount ? Number(editing.amount) : null;
     const unit = editing.unit;
+    const shop = editing.shop.trim() || null;
 
     try {
       const { error } = await supabase
         .from("shopping_items")
-        .update({ name, amount, unit })
+        .update({ name, amount, unit, shop })
         .eq("id", editing.id);
       if (error) throw error;
 
       setItems((current) =>
         current.map((i) =>
-          i.id === editing.id ? { ...i, name, amount, unit } : i,
+          i.id === editing.id ? { ...i, name, amount, unit, shop } : i,
         ),
       );
       setEditing(null);
@@ -238,6 +247,36 @@ export const ShoppingList = ({
     }
   };
 
+  // "Lagt til" keeps the newest-first order the page loads with; the others
+  // re-sort whatever the list holds, live.
+  const byName = (a: ShoppingItem, b: ShoppingItem) =>
+    a.name.localeCompare(b.name, "nb");
+
+  const shopOf = (item: ShoppingItem) => item.shop?.trim() ?? "";
+
+  const sortItems = (list: ShoppingItem[]) => {
+    const sorted = [...list];
+    if (sortMode === "alpha") {
+      sorted.sort(byName);
+    } else if (sortMode === "added") {
+      sorted.sort((a, b) => b.created_at.localeCompare(a.created_at));
+    } else {
+      sorted.sort((a, b) => {
+        const shopA = shopOf(a);
+        const shopB = shopOf(b);
+        // Items without a shop sink to the bottom of the list
+        if (!shopA || !shopB) {
+          if (shopA) return -1;
+          if (shopB) return 1;
+        } else if (shopA !== shopB) {
+          return shopA.localeCompare(shopB, "nb");
+        }
+        return byName(a, b);
+      });
+    }
+    return sorted;
+  };
+
   const renderItems = (list: ShoppingItem[]) => (
     <ul className="space-y-2">
       {list.map((item) =>
@@ -246,14 +285,7 @@ export const ShoppingList = ({
             <Card className="overflow-visible">
               <form onSubmit={handleUpdateItem}>
                 <div className="flex flex-col gap-2 md:flex-row md:items-end">
-                  <div className="flex min-w-0 flex-1 items-end gap-2">
-                    <Field label="Ikon" htmlFor="edit-item-emoji">
-                      <EmojiSelect
-                        id="edit-item-emoji"
-                        value={editing.emoji}
-                        onChange={(emoji) => setEditing({ ...editing, emoji })}
-                      />
-                    </Field>
+                  <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-end">
                     <Input
                       label="Navn"
                       list="shopping-suggestions"
@@ -264,6 +296,17 @@ export const ShoppingList = ({
                       onChange={(e) =>
                         setEditing({ ...editing, name: e.target.value })
                       }
+                    />
+                    <Input
+                      label="Butikk"
+                      value={editing.shop}
+                      autoComplete="off"
+                      enterKeyHint="done"
+                      placeholder="f.eks. Rema 1000"
+                      onChange={(e) =>
+                        setEditing({ ...editing, shop: e.target.value })
+                      }
+                      className="sm:w-44"
                     />
                   </div>
                   <div className="grid w-full grid-cols-2 gap-2 md:w-fit">
@@ -334,6 +377,27 @@ export const ShoppingList = ({
     </ul>
   );
 
+  /** The list in the current sort order, split into shop groups if needed. */
+  const renderSorted = (list: ShoppingItem[]) => {
+    const sorted = sortItems(list);
+    if (sortMode !== "shop") return renderItems(sorted);
+
+    const groups: { label: string; items: ShoppingItem[] }[] = [];
+    for (const item of sorted) {
+      const label = shopOf(item) || "Uten butikk";
+      const last = groups[groups.length - 1];
+      if (last?.label === label) last.items.push(item);
+      else groups.push({ label, items: [item] });
+    }
+
+    return groups.map((group) => (
+      <div key={group.label} className="space-y-2">
+        <h3 className="text-text-muted text-sm font-medium">{group.label}</h3>
+        {renderItems(group.items)}
+      </div>
+    ));
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <datalist id="shopping-suggestions">
@@ -346,14 +410,7 @@ export const ShoppingList = ({
         <Card className="overflow-visible">
           <form onSubmit={handleAddItem}>
             <div className="flex flex-col gap-2 md:flex-row md:items-end">
-              <div className="flex min-w-0 flex-1 items-end gap-2">
-                <Field label="Ikon" htmlFor="new-item-emoji">
-                  <EmojiSelect
-                    id="new-item-emoji"
-                    value={draft.emoji}
-                    onChange={(emoji) => setDraft({ ...draft, emoji })}
-                  />
-                </Field>
+              <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-end">
                 <Input
                   label="Navn"
                   list="shopping-suggestions"
@@ -364,6 +421,15 @@ export const ShoppingList = ({
                   enterKeyHint="done"
                   onChange={(e) => setDraft({ ...draft, name: e.target.value })}
                   placeholder="f.eks. Epler"
+                />
+                <Input
+                  label="Butikk"
+                  value={draft.shop}
+                  autoComplete="off"
+                  enterKeyHint="done"
+                  placeholder="f.eks. Rema 1000"
+                  onChange={(e) => setDraft({ ...draft, shop: e.target.value })}
+                  className="sm:w-44"
                 />
               </div>
               <div className="grid w-full grid-cols-2 gap-2 md:w-fit">
@@ -417,9 +483,24 @@ export const ShoppingList = ({
 
       <Hr />
 
+      <Field label="Sorter" htmlFor="shopping-sort" className="w-fit">
+        <select
+          id="shopping-sort"
+          value={sortMode}
+          onChange={(e) => setSortMode(e.target.value as SortMode)}
+          className={inputClassName}
+        >
+          {SORT_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </Field>
+
       <div className="space-y-4">
         {activeItems.length > 0
-          ? renderItems(activeItems)
+          ? renderSorted(activeItems)
           : completedItems.length === 0 && (
               <p className="text-text-muted py-8 text-center">
                 Handlelista er tom. Kanskje dere har alt dere trenger?
@@ -434,7 +515,7 @@ export const ShoppingList = ({
               summaryClassName="text-sm font-medium"
               title={`Dette har du lagt i kurven (${completedItems.length})`}
             >
-              {renderItems(completedItems)}
+              {renderSorted(completedItems)}
             </Details>
           </div>
         )}
