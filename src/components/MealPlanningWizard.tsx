@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { navigate } from "astro:transitions/client";
 import { Icon } from "./ui/Icon";
 import { supabase } from "../lib/supabase";
 import type { MealPlanWithMeals, RecipeSummary } from "../types";
@@ -261,7 +262,7 @@ export const MealPlanningWizard = ({
         setDraftItems(buildShoppingDraft());
         setStep(3);
       } else {
-        window.location.href = `/plans/${id}`;
+        await navigate(`/plans/${id}`);
       }
     } catch (err) {
       setAlertMessage(`Feil ved lagring av menyen: ${errorMessage(err)}`);
@@ -318,7 +319,7 @@ export const MealPlanningWizard = ({
         if (failed?.error) throw failed.error;
       }
 
-      window.location.href = "/plans";
+      await navigate("/plans");
     } catch (err) {
       setAlertMessage(
         `Feil ved ferdigstilling av handlelista: ${errorMessage(err)}`,

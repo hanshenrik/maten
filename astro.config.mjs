@@ -3,14 +3,16 @@ import react from "@astrojs/react";
 import tailwindcss from "@tailwindcss/vite";
 import vercel from "@astrojs/vercel";
 import icon from "astro-icon";
-import appIcons from "./plugins/app-icons.mjs";
+import appIcons, { iconNamesBySet } from "./plugins/app-icons.mjs";
 
 const site = "https://maten.hanshenrik.com";
 
 export default defineConfig({
   output: "server",
-  adapter: vercel(),
-  integrations: [react(), icon()],
+  // Recipe photos are resized and cached by Vercel's image CDN, not by sharp
+  // inside the page function, which redid the work for every new device
+  adapter: vercel({ imageService: true }),
+  integrations: [react(), icon({ include: iconNamesBySet() })],
   // Links are prefetched once they enter the viewport, so tapping a nav item
   // usually serves the page from the browser cache instead of the network.
   prefetch: {
