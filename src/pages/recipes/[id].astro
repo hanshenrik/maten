@@ -164,7 +164,7 @@ const description = markdownToPlainText(recipe.description).slice(0, 160);
             <h2 class="text-text mb-4 text-xl font-bold">Slik gjør du det</h2>
             <WakeLockToggle client:idle />
             <div
-              class="prose prose-emerald prose-lg text-text-muted max-w-none"
+              class="prose prose-lg max-w-none"
               set:html={instructionsHtml}
             />
           </div>

@@ -84,3 +84,23 @@ html[data-keyboard-user] :focus-visible {
 ::view-transition-new(root) {
   animation: none;
 }
+
+/*
+ * The typography plugin's built-in palettes are fixed for light backgrounds,
+ * so the prose colors follow the theme variables instead.
+ */
+.prose {
+  --tw-prose-body: var(--color-text-muted);
+  --tw-prose-headings: var(--color-text);
+  --tw-prose-bold: var(--color-text);
+  --tw-prose-counters: var(--color-text-muted);
+  --tw-prose-bullets: var(--color-text-muted);
+  --tw-prose-hr: var(--color-border);
+  --tw-prose-quotes: var(--color-text);
+  --tw-prose-quote-borders: var(--color-primary);
+  --tw-prose-captions: var(--color-text-muted);
+  --tw-prose-code: var(--color-text);
+  --tw-prose-links: var(--color-primary);
+  --tw-prose-th-borders: var(--color-border);
+  --tw-prose-td-borders: var(--color-border);
+}

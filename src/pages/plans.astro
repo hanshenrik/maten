@@ -61,7 +61,12 @@ const outdatedPlans = plans.filter((p) => p.end_date < today);
                     })}
                   </p>
                 </a>
-                <PlanMenu client:visible planId={plan.id} />
+                <PlanMenu
+                  client:visible
+                  planId={plan.id}
+                  withLinks
+                  afterDelete="/plans"
+                />
               </div>
               <div class="meal-scroll -mx-4 flex gap-4 overflow-x-auto px-4 pt-4 pb-4">
                 {groupMealsByDate(plan.planned_meals).map((day) => {

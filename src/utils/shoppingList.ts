@@ -12,13 +12,6 @@ export interface ExistingItem extends MergeableItem {
   id: string;
 }
 
-// Names in the database can still start with an emoji prefix from before the
-// emoji picker was removed, so that prefix is ignored when matching.
-const bareName = (name: string): string =>
-  (name || "")
-    .replace(/^(\p{Emoji_Presentation}|\p{Emoji}\uFE0F)\s*/u, "")
-    .trim();
-
 /**
  * The key two items have to share to be merged: the name (case- and
  * whitespace-insensitive) plus the unit.
@@ -27,7 +20,7 @@ const bareName = (name: string): string =>
  * exact unit match merges.
  */
 export const shoppingItemKey = (name: string, unit?: string | null): string =>
-  `${bareName(name).toLowerCase()}|${(unit || "").trim().toLowerCase()}`;
+  `${(name || "").trim().toLowerCase()}|${(unit || "").trim().toLowerCase()}`;
 
 /**
  * The "2 kg" line under an item's name. Missing pieces are left out instead of

@@ -44,4 +44,5 @@ export const app = {
   settings: "streamline-ultimate-color:cog",
   library: "streamline-ultimate-color:archive-books",
   image: "streamline-ultimate-color:stamps-image",
+  notes: "streamline-ultimate-color:paper-write",
 } as const;
