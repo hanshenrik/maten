@@ -10,10 +10,18 @@ import { readWakeLockPref } from "../utils/wakeLockPref";
  * becomes visible while the switch is on.
  */
 export const WakeLockToggle = () => {
-  const supported = typeof navigator !== "undefined" && "wakeLock" in navigator;
+  // The Wake Lock API is only in some browsers, and the server doesn't know
+  // which one will show up. Branching on it while rendering makes the
+  // client's first render differ from the server's empty one, which is a
+  // hydration error, so both start empty and the switch appears after mount.
+  const [supported, setSupported] = useState(false);
   const [checked, setChecked] = useState(false);
   const [active, setActive] = useState(false);
   const lockRef = useRef<WakeLockSentinel | null>(null);
+
+  useEffect(() => {
+    setSupported("wakeLock" in navigator);
+  }, []);
 
   // The preference cookie is only readable in the browser, so start from it
   // after mount rather than initialising state directly.
@@ -31,6 +39,7 @@ export const WakeLockToggle = () => {
     // Requesting while the page is hidden is rejected outright, so wait for
     // it to be visible first; the visibilitychange listener re-requests.
     const request = () => {
+      if (!("wakeLock" in navigator)) return;
       if (document.visibilityState !== "visible") return;
       navigator.wakeLock
         .request("screen")

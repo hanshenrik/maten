@@ -10,8 +10,10 @@ import {
   planShoppingListAdditions,
 } from "../utils/shoppingList";
 import { CheckboxButton } from "./forms/CheckboxButton";
-import { Field, inputClassName } from "./forms/Field";
+import { Field } from "./forms/Field";
 import { Input } from "./forms/Input";
+import { ShopSelect } from "./forms/ShopSelect";
+import { SuggestInput } from "./forms/SuggestInput";
 import { UnitSelect } from "./forms/UnitSelect";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
@@ -19,6 +21,7 @@ import { Details } from "./ui/Details";
 import { Dialog } from "./ui/Dialog";
 import { Hr } from "./ui/Hr";
 import { IconButton } from "./ui/IconButton";
+import { SearchableSelect } from "./ui/SearchableSelect";
 
 interface ShoppingListProps {
   initialItems: ShoppingItem[];
@@ -62,12 +65,9 @@ export const ShoppingList = ({
   const [sortMode, setSortMode] = useState<SortMode>("added");
   const nameInputRef = useRef<HTMLInputElement>(null);
 
-  // Things bought before are what you're most likely to buy again
+  // Anything already on the list, in case you're buying it again
   const suggestions = useMemo(
-    () =>
-      Array.from(
-        new Set(items.filter((i) => i.completed).map((i) => i.name)),
-      ).sort(),
+    () => Array.from(new Set(items.map((i) => i.name))).sort(),
     [items],
   );
 
@@ -286,26 +286,17 @@ export const ShoppingList = ({
               <form onSubmit={handleUpdateItem}>
                 <div className="flex flex-col gap-2 md:flex-row md:items-end">
                   <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-end">
-                    <Input
+                    <SuggestInput
                       label="Navn"
-                      list="shopping-suggestions"
                       value={editing.name}
+                      onChange={(name) => setEditing({ ...editing, name })}
+                      suggestions={suggestions}
                       autoFocus
-                      autoComplete="off"
-                      enterKeyHint="done"
-                      onChange={(e) =>
-                        setEditing({ ...editing, name: e.target.value })
-                      }
+                      className="min-w-0 flex-1"
                     />
-                    <Input
-                      label="Butikk"
+                    <ShopSelect
                       value={editing.shop}
-                      autoComplete="off"
-                      enterKeyHint="done"
-                      placeholder="f.eks. Rema 1000"
-                      onChange={(e) =>
-                        setEditing({ ...editing, shop: e.target.value })
-                      }
+                      onChange={(shop) => setEditing({ ...editing, shop })}
                       className="sm:w-44"
                     />
                   </div>
@@ -400,35 +391,24 @@ export const ShoppingList = ({
 
   return (
     <div className="flex flex-col gap-4">
-      <datalist id="shopping-suggestions">
-        {suggestions.map((name) => (
-          <option key={name} value={name} />
-        ))}
-      </datalist>
-
       {isAdding ? (
         <Card className="overflow-visible">
           <form onSubmit={handleAddItem}>
             <div className="flex flex-col gap-2 md:flex-row md:items-end">
               <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-end">
-                <Input
+                <SuggestInput
                   label="Navn"
-                  list="shopping-suggestions"
-                  ref={nameInputRef}
                   value={draft.name}
+                  onChange={(name) => setDraft({ ...draft, name })}
+                  suggestions={suggestions}
+                  inputRef={nameInputRef}
                   autoFocus
-                  autoComplete="off"
-                  enterKeyHint="done"
-                  onChange={(e) => setDraft({ ...draft, name: e.target.value })}
                   placeholder="f.eks. Epler"
+                  className="min-w-0 flex-1"
                 />
-                <Input
-                  label="Butikk"
+                <ShopSelect
                   value={draft.shop}
-                  autoComplete="off"
-                  enterKeyHint="done"
-                  placeholder="f.eks. Rema 1000"
-                  onChange={(e) => setDraft({ ...draft, shop: e.target.value })}
+                  onChange={(shop) => setDraft({ ...draft, shop })}
                   className="sm:w-44"
                 />
               </div>
@@ -483,19 +463,18 @@ export const ShoppingList = ({
 
       <Hr />
 
-      <Field label="Sorter" htmlFor="shopping-sort" className="w-fit">
-        <select
-          id="shopping-sort"
+      <Field label="Sorter" htmlFor="shopping-sort" className="w-fit self-end">
+        <SearchableSelect
+          items={SORT_OPTIONS}
           value={sortMode}
-          onChange={(e) => setSortMode(e.target.value as SortMode)}
-          className={inputClassName}
-        >
-          {SORT_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+          onChange={(value) => setSortMode(value as SortMode)}
+          getKey={(option) => option.value}
+          getLabel={(option) => option.label}
+          id="shopping-sort"
+          placeholder="Sorter"
+          className="w-32"
+          look="simple"
+        />
       </Field>
 
       <div className="space-y-4">
