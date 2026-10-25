@@ -123,7 +123,9 @@ export const MealPlanningWizard = ({
       isFirstRender.current = false;
       return;
     }
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    document
+      .getElementById("app-scroll")
+      ?.scrollTo({ top: 0, behavior: "smooth" });
   }, [step]);
 
   const handleDateSelection = () => {
