@@ -20,7 +20,7 @@ const showNavigation = !!Astro.locals.user;
 ---
 
 <!doctype html>
-<html lang="no">
+<html lang="no" class:list={[showNavigation && "bg-surface"]}>
   <head>
     <meta charset="UTF-8" />
     <meta
@@ -67,6 +67,8 @@ const showNavigation = !!Astro.locals.user;
     The document itself never scrolls; only #app-scroll does, and the nav sits
     below it in normal flow. iOS misplaces `position: fixed` elements after the
     keyboard or the Safari toolbar resizes the viewport, so nothing here is fixed.
+    <html> is painted like the nav, so the strip Safari shows below <body>,
+    above its toolbar, reads as part of the nav.
   -->
   <body class="bg-bg flex h-dvh flex-col overflow-hidden">
     <div id="app-scroll" class="min-h-0 flex-1 overflow-y-auto">
