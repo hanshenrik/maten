@@ -42,6 +42,20 @@ const nameKey = (name: string) => (name || "").trim().toLowerCase();
 /** How the list can be ordered. */
 type SortMode = "alpha" | "shop" | "added";
 
+const SORT_STORAGE_KEY = "shopping-list-sort";
+
+const isSortMode = (value: string | null): value is SortMode =>
+  value === "alpha" || value === "shop" || value === "added";
+
+const readStoredSortMode = (): SortMode => {
+  try {
+    const stored = localStorage.getItem(SORT_STORAGE_KEY);
+    return isSortMode(stored) ? stored : "added";
+  } catch {
+    return "added";
+  }
+};
+
 const SORT_OPTIONS: { value: SortMode; label: string }[] = [
   { value: "alpha", label: "Alfabetisk" },
   { value: "shop", label: "Butikk" },
@@ -52,6 +66,8 @@ const itemSubLabel = (item: ShoppingItem) =>
   [formatItemAmount(item.amount, item.unit), item.notes]
     .filter(Boolean)
     .join(" • ");
+
+const itemEndLabel = (item: ShoppingItem) => item.shop?.trim() || "";
 
 export const ShoppingList = ({
   initialItems,
@@ -76,7 +92,7 @@ export const ShoppingList = ({
     unit: string;
     shop: string;
   } | null>(null);
-  const [sortMode, setSortMode] = useState<SortMode>("added");
+  const [sortMode, setSortMode] = useState<SortMode>(readStoredSortMode);
   // The item waiting for "Slett fra logg" to be confirmed in the dialog
   const [pendingLogDelete, setPendingLogDelete] = useState<ShoppingItem | null>(
     null,
@@ -430,6 +446,7 @@ export const ShoppingList = ({
               onChange={() => handleToggle(item)}
               label={item.name}
               subLabel={itemSubLabel(item)}
+              endLabel={itemEndLabel(item)}
               className="pr-12"
             />
             <DotMenu
@@ -557,7 +574,15 @@ export const ShoppingList = ({
         <SearchableSelect
           items={SORT_OPTIONS}
           value={sortMode}
-          onChange={(value) => setSortMode(value as SortMode)}
+          onChange={(value) => {
+            const mode = value as SortMode;
+            setSortMode(mode);
+            try {
+              localStorage.setItem(SORT_STORAGE_KEY, mode);
+            } catch {
+              // Sorting still works for this visit without persistence
+            }
+          }}
           getKey={(option) => option.value}
           getLabel={(option) => option.label}
           id="shopping-sort"
