@@ -40,6 +40,7 @@ const items: {
 ---
 
 <nav
+  id="main-navigation"
   aria-label="Hovedmeny"
   class="border-border bg-surface fixed bottom-0 left-0 z-50 w-full border-t px-4 pt-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))]"
 >
@@ -66,3 +67,39 @@ const items: {
     }
   </div>
 </nav>
+
+<script>
+  //
+  // iOS Safari (especially standalone / add-to-home-screen) leaves the
+  // layout viewport stale after the keyboard has been open, so
+  // `position: fixed` elements end up misplaced - typically a gap below
+  // the nav or the nav floating mid-screen. Pin the nav to the *visual*
+  // viewport instead: fixed to the top of the layout viewport, then
+  // translated down to the bottom of the visible area on every viewport
+  // change. Non-iOS/desktop browsers keep the plain fixed positioning.
+  //
+  {
+    const nav = document.getElementById("main-navigation");
+    const vv = window.visualViewport;
+    if (!nav || !vv) return;
+
+    const isIOS =
+      /iP(hone|ad|od)/.test(navigator.userAgent) ||
+      (navigator.userAgent.includes("Mac") && navigator.maxTouchPoints > 1);
+    if (!isIOS) return;
+
+    // Anchor to the top of the (stale) layout viewport, then translate
+    // down to the bottom of the visual viewport on every change.
+    nav.style.top = "0";
+    nav.style.bottom = "auto";
+
+    const position = () => {
+      const top = vv.height - nav.offsetHeight + vv.offsetTop;
+      nav.style.transform = `translateY(${Math.max(0, top)}px)`;
+    };
+
+    position();
+    vv.addEventListener("resize", position);
+    vv.addEventListener("scroll", position);
+  }
+</script>

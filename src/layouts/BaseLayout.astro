@@ -62,31 +62,6 @@ const showNavigation = !!Astro.locals.user;
     </script>
 
     <ClientRouter />
-
-    <!--
-      iOS Safari (especially standalone / add-to-home-screen) keeps a stale
-      layout viewport after the on-screen keyboard closes, which leaves
-      fixed-position elements like the bottom navigation misplaced. Reading
-      visualViewport and issuing a same-position scroll forces WebKit to
-      resync the two viewports.
-    -->
-    <script is:inline>
-      (() => {
-        const vv = window.visualViewport;
-        if (!vv) return;
-        const resync = () => {
-          const y = window.scrollY;
-          window.scrollTo(0, y + 1);
-          window.scrollTo(0, y);
-        };
-        let lastHeight = vv.height;
-        vv.addEventListener("resize", () => {
-          const grew = vv.height - lastHeight;
-          lastHeight = vv.height;
-          if (grew > 50) window.setTimeout(resync, 50);
-        });
-      })();
-    </script>
   </head>
   <body
     class:list={[
