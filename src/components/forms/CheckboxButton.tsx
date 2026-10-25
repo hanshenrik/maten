@@ -47,7 +47,7 @@ export const CheckboxButton = ({
       >
         {checked && <Icon icon={ui.checked} className="h-4 w-4" />}
       </div>
-      <div className="flex flex-wrap items-baseline gap-x-2">
+      <div className="flex flex-col items-baseline">
         {label && (
           <span
             className={cn(
@@ -58,15 +58,17 @@ export const CheckboxButton = ({
             {label}
           </span>
         )}
-        <div className="flex items-center justify-between gap-2">
-          {subLabel && (
-            <span className="text-text-muted text-sm">{subLabel}</span>
-          )}
-          {subLabel && endLabel && <span className="text-text-muted">·</span>}
-          {endLabel && (
-            <span className="text-text-muted text-sm">{endLabel}</span>
-          )}
-        </div>
+        {!checked && (
+          <div className="flex items-center justify-between gap-2">
+            {subLabel && (
+              <span className="text-text-muted text-sm">{subLabel}</span>
+            )}
+            {subLabel && endLabel && <span className="text-text-muted">·</span>}
+            {endLabel && (
+              <span className="text-text-muted text-sm">{endLabel}</span>
+            )}
+          </div>
+        )}
       </div>
     </div>
   </button>
