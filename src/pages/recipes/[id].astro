@@ -56,7 +56,7 @@ const description = markdownToPlainText(recipe.description).slice(0, 160);
 
 <BaseLayout title={recipe.title} description={description || undefined}>
   <Page size="md">
-    <PageHeader title={recipe.title} backHref="/recipes">
+    <PageHeader backHref="/recipes">
       <RecipeMenu
         slot="menu"
         client:idle
@@ -107,6 +107,16 @@ const description = markdownToPlainText(recipe.description).slice(0, 160);
         </div>
 
         <div class="mb-8 flex flex-wrap items-center gap-4">
+          {
+            recipe.tags?.map((tag) => (
+              <a
+                href={`/recipes?tags=${encodeURIComponent(tag)}`}
+                class="bg-primary/10 text-primary hover:bg-primary/20 rounded-full px-3 py-1 text-sm font-medium transition-colors"
+              >
+                {tag}
+              </a>
+            ))
+          }
           {
             recipe.cook_time && (
               <div class="text-text-muted flex items-center gap-2 text-sm font-medium">

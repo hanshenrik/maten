@@ -5,6 +5,7 @@ import PageHeader from "../../../components/PageHeader.astro";
 import { RecipeForm } from "../../../components/RecipeForm";
 import { fetchRecipeWithIngredients } from "../../../lib/queries";
 import { displayNameFor, requireSession } from "../../../lib/session";
+import type { Recipe } from "../../../types";
 
 const { id } = Astro.params;
 const { supabase, user, householdId } = requireSession(Astro.locals);
@@ -18,6 +19,17 @@ if (!recipe) {
 if (recipe.household_id !== householdId) {
   return Astro.redirect(`/recipes/${recipe.id}`);
 }
+
+// Tags the household already uses, offered as suggestions in the form
+const tagsRes = await supabase
+  .from("recipes")
+  .select("tags")
+  .eq("household_id", householdId);
+const tagSuggestions = [
+  ...new Set(
+    (tagsRes.data ?? []).flatMap((row: Pick<Recipe, "tags">) => row.tags ?? []),
+  ),
+].sort((a, b) => a.localeCompare(b, "no"));
 ---
 
 <BaseLayout title={`Endre ${recipe.title}`}>
@@ -34,6 +46,7 @@ if (recipe.household_id !== householdId) {
       userId={user.id}
       householdId={householdId}
       authorName={displayNameFor(user)}
+      tagSuggestions={tagSuggestions}
     />
   </Page>
 </BaseLayout>

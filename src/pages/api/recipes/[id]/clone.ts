@@ -31,6 +31,7 @@ export const POST: APIRoute = async ({ params, locals }) => {
       household_id: householdId,
       is_public: false,
       author_name: null,
+      tags: original.tags,
     })
     .select("id")
     .single();

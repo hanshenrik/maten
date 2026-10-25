@@ -17,6 +17,8 @@ export interface Recipe {
   household_id: string;
   user_id: string;
   created_at: string;
+  /** Free-form labels, like "dessert" or "vegetar" */
+  tags: string[];
 }
 
 export interface Ingredient {
@@ -47,6 +49,7 @@ export type RecipeListItem = Pick<
   | "image_url"
   | "cook_time"
   | "created_at"
+  | "tags"
 >;
 
 export interface MealPlan {

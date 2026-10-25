@@ -19,6 +19,7 @@ import { Card } from "./ui/Card";
 import { IconButton } from "./ui/IconButton";
 import { Dialog } from "./ui/Dialog";
 import { BasicTag, OptionalTag } from "./ui/Tag";
+import { TagSelect } from "./forms/TagSelect";
 
 /** An ingredient as it's being edited */
 interface IngredientDraft {
@@ -125,6 +126,8 @@ interface RecipeFormProps {
   householdId: string;
   /** Shown on the recipe when it's shared in the library */
   authorName: string;
+  /** Tags the household already uses on other recipes */
+  tagSuggestions: string[];
 }
 
 const toDraft = (
@@ -150,6 +153,7 @@ export const RecipeForm = ({
   userId,
   householdId,
   authorName,
+  tagSuggestions,
 }: RecipeFormProps) => {
   const isEditing = !!initialData;
 
@@ -172,6 +176,7 @@ export const RecipeForm = ({
   );
   const [uploadingImage, setUploadingImage] = useState(false);
   const [isPublic, setIsPublic] = useState(initialData?.is_public ?? false);
+  const [tags, setTags] = useState(initialData?.tags ?? []);
   const [saveCount, setSaveCount] = useState(0);
   const [saving, setSaving] = useState(false);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
@@ -267,6 +272,7 @@ export const RecipeForm = ({
         servings: parseOptionalInt(servings),
         is_public: isPublic,
         author_name: isPublic ? initialData?.author_name || authorName : null,
+        tags,
       };
 
       let recipeId = initialData?.id;
@@ -382,6 +388,13 @@ export const RecipeForm = ({
             placeholder="f.eks. 4"
           />
         </div>
+
+        <TagSelect
+          label="Tags"
+          value={tags}
+          onChange={setTags}
+          suggestions={tagSuggestions}
+        />
       </Card>
 
       <Card className="space-y-6">

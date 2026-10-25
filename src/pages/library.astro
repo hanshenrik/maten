@@ -1,14 +1,16 @@
 ---
-import { Icon } from "astro-icon/components";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Page from "../components/Page.astro";
 import PageHeader from "../components/PageHeader.astro";
 import RecipeCard from "../components/RecipeCard.astro";
 import { EmptyState } from "../components/ui/EmptyState";
+import { TagFilter } from "../components/TagFilter";
 import { requireSession } from "../lib/session";
-import { ui } from "../utils/icons";
 
 const { supabase } = requireSession(Astro.locals);
+
+// Tags to filter by, e.g. /library?tags=dessert&tags=vegetar
+const selectedTags = Astro.url.searchParams.getAll("tags").filter(Boolean);
 
 type LibraryRecipe = {
   id: string;
@@ -18,24 +20,36 @@ type LibraryRecipe = {
   cook_time: number | null;
   created_at: string;
   author_name: string | null;
+  tags: string[] | null;
   saved_recipes: { count: number }[];
 };
 
 const { data, error } = await supabase
   .from("recipes")
   .select(
-    "id, title, description, image_url, cook_time, created_at, author_name, saved_recipes(count)",
+    "id, title, description, image_url, cook_time, created_at, author_name, tags, saved_recipes(count)",
   )
   .eq("is_public", true);
 
 if (error) console.error("Error fetching library recipes:", error);
 
-// Most saved first, then newest
-const recipes = ((data ?? []) as LibraryRecipe[])
-  .map((recipe) => ({
-    ...recipe,
-    saveCount: recipe.saved_recipes?.[0]?.count ?? 0,
-  }))
+const libraryRecipes = ((data ?? []) as LibraryRecipe[]).map((recipe) => ({
+  ...recipe,
+  saveCount: recipe.saved_recipes?.[0]?.count ?? 0,
+}));
+
+const allTags = [
+  ...new Set(libraryRecipes.flatMap((recipe) => recipe.tags ?? [])),
+].sort((a, b) => a.localeCompare(b, "no"));
+
+// Most saved first, then newest, and only recipes with at least one of the
+// selected tags (no selection means every recipe)
+const recipes = libraryRecipes
+  .filter(
+    (recipe) =>
+      selectedTags.length === 0 ||
+      selectedTags.some((tag) => recipe.tags?.includes(tag)),
+  )
   .sort(
     (a, b) =>
       b.saveCount - a.saveCount ||
@@ -51,27 +65,25 @@ const recipes = ((data ?? []) as LibraryRecipe[])
       description="Gå på oppdagelsesferd i oppskrifter delt av andre brukere. Lagre dine favoritter i din egen samling!"
     />
 
+    <TagFilter client:load allTags={allTags} selected={selectedTags} />
+
     {
       recipes.length > 0 ? (
         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {recipes.map((recipe) => (
             <a href={`/recipes/${recipe.id}`} class="group relative block">
-              <RecipeCard recipe={recipe} />
-              <div
-                class="bg-surface border-border text-primary absolute -top-3 -right-3 flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-semibold opacity-90 shadow-sm transition-opacity group-hover:opacity-100"
-                title="Antall som har lagret oppskriften"
-              >
-                <Icon name={ui.favourite} class="h-4 w-4" />
-                {recipe.saveCount}
-              </div>
-              {recipe.author_name && (
-                <div class="text-text-muted mt-2 px-2 text-sm italic">
-                  Av {recipe.author_name}
-                </div>
-              )}
+              <RecipeCard
+                recipe={recipe}
+                authorName={recipe.author_name}
+                saveCount={recipe.saveCount}
+              />
             </a>
           ))}
         </div>
+      ) : selectedTags.length > 0 ? (
+        <EmptyState>
+          <p>Ingen oppskrifter har noen av de valgte taggene.</p>
+        </EmptyState>
       ) : (
         <EmptyState className="text-center">
           <p>

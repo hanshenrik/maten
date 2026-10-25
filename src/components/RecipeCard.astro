@@ -12,17 +12,21 @@ interface Props {
     Recipe,
     "id" | "title" | "description" | "image_url" | "cook_time"
   >;
+  /** Shown bottom right on shared recipes */
+  authorName?: string | null;
+  /** How many households have saved the recipe */
+  saveCount?: number;
 }
 
-const { recipe } = Astro.props;
+const { recipe, authorName, saveCount } = Astro.props;
 
 const description = markdownToPlainText(recipe.description);
 ---
 
 <Card className="group flex h-full flex-col" noPadding isClickable>
-  {
-    recipe.image_url ? (
-      <div class="h-48 w-full overflow-hidden">
+  <div class="relative h-48 w-full overflow-hidden">
+    {
+      recipe.image_url ? (
         <Image
           src={recipe.image_url}
           alt=""
@@ -31,15 +35,26 @@ const description = markdownToPlainText(recipe.description);
           layout="constrained"
           class="h-full w-full object-cover transition-transform group-hover:scale-105"
         />
-      </div>
-    ) : (
-      <div class="bg-bg text-text-muted flex h-48 w-full flex-col items-center justify-center">
-        <span class="text-xs font-medium tracking-wider uppercase">
-          Uten bilde
-        </span>
-      </div>
-    )
-  }
+      ) : (
+        <div class="bg-bg text-text-muted flex h-full w-full flex-col items-center justify-center">
+          <span class="text-xs font-medium tracking-wider uppercase">
+            Uten bilde
+          </span>
+        </div>
+      )
+    }
+    {
+      saveCount != null && (
+        <div
+          class="bg-surface border-border text-primary absolute right-2 bottom-2 z-10 flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-semibold shadow-sm"
+          title="Antall som har lagret oppskriften"
+        >
+          <Icon name={ui.favourite} class="h-4 w-4" />
+          {saveCount}
+        </div>
+      )
+    }
+  </div>
   <div class="flex flex-1 flex-col p-4">
     <h3 class="text-text mb-2 line-clamp-1 text-lg font-semibold">
       {recipe.title}
@@ -50,12 +65,17 @@ const description = markdownToPlainText(recipe.description);
       )
     }
     {
-      recipe.cook_time ? (
+      (recipe.cook_time || authorName) && (
         <div class="text-text-muted mt-auto flex items-center gap-1.5 pt-3 text-xs font-medium">
-          <Icon name={ui.clock} class="h-3.5 w-3.5" />
-          <span>{duration(recipe.cook_time)}</span>
+          {recipe.cook_time && (
+            <div class="flex items-center gap-1.5">
+              <Icon name={ui.clock} class="h-3.5 w-3.5" />
+              <span>{duration(recipe.cook_time)}</span>
+            </div>
+          )}
+          {authorName && <span class="ml-auto">av {authorName}</span>}
         </div>
-      ) : null
+      )
     }
   </div>
 </Card>

@@ -6,23 +6,27 @@ import PageHeader from "../components/PageHeader.astro";
 import RecipeCard from "../components/RecipeCard.astro";
 import { Button } from "../components/ui/Button";
 import { EmptyState } from "../components/ui/EmptyState";
+import { TagFilter } from "../components/TagFilter";
 import { requireSession } from "../lib/session";
 import type { RecipeListItem } from "../types";
 import { app, ui } from "../utils/icons";
 
 const { supabase, householdId } = requireSession(Astro.locals);
 
+// Tags to filter by, e.g. /recipes?tags=dessert&tags=vegetar
+const selectedTags = Astro.url.searchParams.getAll("tags").filter(Boolean);
+
 const [myRecipesRes, savedRecipesRes] = await Promise.all([
   supabase
     .from("recipes")
     .select(
-      "id, household_id, title, description, image_url, cook_time, created_at",
+      "id, household_id, title, description, image_url, cook_time, created_at, tags",
     )
     .eq("household_id", householdId),
   supabase
     .from("saved_recipes")
     .select(
-      "recipes(id, household_id, title, description, image_url, cook_time, created_at)",
+      "recipes(id, household_id, title, description, image_url, cook_time, created_at, tags)",
     )
     .eq("household_id", householdId),
 ]);
@@ -43,10 +47,22 @@ const savedRecipes = (
   .map((saved) => saved.recipes)
   .filter((recipe): recipe is RecipeListItem => recipe !== null);
 
-// Newest first
-const recipes = [...myRecipes, ...savedRecipes].sort(
-  (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-);
+const allTags = [
+  ...new Set([...myRecipes, ...savedRecipes].flatMap((r) => r.tags ?? [])),
+].sort((a, b) => a.localeCompare(b, "no"));
+
+// Newest first, and only recipes with at least one of the selected tags
+// (no selection means every recipe)
+const recipes = [...myRecipes, ...savedRecipes]
+  .filter(
+    (recipe) =>
+      selectedTags.length === 0 ||
+      selectedTags.some((tag) => recipe.tags?.includes(tag)),
+  )
+  .sort(
+    (a, b) =>
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+  );
 ---
 
 <BaseLayout title="Oppskrifter">
@@ -64,6 +80,8 @@ const recipes = [...myRecipes, ...savedRecipes].sort(
       </Fragment>
     </PageHeader>
 
+    <TagFilter client:load allTags={allTags} selected={selectedTags} />
+
     {
       recipes.length > 0 ? (
         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -73,6 +91,10 @@ const recipes = [...myRecipes, ...savedRecipes].sort(
             </a>
           ))}
         </div>
+      ) : selectedTags.length > 0 ? (
+        <EmptyState>
+          <p>Ingen oppskrifter har noen av de valgte taggene.</p>
+        </EmptyState>
       ) : (
         <EmptyState>
           <p>
