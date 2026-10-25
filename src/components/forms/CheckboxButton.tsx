@@ -8,6 +8,8 @@ interface CheckboxButtonProps {
   onChange?: () => void;
   label?: string;
   subLabel?: string;
+  /** Detail aligned to the far right of the row, e.g. a shop name */
+  endLabel?: string;
   className?: string;
 }
 
@@ -17,6 +19,7 @@ export const CheckboxButton = ({
   onChange,
   label,
   subLabel,
+  endLabel,
   className,
 }: CheckboxButtonProps) => (
   <button
@@ -60,5 +63,6 @@ export const CheckboxButton = ({
         )}
       </div>
     </div>
+    {endLabel && <span className="text-text-muted text-sm">{endLabel}</span>}
   </button>
 );
