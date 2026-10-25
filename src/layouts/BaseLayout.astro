@@ -63,13 +63,15 @@ const showNavigation = !!Astro.locals.user;
 
     <ClientRouter />
   </head>
-  <body
-    class:list={[
-      "bg-bg min-h-dvh",
-      showNavigation && "pb-[calc(5rem+env(safe-area-inset-bottom))]",
-    ]}
-  >
-    <slot />
+  <!--
+    The document itself never scrolls; only #app-scroll does, and the nav sits
+    below it in normal flow. iOS misplaces `position: fixed` elements after the
+    keyboard or the Safari toolbar resizes the viewport, so nothing here is fixed.
+  -->
+  <body class="bg-bg flex h-dvh flex-col overflow-hidden">
+    <div id="app-scroll" class="min-h-0 flex-1 overflow-y-auto">
+      <slot />
+    </div>
     {showNavigation && <MainNavigation />}
     <div
       id="nav-progress"
@@ -159,6 +161,54 @@ const showNavigation = !!Astro.locals.user;
           if (bar) bar.style.width = "100%";
           barTimer = window.setTimeout(hideBar, 100);
         });
+      }
+    </script>
+    <script>
+      {
+        const scroller = () => document.getElementById("app-scroll");
+
+        // The router saves and restores window scroll, which no longer moves.
+        // Keep #app-scroll's position in the history entry instead, so back
+        // and forward land where the page was left.
+        let saveTimer: number | undefined;
+        document.addEventListener(
+          "scroll",
+          (event) => {
+            if (event.target !== scroller()) return;
+            window.clearTimeout(saveTimer);
+            saveTimer = window.setTimeout(() => {
+              const top = scroller()?.scrollTop ?? 0;
+              history.replaceState({ ...history.state, appScrollTop: top }, "");
+            }, 100);
+          },
+          { capture: true, passive: true },
+        );
+        const restore = () => {
+          const top = history.state?.appScrollTop;
+          if (top) scroller()?.scrollTo(0, top);
+        };
+        document.addEventListener("astro:before-swap", () =>
+          window.clearTimeout(saveTimer),
+        );
+        document.addEventListener("astro:after-swap", restore);
+        restore();
+
+        // iOS pans the window to reveal a focused field even though the
+        // document can't scroll, and doesn't always pan back afterwards.
+        const unpan = () => {
+          if (window.scrollY === 0) return;
+          if (
+            document.activeElement?.matches(
+              "input, textarea, select, [contenteditable]",
+            )
+          )
+            return;
+          window.scrollTo(0, 0);
+        };
+        window.visualViewport?.addEventListener("resize", unpan);
+        document.addEventListener("focusout", () =>
+          window.setTimeout(unpan, 100),
+        );
       }
     </script>
     <script>
