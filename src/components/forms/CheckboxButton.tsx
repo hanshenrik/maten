@@ -58,11 +58,16 @@ export const CheckboxButton = ({
             {label}
           </span>
         )}
-        {subLabel && (
-          <span className="text-text-muted text-sm">{subLabel}</span>
-        )}
+        <div className="flex items-center justify-between gap-2">
+          {subLabel && (
+            <span className="text-text-muted text-sm">{subLabel}</span>
+          )}
+          {subLabel && endLabel && <span className="text-text-muted">·</span>}
+          {endLabel && (
+            <span className="text-text-muted text-sm">{endLabel}</span>
+          )}
+        </div>
       </div>
     </div>
-    {endLabel && <span className="text-text-muted text-sm">{endLabel}</span>}
   </button>
 );
