@@ -480,9 +480,9 @@ export const ShoppingList = ({
   );
 
   /** The list in the current sort order, split into shop groups if needed. */
-  const renderSorted = (list: ShoppingItem[]) => {
+  const renderSorted = (list: ShoppingItem[], groupByShop = true) => {
     const sorted = sortItems(list);
-    if (sortMode !== "shop") return renderItems(sorted);
+    if (sortMode !== "shop" || !groupByShop) return renderItems(sorted);
 
     const groups: { label: string; items: ShoppingItem[] }[] = [];
     for (const item of sorted) {
@@ -608,7 +608,7 @@ export const ShoppingList = ({
               summaryClassName="text-sm font-medium"
               title={`Dette har du lagt i kurven (${completedItems.length})`}
             >
-              {renderSorted(completedItems)}
+              {renderSorted(completedItems, false)}
             </Details>
           </div>
         )}
