@@ -35,7 +35,7 @@
     "jose": "^6.2.3",
     "marked": "^18.0.5",
     "motion": "^12.38.0",
-    "react": "^19.2.5",
+    "react": "^19.3.1",
     "react-dom": "^19.2.5",
     "supabase": "^2.122.0",
     "tailwind-merge": "^3.7.0",
