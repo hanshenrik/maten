@@ -27,7 +27,7 @@
     "@tiptap/react": "^3.32.0",
     "@tiptap/starter-kit": "^3.26.1",
     "@vercel/analytics": "^2.0.1",
-    "@vercel/speed-insights": "^2.0.0",
+    "@vercel/speed-insights": "^2.1.0",
     "astro": "^7.4.12",
     "astro-icon": "^1.1.5",
     "clsx": "^2.1.1",
