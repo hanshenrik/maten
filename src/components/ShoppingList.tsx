@@ -383,7 +383,7 @@ export const ShoppingList = ({
     return sorted;
   };
 
-  const renderItems = (list: ShoppingItem[]) => (
+  const renderItems = (list: ShoppingItem[], showShop = true) => (
     <ul className="space-y-2">
       {list.map((item) =>
         editing?.id === item.id ? (
@@ -446,7 +446,7 @@ export const ShoppingList = ({
               onChange={() => handleToggle(item)}
               label={item.name}
               subLabel={itemSubLabel(item)}
-              endLabel={itemEndLabel(item)}
+              endLabel={showShop ? itemEndLabel(item) : undefined}
               className="pr-12"
             />
             <DotMenu
@@ -484,6 +484,8 @@ export const ShoppingList = ({
     const sorted = sortItems(list);
     if (sortMode !== "shop" || !groupByShop) return renderItems(sorted);
 
+    const renderGrouped = (group: ShoppingItem[]) => renderItems(group, false);
+
     const groups: { label: string; items: ShoppingItem[] }[] = [];
     for (const item of sorted) {
       const label = shopOf(item) || "Uten butikk";
@@ -495,7 +497,7 @@ export const ShoppingList = ({
     return groups.map((group) => (
       <div key={group.label} className="space-y-2">
         <h3 className="text-text-muted text-sm font-medium">{group.label}</h3>
-        {renderItems(group.items)}
+        {renderGrouped(group.items)}
       </div>
     ));
   };
